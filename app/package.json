@@ -1,0 +1,35 @@
+{
+  "name": "sketchy-calendar",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist/patchwork.js",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "push": "vite build && jacquard push",
+    "watch": "nodemon --watch src -e js,tsx,ts,tsx,css,json --exec 'vite build && jacquard push'"
+  },
+  "devDependencies": {
+    "@patchwork/sdk": "file:../patchwork/sdk",
+    "@types/gapi": "^0.0.47",
+    "@types/gapi.client.calendar-v3": "^0.0.4",
+    "@types/google.accounts": "^0.0.15",
+    "@types/react": "^19.1.2",
+    "nodemon": "^3.1.10",
+    "typescript": "~5.6.2",
+    "vite": "^6.3.3",
+    "vite-plugin-top-level-await": "^1.5.0",
+    "vite-plugin-wasm": "^3.4.1",
+    "vite-tsconfig-paths": "^5.1.4"
+  },
+  "dependencies": {
+    "@automerge/automerge": "2.2.9-alpha.4",
+    "@automerge/automerge-repo": "2.0.0-alpha.27",
+    "@automerge/automerge-repo-network-websocket": "2.0.0-alpha.27",
+    "@automerge/automerge-repo-react-hooks": "2.0.0-alpha.27",
+    "@automerge/automerge-repo-storage-indexeddb": "2.0.0-alpha.27",
+    "react": "^18.3.1"
+  }
+}
