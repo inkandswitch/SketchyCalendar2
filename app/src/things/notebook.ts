@@ -1,8 +1,13 @@
 import { Id, generateId } from "id";
 
-import { PaperInstance, Paper, createPaper } from "things/paper";
+import {
+  Paper,
+  PaperInstance,
+  createPaper,
+  createPaperInstance,
+} from "things/paper";
 import { Stroke, Text } from "things/ink";
-import { ThingMap, thingIds } from "things/thingmap";
+import { ThingMap, thingIds, things } from "things/thingmap";
 
 export type Notebook = {
   pages: ThingMap<Page>;
@@ -20,7 +25,7 @@ export type Page = {
 };
 
 export function createEmptyNotebook(): Notebook {
-  const notebook = {
+  const notebook: Notebook = {
     pages: {},
     papers: {},
     paperInstances: {},
@@ -29,13 +34,36 @@ export function createEmptyNotebook(): Notebook {
   };
   // Build an example notebook with a few pages
   const a = addEmptyPageToNotebook(notebook, null, 0);
+  // Add a piece of paper to the first page
+  const child_paper = addEmptyPaperToNotebook(
+    notebook,
+    notebook.pages[a]!.paper,
+    100,
+    100,
+    100,
+    100,
+    0,
+  );
+  // Create a page underneath the first page
   const aa = addEmptyPageToNotebook(notebook, a, 0);
+
+  // Add a transcluded paper to the first page
+  addPaperInstanceToNotebook(
+    notebook,
+    notebook.paperInstances[child_paper]!.paper,
+    notebook.pages[aa]!.paper,
+    200,
+    200,
+    0,
+  );
+
   const ab = addEmptyPageToNotebook(notebook, a, 1);
   const ac = addEmptyPageToNotebook(notebook, a, 2);
   const b = addEmptyPageToNotebook(notebook, null, 1);
   const ba = addEmptyPageToNotebook(notebook, b, 0);
   const bb = addEmptyPageToNotebook(notebook, b, 1);
   const bc = addEmptyPageToNotebook(notebook, b, 2);
+  const baa = addEmptyPageToNotebook(notebook, ba, 0);
   return notebook;
 }
 
@@ -64,8 +92,40 @@ export function addEmptyPageToNotebook(
   return page.id;
 }
 
+export function addEmptyPaperToNotebook(
+  notebook: Notebook,
+  parentId: Id<Paper>,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  siblingIndex: number,
+) {
+  const paper = createPaper(width, height);
+  notebook.papers[paper.id] = paper;
+  const instance = createPaperInstance(paper.id, parentId, x, y, siblingIndex);
+  notebook.paperInstances[instance.id] = instance;
+  return instance.id;
+}
+
+export function addPaperInstanceToNotebook(
+  notebook: Notebook,
+  paperId: Id<Paper>,
+  parentId: Id<Paper>,
+  x: number,
+  y: number,
+  siblingIndex: number,
+) {
+  const instance = createPaperInstance(paperId, parentId, x, y, siblingIndex);
+  notebook.paperInstances[instance.id] = instance;
+  return instance.id;
+}
+
 export function findNotebookRootPages(notebook: Notebook): Array<Id<Page>> {
-  return thingIds(notebook.pages).filter((pageId) => {
-    return notebook.pages[pageId]!.parent == null;
-  });
+  return things(notebook.pages)
+    .filter((page) => {
+      return page.parent == null;
+    })
+    .sort((a, b) => a.siblingIndex - b.siblingIndex)
+    .map((p) => p.id);
 }

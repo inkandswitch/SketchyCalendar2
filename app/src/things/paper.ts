@@ -15,6 +15,7 @@ export type PaperInstance = {
   id: Id<PaperInstance>;
   paper: Id<Paper>;
   parent: Id<Paper>;
+  siblingIndex: number;
   x: number;
   y: number;
 };
@@ -25,5 +26,22 @@ export function createPaper(width: number, height: number) {
     width,
     height,
     background: null,
+  };
+}
+
+export function createPaperInstance(
+  paper: Id<Paper>,
+  parent: Id<Paper>,
+  x: number,
+  y: number,
+  siblingIndex: number,
+) {
+  return {
+    id: generateId<PaperInstance>(),
+    paper,
+    parent,
+    x,
+    y,
+    siblingIndex,
   };
 }

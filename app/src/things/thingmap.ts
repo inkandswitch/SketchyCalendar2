@@ -14,20 +14,31 @@ export function things<T>(map: ThingMap<T>): Array<T> {
 
 interface HasParent<Parent> {
   parent: Id<Parent> | null;
+  siblingIndex: number;
 }
 
 // Build a map of parent to children for a given thingmap
-export function buildThingChildrenMap<T extends HasParent<T>>(
-  map: ThingMap<T>,
-): Map<Id<T>, Array<T>> {
+export function buildThingChildrenMap<C extends HasParent<P>, P>(
+  childThings: ThingMap<C>,
+): Map<Id<P>, Array<C>> {
   const childrenMap = new Map();
-  for (const thing of things(map)) {
+  for (const thing of things(childThings)) {
     if (thing.parent) {
       if (!childrenMap.has(thing.parent)) {
         childrenMap.set(thing.parent, []);
       }
       childrenMap.get(thing.parent)!.push(thing);
     }
+  }
+
+  // Sort children
+  for (const parentId of childrenMap.keys()) {
+    childrenMap.set(
+      parentId,
+      childrenMap
+        .get(parentId)
+        .sort((a: C, b: C) => a.siblingIndex - b.siblingIndex),
+    );
   }
   return childrenMap;
 }
