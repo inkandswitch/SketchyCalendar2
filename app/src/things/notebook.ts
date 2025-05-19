@@ -27,6 +27,7 @@ export function createEmptyNotebook(): Notebook {
     strokes: {},
     text: {},
   };
+  // Build an example notebook with a few pages
   const a = addEmptyPageToNotebook(notebook, null, 0);
   const aa = addEmptyPageToNotebook(notebook, a, 0);
   const ab = addEmptyPageToNotebook(notebook, a, 1);
