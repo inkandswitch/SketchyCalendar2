@@ -7,6 +7,7 @@ import { Vec } from "lib/vec";
 import Render, { fill, fillAndStroke, font } from "lib/render";
 
 import { findNotebookRootPages, Notebook, Page } from "things/notebook";
+import { Text } from "things/ink";
 import { buildThingChildrenMap } from "things/thingmap";
 import { Paper, PaperInstance } from "things/paper";
 
@@ -18,6 +19,7 @@ export class SceneGraph {
   notebook!: Notebook;
   pageChildrenMap: Map<Id<Page>, Array<Page>>;
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstance>>;
+  paperTextsMap: Map<Id<Paper>, Array<Text>>;
   zoomView: Array<Array<Page>>;
 
   // View state
@@ -41,6 +43,7 @@ export class SceneGraph {
     // Map each page to its children
     this.pageChildrenMap = buildThingChildrenMap(notebook.pages);
     this.paperChildrenMap = buildThingChildrenMap(notebook.paperInstances);
+    this.paperTextsMap = buildThingChildrenMap(notebook.texts);
 
     // Build the zoom view, sort into levels
     this.zoomView = [];
@@ -93,10 +96,10 @@ export class SceneGraph {
       offset.y,
       paper.width,
       paper.height,
-      fillAndStroke("white", "grey", 1),
+      fillAndStroke("white", "grey", 1)
     );
 
-    r.text(paper.id, offset.x + 5, offset.y + 32, font("32px Arial", "red"));
+    //  r.text(paper.id, offset.x + 5, offset.y + 32, font("32px Arial", "red"));
 
     const children_papers = this.paperChildrenMap.get(paper.id);
     if (children_papers) {
@@ -106,5 +109,17 @@ export class SceneGraph {
         this.renderPaper(r, childPaper, childOffset);
       }
     }
+
+    const children_texts = this.paperTextsMap.get(paper.id);
+    if (children_texts) {
+      for (const text of children_texts) {
+        this.renderText(r, text, offset);
+      }
+    }
+  }
+
+  renderText(r: Render, text: Text, offset: Point) {
+    const textOffset = Vec.add(offset, text);
+    r.text(text.value, textOffset.x, textOffset.y, font(text.font, text.color));
   }
 }

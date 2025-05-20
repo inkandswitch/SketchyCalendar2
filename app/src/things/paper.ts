@@ -34,7 +34,7 @@ export function createPaperInstance(
   parent: Id<Paper>,
   x: number,
   y: number,
-  siblingIndex: number,
+  siblingIndex: number
 ) {
   return {
     id: generateId<PaperInstance>(),
