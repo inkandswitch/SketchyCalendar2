@@ -33,15 +33,19 @@ export class InputSystem {
 
   constructor() {
     this.buffer = new Array();
-    // Initialize the input system
-    this.initFallbackEventListeners();
 
-    (window as any).wrapperEvents = (events: WrapperEvent[]) => {
-      // From now on, the Wrapper should call the function named handleWrapperEvents
-      (window as any).wrapperEvents = this.handleWrapperEvents.bind(this);
-      this.clearFallbackEventListeners();
-      this.handleWrapperEvents(events);
-    };
+    (window as any).wrapperEvents = this.handleWrapperEvents.bind(this);
+
+    // The fallback event handlers cause some weirdness in the app
+    // // Initialize the input system
+    // this.initFallbackEventListeners();
+
+    // (window as any).wrapperEvents = (events: WrapperEvent[]) => {
+    //   // From now on, the Wrapper should call the function named handleWrapperEvents
+    //   (window as any).wrapperEvents = this.handleWrapperEvents.bind(this);
+    //   this.clearFallbackEventListeners();
+    //   this.handleWrapperEvents(events);
+    // };
   }
 
   initFallbackEventListeners() {
