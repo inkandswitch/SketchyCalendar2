@@ -25,12 +25,21 @@ export async function initNotebook() {
   if (!documentId) {
     notebook = Notebook.create(repo);
 
-    notebook.createPaper({
+    const myPaper = notebook.createPaper({
       parentId: "foo" as Id<Paper>,
       x: 0,
       y: 0,
       width: window.innerWidth,
       height: window.innerHeight,
+      siblingIndex: 0,
+      background: null,
+    });
+
+    myPaper.addNewPaper({
+      x: 10,
+      y: 10,
+      width: 200,
+      height: 200,
       siblingIndex: 0,
       background: null,
     });

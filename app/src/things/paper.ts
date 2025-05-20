@@ -45,6 +45,8 @@ export class Paper {
       PaperInstance.fromId(state, props.id)
     );
 
+    console.log(children);
+
     const props = state.props.papers[id];
     const paper = new Paper(state, props, children);
     state.objCache.set(props.id, paper);
@@ -62,6 +64,20 @@ export class Paper {
     return paper;
   }
 
+  addNewPaper(props: Omit<NewPaperInstanceProps, "parentId">) {
+    const paperInstance = PaperInstance.create(this.#state, {
+      parentId: this.id,
+      siblingIndex: props.siblingIndex,
+      x: props.x,
+      y: props.y,
+      background: props.background,
+      width: props.width,
+      height: props.height,
+    });
+
+    return paperInstance;
+  }
+
   render(r: Render, position: Point) {
     r.rect(
       position.x,
@@ -70,6 +86,10 @@ export class Paper {
       this.height,
       fillAndStroke("white", "grey", 1)
     );
+
+    for (const child of this.children) {
+      child.render(r, position);
+    }
   }
 }
 
@@ -117,6 +137,7 @@ export class PaperInstance {
 
     const props = state.props.paperInstances[id];
     const paper = Paper.fromId(state, props.paperId);
+
     return new PaperInstance(state, props, paper);
   }
 
@@ -127,6 +148,8 @@ export class PaperInstance {
       height: props.height,
       background: props.background,
     });
+
+    console.log("created paper", paper);
 
     const paperInstanceProps: PaperInstanceProps = {
       id: generateId<PaperInstance>(),
@@ -142,6 +165,10 @@ export class PaperInstance {
     });
 
     return new PaperInstance(state, paperInstanceProps, paper);
+  }
+
+  addNewPaper(props: Omit<NewPaperInstanceProps, "parentId">) {
+    return this.paper.addNewPaper(props);
   }
 
   render(r: Render, offset: Point) {

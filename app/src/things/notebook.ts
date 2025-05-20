@@ -69,6 +69,7 @@ export class Notebook {
     const props = this.#state.docHandle.doc();
 
     this.#state.props = props;
+    this.#state.objCache.clear();
     this.#state.paperChildrenMap = buildThingChildrenMap(props.paperInstances);
   }
 
