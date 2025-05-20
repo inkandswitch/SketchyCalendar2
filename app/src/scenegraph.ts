@@ -9,7 +9,7 @@ import Render, { fill, fillAndStroke, font } from "lib/render";
 import { findNotebookRootPages, Notebook, Page } from "things/notebook";
 import { Text } from "things/ink";
 import { buildThingChildrenMap } from "things/thingmap";
-import { Paper, PaperInstanceProps } from "things/paper";
+import { PaperProps, PaperInstanceProps } from "things/paper";
 
 // type ScenePage = {
 //   id: Id<Page>;
@@ -80,12 +80,10 @@ export class SceneGraph {
     //   }
     // }
 
-    for (const paperInstance of Object.values(this.notebook.paperInstances)) {
-      paperInstance.render(r, {
-        x: 0,
-        y: 0,
-      });
-    }
+    this.notebook.rootPaper().render(r, {
+      x: 0,
+      y: 0,
+    });
 
     r.endOffset();
   }

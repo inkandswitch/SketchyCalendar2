@@ -4,30 +4,46 @@ import { DocHandle, Repo } from "@automerge/automerge-repo";
 import { Stroke, Text, createText } from "things/ink";
 import {
   NewPaperInstanceProps,
-  Paper,
+  PaperProps,
   PaperInstance,
   PaperInstanceProps,
+  Paper,
 } from "things/paper";
 import { ThingMap, buildThingChildrenMap, things } from "things/thingmap";
+import { Page, PageProps } from "./page";
 
 export type NotebookProps = {
   pages: ThingMap<Page>;
-  papers: ThingMap<Paper>;
+  papers: ThingMap<PaperProps>;
   paperInstances: Record<Id<PaperInstance>, PaperInstanceProps>;
   strokes: ThingMap<Stroke>;
   texts: ThingMap<Text>;
 };
 
+export type State = {
+  docHandle: DocHandle<NotebookProps>;
+  props: NotebookProps;
+  objCache: Map<string, any>;
+  paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>>;
+};
+
 export class Notebook {
-  #docHandle: DocHandle<NotebookProps>;
+  #state: State;
 
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>> = new Map();
-  paperInstances: ThingMap<PaperInstance> = {};
-  papers: ThingMap<Paper> = {};
-  pages: ThingMap<Page> = {};
+  paperInstances: Map<Id<PaperInstance>, PaperInstance> = new Map();
+
+  papers: Map<Id<PaperProps>, Paper> = new Map();
 
   constructor(docHandle: DocHandle<NotebookProps>) {
-    this.#docHandle = docHandle;
+    const props = docHandle.doc();
+
+    this.#state = {
+      docHandle,
+      props,
+      objCache: new Map(),
+      paperChildrenMap: new Map(),
+    };
     this.rebuild = this.rebuild.bind(this);
 
     docHandle.addListener("change", this.rebuild);
@@ -46,61 +62,27 @@ export class Notebook {
   }
 
   destroy() {
-    this.#docHandle.removeListener("change", this.rebuild);
+    this.#state.docHandle.removeListener("change", this.rebuild);
   }
 
   rebuild() {
-    const {
-      paperInstances: rawPaperInstances,
-      papers,
-      pages,
-    } = this.#docHandle.doc();
+    const props = this.#state.docHandle.doc();
 
-    this.pages = pages;
-
-    this.papers = papers;
-    this.paperChildrenMap = buildThingChildrenMap(rawPaperInstances);
-    for (const paperInstanceProps of Object.values(rawPaperInstances)) {
-      this.paperInstances[paperInstanceProps.id] =
-        this.#getPaperInstance(paperInstanceProps);
-    }
-  }
-
-  #getPaperInstance(paperInstanceProps: PaperInstanceProps): PaperInstance {
-    let paperInstance = this.paperInstances[paperInstanceProps.id];
-
-    if (paperInstance) {
-      return paperInstance;
-    }
-
-    const paper = this.papers[paperInstanceProps.paperId];
-    const children = (
-      this.paperChildrenMap.get(paperInstanceProps.paperId) ?? []
-    ).map((childPaperInstanceProps) =>
-      this.#getPaperInstance(childPaperInstanceProps)
-    );
-
-    paperInstance = new PaperInstance(
-      this.#docHandle,
-      paperInstanceProps,
-      paper,
-      children
-    );
-    this.paperInstances[paperInstanceProps.id] = paperInstance;
-    return paperInstance;
+    this.#state.props = props;
+    this.#state.paperChildrenMap = buildThingChildrenMap(props.paperInstances);
   }
 
   createPaper(props: NewPaperInstanceProps): PaperInstance {
-    return PaperInstance.create(this.#docHandle, props);
+    return PaperInstance.create(this.#state, props);
+  }
+
+  rootPaper() {
+    return PaperInstance.fromId(
+      this.#state,
+      Object.values(this.#state.props.paperInstances)[0].id
+    );
   }
 }
-
-export type Page = {
-  id: Id<Page>;
-  paper: Id<Paper>;
-  parentId: Id<Page> | null; // Pages with null as a parent are at the root of the notebook
-  siblingIndex: number; // Useful for ordering siblings
-};
 
 // export function createEmptyNotebook(
 //   pageWidth: number,
@@ -236,7 +218,7 @@ function getWeeksInMonth(year: number, month: number): number {
 }
 
 export function createPage(
-  paper: Id<Paper>,
+  paper: Id<PaperProps>,
   parent: Id<Page> | null,
   siblingIndex: number
 ): Page {
@@ -270,7 +252,7 @@ export function addEmptyPaperToNotebook({
   siblingIndex,
 }: {
   notebook: Notebook;
-  parent: Id<Paper>;
+  parent: Id<PaperProps>;
   x: number;
   y: number;
   width: number;
@@ -293,8 +275,8 @@ export function addPaperInstanceToNotebook({
   siblingIndex,
 }: {
   notebook: Notebook;
-  paperId: Id<Paper>;
-  parentId: Id<Paper>;
+  paperId: Id<PaperProps>;
+  parentId: Id<PaperProps>;
   x: number;
   y: number;
   siblingIndex: number;
@@ -315,7 +297,7 @@ export function addTextToNotebook({
   color,
 }: {
   notebook: Notebook;
-  parent: Id<Paper>;
+  parent: Id<PaperProps>;
   siblingIndex: number;
   value: string;
   x: number;

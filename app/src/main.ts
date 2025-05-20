@@ -8,7 +8,7 @@ import Render from "lib/render";
 import tick from "lib/tick";
 import { SceneGraph } from "scenegraph";
 import { Notebook, NotebookProps } from "things/notebook";
-import { Paper } from "things/paper";
+import { Paper, PaperProps } from "things/paper";
 
 console.log("boop");
 

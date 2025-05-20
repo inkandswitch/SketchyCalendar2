@@ -1,20 +1,77 @@
 import { DocHandle } from "@automerge/automerge-repo";
 import { Id, generateId } from "id";
-import { NotebookProps } from "./notebook";
+import { NotebookProps, State } from "./notebook";
 import Render, { fillAndStroke } from "lib/render";
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 
-export type Paper = {
+export type PaperProps = {
   id: Id<Paper>;
   width: number;
   height: number;
-  background: null | string | Id<Paper> | CalendarBackground;
+  background: null | string | Id<PaperProps> | CalendarBackground;
 };
 
 export type CalendarBackground = {
   type: "Calendar";
 };
+
+export class Paper {
+  #state: State;
+
+  id: Id<Paper>;
+  width: number;
+  height: number;
+  background: null | string | Id<PaperProps> | CalendarBackground;
+
+  children: Array<PaperInstance>;
+
+  constructor(state: State, props: PaperProps, children: Array<PaperInstance>) {
+    this.#state = state;
+    this.id = props.id;
+    this.width = props.width;
+    this.height = props.height;
+    this.background = props.background;
+    this.children = children;
+  }
+
+  static fromId(state: State, id: Id<Paper>) {
+    const cached = state.objCache.get(id) as Paper | undefined;
+    if (cached) {
+      return cached;
+    }
+
+    const children = (state.paperChildrenMap.get(id) ?? []).map((props) =>
+      PaperInstance.fromId(state, props.id)
+    );
+
+    const props = state.props.papers[id];
+    const paper = new Paper(state, props, children);
+    state.objCache.set(props.id, paper);
+    return paper;
+  }
+
+  static create(state: State, props: PaperProps) {
+    const paper = new Paper(state, props, []);
+
+    state.docHandle.change((state) => {
+      state.papers[props.id] = props;
+    });
+
+    state.objCache.set(props.id, paper);
+    return paper;
+  }
+
+  render(r: Render, position: Point) {
+    r.rect(
+      position.x,
+      position.y,
+      this.width,
+      this.height,
+      fillAndStroke("white", "grey", 1)
+    );
+  }
+}
 
 export type PaperInstanceProps = {
   id: Id<PaperInstance>;
@@ -29,34 +86,49 @@ export type NewPaperInstanceProps = Omit<
   PaperInstanceProps,
   "id" | "paperId"
 > & {
-  background: null | string | Id<Paper> | CalendarBackground;
+  background: null | string | Id<PaperProps> | CalendarBackground;
   width: number;
   height: number;
 };
 
 export class PaperInstance {
-  id: Id<PaperInstance>;
-  children: Array<PaperInstance>;
-  #docHandle: DocHandle<NotebookProps>;
+  #state: State;
 
+  id: Id<PaperInstance>;
   x: number;
   y: number;
-  width: number;
-  height: number;
-  background: null | string | Id<Paper> | CalendarBackground;
 
-  static create(
-    docHandle: DocHandle<NotebookProps>,
-    props: NewPaperInstanceProps
-  ) {
-    const paper: Paper = {
+  paper: Paper;
+
+  constructor(state: State, props: PaperInstanceProps, paper: Paper) {
+    this.#state = state;
+
+    this.id = props.id;
+    this.x = props.x;
+    this.y = props.y;
+    this.paper = paper;
+  }
+
+  static fromId(state: State, id: Id<PaperInstance>): PaperInstance {
+    const cached = state.objCache.get(id) as PaperInstance | undefined;
+    if (cached) {
+      return cached;
+    }
+
+    const props = state.props.paperInstances[id];
+    const paper = Paper.fromId(state, props.paperId);
+    return new PaperInstance(state, props, paper);
+  }
+
+  static create(state: State, props: NewPaperInstanceProps): PaperInstance {
+    const paper = Paper.create(state, {
       id: generateId<Paper>(),
       width: props.width,
       height: props.height,
       background: props.background,
-    };
+    });
 
-    const paperInstance: PaperInstanceProps = {
+    const paperInstanceProps: PaperInstanceProps = {
       id: generateId<PaperInstance>(),
       paperId: paper.id,
       parentId: props.parentId,
@@ -65,40 +137,16 @@ export class PaperInstance {
       y: props.y,
     };
 
-    docHandle.change((state) => {
-      state.paperInstances[paperInstance.id] = paperInstance;
-      state.papers[paper.id] = paper;
+    state.docHandle.change((state) => {
+      state.paperInstances[paperInstanceProps.id] = paperInstanceProps;
     });
 
-    return new PaperInstance(docHandle, paperInstance, paper, []);
-  }
-
-  constructor(
-    docHandle: DocHandle<NotebookProps>,
-    paperInstance: PaperInstanceProps,
-    paperProps: Paper,
-    children: Array<PaperInstance>
-  ) {
-    this.#docHandle = docHandle;
-
-    this.id = paperInstance.id;
-    this.x = paperInstance.x;
-    this.y = paperInstance.y;
-    this.width = paperProps.width;
-    this.height = paperProps.height;
-    this.background = paperProps.background;
-    this.children = children;
+    return new PaperInstance(state, paperInstanceProps, paper);
   }
 
   render(r: Render, offset: Point) {
     const position = Vec.add(offset, this);
 
-    r.rect(
-      position.x,
-      position.y,
-      this.width,
-      this.height,
-      fillAndStroke("white", "grey", 1)
-    );
+    this.paper.render(r, position);
   }
 }
