@@ -135,6 +135,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     return this.#state.docHandle.documentId;
   }
 
+  getPageById(id: Id<Page>): Page {
+    return Page.fromId(this.#state, id);
+  }
+
   getStrokeById(id: Id<Stroke>): Stroke {
     return Stroke.fromId(this.#state, id);
   }

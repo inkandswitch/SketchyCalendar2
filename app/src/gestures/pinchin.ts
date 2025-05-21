@@ -53,13 +53,13 @@ export default class PinchIn implements GestureHandler {
         }
         if (this.state == "pinching") {
           this.current_distance = Math.abs(
-            this.b!.current.x - this.a!.current.x,
+            this.b!.current.x - this.a!.current.x
           );
 
           // Handle pinch in moved
           let percentage = this.current_distance! / window.innerWidth!;
           if (percentage > 1) percentage = 1;
-          if (percentage < 0.33) percentage = 0.33;
+          if (percentage < 0) percentage = 0;
           this.view.zoomLevel.setTarget(percentage);
         }
 
@@ -81,10 +81,10 @@ export default class PinchIn implements GestureHandler {
         if ((this.state = "ended")) {
           this.state = "init";
           let percentage = this.current_distance! / window.innerWidth!;
-          if (percentage > 0.9) {
+          if (percentage > 0.8) {
             percentage = 1;
           } else {
-            percentage = 0.33;
+            percentage = 0;
           }
           this.view.zoomLevel.setTarget(percentage);
         }

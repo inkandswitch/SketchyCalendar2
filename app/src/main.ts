@@ -55,14 +55,17 @@ const view = new View(notebook);
 
 console.log(notebook.rootPages);
 
-const gestures = new GestureSystem([new Draw(view, notebook)]);
+const gestures = new GestureSystem([
+  new Draw(view, notebook),
+  new PinchIn(view),
+]);
 
 //const swipe = new SwipeSystem(state.sceneGraph);
 
 tick((dt) => {
   // Update
   gestures.update(input.buffer);
-  //view.update(dt);
+  view.update(dt);
   input.clear(); // cleanup the input buffer for the next round
 
   // Render
