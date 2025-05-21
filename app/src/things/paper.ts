@@ -4,7 +4,7 @@ import Render, { fill, fillAndStroke, font, stroke } from "lib/render";
 import { State } from "./notebook";
 import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
-import { Stroke } from "./ink";
+import { Stroke, StrokeProps } from "./ink";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -128,6 +128,10 @@ export class Paper {
     });
   }
 
+  addNewStroke() {
+    return Stroke.create(this.#state, this.id);
+  }
+
   render(r: Render, position: Point) {
     r.rect(
       position.x,
@@ -137,16 +141,21 @@ export class Paper {
       fillAndStroke("white", "black", 1)
     );
 
+    for (const text of this.texts) {
+      text.render(r, position);
+    }
+
+    for (const stroke of this.strokes) {
+      stroke.render(r, position);
+    }
+
+    // Render last so they appear on top
     if (isCalendarBackground(this.background)) {
       renderCalendarBackground(r, this, position, this.background);
     }
 
     for (const child of this.children) {
       child.render(r, position);
-    }
-
-    for (const text of this.texts) {
-      text.render(r, position);
     }
   }
 }

@@ -1,5 +1,5 @@
 import { GestureHandler, TouchEvent } from "gesturesystem";
-import { SceneGraph } from "view";
+import { View } from "view";
 
 export default class PinchIn implements GestureHandler {
   a: TouchEvent | null = null;
@@ -10,10 +10,10 @@ export default class PinchIn implements GestureHandler {
   state: "init" | "pinching" | "ended" = "init";
   current_distance: number | null = null;
 
-  sceneGraph: SceneGraph;
+  view: View;
 
-  constructor(sceneGraph: SceneGraph) {
-    this.sceneGraph = sceneGraph;
+  constructor(view: View) {
+    this.view = view;
   }
 
   onEvent(e: TouchEvent) {
@@ -53,14 +53,14 @@ export default class PinchIn implements GestureHandler {
         }
         if (this.state == "pinching") {
           this.current_distance = Math.abs(
-            this.b!.current.x - this.a!.current.x
+            this.b!.current.x - this.a!.current.x,
           );
 
           // Handle pinch in moved
           let percentage = this.current_distance! / window.innerWidth!;
           if (percentage > 1) percentage = 1;
           if (percentage < 0.33) percentage = 0.33;
-          this.sceneGraph.zoomLevel.setTarget(percentage);
+          this.view.zoomLevel.setTarget(percentage);
         }
 
         break;
@@ -86,7 +86,7 @@ export default class PinchIn implements GestureHandler {
           } else {
             percentage = 0.33;
           }
-          this.sceneGraph.zoomLevel.setTarget(percentage);
+          this.view.zoomLevel.setTarget(percentage);
         }
         // Handle pinch in ended
         break;

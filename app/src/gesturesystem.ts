@@ -70,11 +70,11 @@ export class GestureSystem {
           touch.delta = Vec.sub(touch.current, touch.previous);
           touch.totalDelta = Vec.sub(touch.current, touch.start);
           touch.previous = touch.current;
-          delete this.touches[e.id];
           touchEvents.push({
             ...this.touches[e.id],
             ...e,
           });
+          delete this.touches[e.id];
           break;
         }
       }

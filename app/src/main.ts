@@ -2,8 +2,12 @@ import { DocumentId, Repo } from "@automerge/automerge-repo";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import { getYear } from "date-fns";
-import PinchIn from "gestures/pinchin";
+
 import { GestureSystem } from "gesturesystem";
+import PinchIn from "gestures/pinchin";
+import Draw from "gestures/draw";
+
+import { Id } from "id";
 import { InputSystem } from "inputsystem";
 import Render from "lib/render";
 import tick from "lib/tick";
@@ -51,7 +55,7 @@ const view = new View(notebook);
 
 console.log(notebook.rootPages);
 
-const gestures = new GestureSystem([new PinchIn(view)]);
+const gestures = new GestureSystem([new Draw(view, notebook)]);
 
 //const swipe = new SwipeSystem(state.sceneGraph);
 

@@ -1,14 +1,5 @@
-import { Id } from "id";
-import { DocHandle, Repo } from "@automerge/automerge-repo";
-import { ThingMap, buildThingChildrenMap } from "things/thingmap";
 import { EventEmitter } from "eventemitter3";
-import { NewPaperInstanceProps, PaperInstanceProps } from "./paperinstance";
-import { PaperInstance } from "./paperinstance";
-import { Paper } from "./paper";
-import { NewPageProps, Page, PageProps } from "./page";
-import { PaperProps } from "./paper";
-import { StrokeProps } from "./ink";
-import { Text, TextProps } from "./text";
+
 import {
   isMonday,
   nextMonday,
@@ -20,11 +11,26 @@ import {
   formatISO,
 } from "date-fns";
 
+import { Id } from "id";
+import { DocHandle, Repo } from "@automerge/automerge-repo";
+import { ThingMap, buildThingChildrenMap } from "things/thingmap";
+
+import {
+  NewPaperInstanceProps,
+  PaperInstanceProps,
+  PaperInstance,
+} from "things/paperinstance";
+import { NewPageProps, Page, PageProps } from "things/page";
+
+import { PaperProps, Paper } from "things/paper";
+import { StrokeProps, Stroke } from "things/ink";
+import { Text, TextProps } from "things/text";
+
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;
   papers: Record<Id<Paper>, PaperProps>;
   paperInstances: Record<Id<PaperInstance>, PaperInstanceProps>;
-  strokes: Record<Id<StrokeProps>, StrokeProps>;
+  strokes: Record<Id<Stroke>, StrokeProps>;
   texts: Record<Id<Text>, TextProps>;
 };
 
@@ -127,6 +133,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   get documentId(): string {
     return this.#state.docHandle.documentId;
+  }
+
+  getStrokeById(id: Id<Stroke>): Stroke {
+    return Stroke.fromId(this.#state, id);
   }
 
   get state(): State {
