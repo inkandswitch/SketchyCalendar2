@@ -12,7 +12,8 @@ import {
   PageProps,
   NewPageProps,
 } from "things/paper";
-import { ThingMap, buildThingChildrenMap, things } from "things/thingmap";
+import { ThingMap, buildThingChildrenMap } from "things/thingmap";
+import { EventEmitter } from "eventemitter3";
 
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;
@@ -25,12 +26,18 @@ export type NotebookProps = {
 export type State = {
   docHandle: DocHandle<NotebookProps>;
   props: NotebookProps;
-  objCache: Map<string, any>;
+  pages: Map<Id<Page>, Page>;
+  papers: Map<Id<Paper>, Paper>;
+  paperInstances: Map<Id<PaperInstance>, PaperInstance>;
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>>;
   pageChildrenMap: Map<Id<Page>, Array<PageProps>>;
 };
 
-export class Notebook {
+type NotebookEvents = {
+  changed: () => void;
+};
+
+export class Notebook extends EventEmitter<NotebookEvents> {
   #state: State;
 
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>> = new Map();
@@ -39,18 +46,21 @@ export class Notebook {
   papers: Map<Id<PaperProps>, Paper> = new Map();
 
   constructor(docHandle: DocHandle<NotebookProps>) {
+    super();
+
     const props = docHandle.doc();
 
     this.#state = {
       docHandle,
       props,
-      objCache: new Map(),
+      pages: new Map(),
+      papers: new Map(),
+      paperInstances: new Map(),
       paperChildrenMap: new Map(),
       pageChildrenMap: new Map(),
     };
-    this.rebuild = this.rebuild.bind(this);
 
-    docHandle.addListener("change", this.rebuild);
+    docHandle.addListener("change", this.#onChange);
   }
 
   static create(repo: Repo) {
@@ -65,17 +75,28 @@ export class Notebook {
     return new Notebook(docHandle);
   }
 
+  #onChange = () => {
+    this.emit("changed");
+    this.rebuild();
+  };
+
   destroy() {
-    this.#state.docHandle.removeListener("change", this.rebuild);
+    this.#state.docHandle.removeListener("change", this.#onChange);
   }
 
   rebuild() {
     const props = this.#state.docHandle.doc();
 
     this.#state.props = props;
-    this.#state.objCache.clear();
+
+    this.#state.pages.clear();
+    this.#state.papers.clear();
+    this.#state.paperInstances.clear();
+
     this.#state.paperChildrenMap = buildThingChildrenMap(props.paperInstances);
     this.#state.pageChildrenMap = buildThingChildrenMap(props.pages);
+
+    console.log(this.#state);
   }
 
   createPaper(props: NewPaperInstanceProps): PaperInstance {
@@ -86,11 +107,18 @@ export class Notebook {
     return Page.create(this.#state, props);
   }
 
-  rootPaper() {
-    return PaperInstance.fromId(
-      this.#state,
-      Object.values(this.#state.props.paperInstances)[0].id
+  get pages() {
+    return Array.from(this.#state.pages.values()).map((page) =>
+      Page.fromId(this.#state, page.id)
     );
+  }
+
+  get rootPages(): Array<Page> {
+    return this.pages
+      .filter((page) => {
+        return page.parent == null;
+      })
+      .sort((a, b) => a.siblingIndex - b.siblingIndex);
   }
 }
 

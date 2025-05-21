@@ -1,9 +1,8 @@
-import { DocHandle } from "@automerge/automerge-repo";
 import { Id, generateId } from "id";
-import { NotebookProps, State } from "./notebook";
-import Render, { fillAndStroke } from "lib/render";
 import { Point } from "lib/point";
+import Render, { fillAndStroke } from "lib/render";
 import { Vec } from "lib/vec";
+import { State } from "./notebook";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -38,7 +37,7 @@ export class Paper {
   }
 
   static fromId(state: State, id: Id<Paper>) {
-    const cached = state.objCache.get(id) as Paper | undefined;
+    const cached = state.papers.get(id) as Paper | undefined;
     if (cached) {
       return cached;
     }
@@ -49,7 +48,7 @@ export class Paper {
 
     const props = state.props.papers[id];
     const paper = new Paper(state, props, children);
-    state.objCache.set(props.id, paper);
+    state.papers.set(props.id, paper);
     return paper;
   }
 
@@ -60,7 +59,7 @@ export class Paper {
       state.papers[props.id] = props;
     });
 
-    state.objCache.set(props.id, paper);
+    state.papers.set(props.id, paper);
     return paper;
   }
 
@@ -131,14 +130,17 @@ export class PaperInstance {
   }
 
   static fromId(state: State, id: Id<PaperInstance>): PaperInstance {
-    const cached = state.objCache.get(id) as PaperInstance | undefined;
+    const cached = state.paperInstances.get(id) as PaperInstance | undefined;
     if (cached) {
       return cached;
     }
 
     const props = state.props.paperInstances[id];
     const paper = Paper.fromId(state, props.paperId);
-    return new PaperInstance(state, props, paper);
+
+    const paperInstance = new PaperInstance(state, props, paper);
+    state.paperInstances.set(props.id, paperInstance);
+    return paperInstance;
   }
 
   static create(state: State, props: NewPaperInstanceProps): PaperInstance {
@@ -198,16 +200,18 @@ export class Page {
   paper: Paper;
   parent?: Page;
   children: Array<Page>;
+  siblingIndex: number;
 
   constructor(state: State, props: PageProps, children: Array<Page>) {
     this.#state = state;
     this.id = props.id;
+    this.siblingIndex = props.siblingIndex;
     this.paper = Paper.fromId(state, props.paperId);
     this.children = children;
   }
 
   static fromId(state: State, id: Id<Page>): Page {
-    const cached = state.objCache.get(id) as Page | undefined;
+    const cached = state.pages.get(id) as Page | undefined;
     if (cached) {
       return cached;
     }
@@ -222,7 +226,7 @@ export class Page {
       child.parent = page;
     }
 
-    state.objCache.set(props.id, page);
+    state.pages.set(props.id, page);
     return page;
   }
 
@@ -248,6 +252,17 @@ export class Page {
       },
       []
     );
+
+    state.docHandle.change((state) => {
+      state.pages[page.id] = {
+        id: page.id,
+        paperId: paper.id,
+        parentId: props.parentId,
+        siblingIndex: props.siblingIndex,
+      };
+    });
+
+    state.pages.set(page.id, page);
     return page;
   }
 }
