@@ -89,6 +89,18 @@ export class Paper {
     return paperInstance;
   }
 
+  transcludeTo(paper: Paper, position: Point): PaperInstance {
+    return PaperInstance.create(this.#state, {
+      parentId: paper.id,
+      siblingIndex: 0,
+      x: position.x,
+      y: position.y,
+      background: null,
+      width: this.width,
+      height: this.height,
+    });
+  }
+
   addNewText(props: Omit<NewTextProps, "parentId">) {
     return Text.create(this.#state, {
       ...props,
@@ -102,7 +114,7 @@ export class Paper {
       position.y,
       this.width,
       this.height,
-      fillAndStroke("white", "grey", 1)
+      fillAndStroke("white", "black", 1)
     );
 
     for (const child of this.children) {

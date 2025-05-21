@@ -7,7 +7,7 @@ import { Id } from "id";
 import { InputSystem } from "inputsystem";
 import Render from "lib/render";
 import tick from "lib/tick";
-import { Notebook, NotebookProps } from "things/notebook";
+import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { Paper } from "things/paper";
 import { View } from "view";
 
@@ -26,22 +26,10 @@ export async function initNotebook() {
   if (!documentId) {
     notebook = Notebook.create(repo);
 
-    const page = notebook.createPage({
-      parentId: null,
-      siblingIndex: 0,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      background: null,
-    });
+    const time = Date.now();
+    addCalendarPages(notebook, window.innerWidth, window.innerHeight);
 
-    page.paper.addNewText({
-      siblingIndex: 0,
-      value: "Hello, world!",
-      x: 100,
-      y: 100,
-      font: "16px Arial",
-      color: "black",
-    });
+    console.log("Time taken to add calendar pages", Date.now() - time);
 
     // Update URL with the new document ID
     window.location.hash = documentId;

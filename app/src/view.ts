@@ -27,9 +27,10 @@ export class View {
       new AnimateVariable(0),
       new AnimateVariable(0),
       new AnimateVariable(0),
+      new AnimateVariable(0),
     ]; // Offsets for each level
 
-    this.zoomLevel = new AnimateVariable(1, 60, 20);
+    this.zoomLevel = new AnimateVariable(0.2, 60, 20);
 
     this.notebook.on("changed", this.#onNotebookChanged);
 
@@ -56,26 +57,6 @@ export class View {
       }
       currentLevel = nextLevel;
     }
-
-    // this.notebook = notebook;
-    // // Map each page to its children
-    // this.pageChildrenMap = buildThingChildrenMap(notebook.pages);
-    // this.paperChildrenMap = buildThingChildrenMap(notebook.paperInstances);
-    // this.paperTextsMap = buildThingChildrenMap(notebook.texts);
-    // // Build the zoom view, sort into levels
-    // this.zoomView = [];
-    // let currentLevel = findNotebookRootPages(notebook);
-    // while (currentLevel.length > 0) {
-    //   this.zoomView.push(currentLevel.map((pageId) => notebook.pages[pageId]!));
-    //   const nextLevel = [];
-    //   for (const pageId of currentLevel) {
-    //     const children = this.pageChildrenMap.get(pageId);
-    //     if (children) {
-    //       nextLevel.push(...children.map((page) => page.id));
-    //     }
-    //   }
-    //   currentLevel = nextLevel;
-    // }
   }
 
   update(dt: number) {

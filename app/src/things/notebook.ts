@@ -87,8 +87,6 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     this.#state.paperChildrenMap = buildThingChildrenMap(props.paperInstances);
     this.#state.pageChildrenMap = buildThingChildrenMap(props.pages);
     this.#state.textChildrenMap = buildThingChildrenMap(props.texts);
-
-    console.log(this.#state);
   }
 
   createPaper(props: NewPaperInstanceProps): PaperInstance {
@@ -114,13 +112,11 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   }
 }
 
-export function createCalendarNotebook(
-  repo: Repo,
+export function addCalendarPages(
+  notebook: Notebook,
   pageWidth: number,
   pageHeight: number
-): Notebook {
-  const notebook = Notebook.create(repo);
-
+) {
   // Create root page
   const rootPage = notebook.createPage({
     parentId: null,
@@ -130,106 +126,109 @@ export function createCalendarNotebook(
     background: null,
   });
 
-  // rootPage.addNewText({
+  rootPage.paper.addNewText({
+    siblingIndex: 0,
+    value: "2024 Calendar",
+    x: 50,
+    y: 50,
+    font: "30px Arial",
+  });
 
-  // // Create root text
-  // Text.create(notebook.#state, {
-  //   parent: rootPage.paper.id,
-  //   siblingIndex: 0,
-  //   value: "2024 Calendar",
-  //   x: 50,
-  //   y: 50,
-  //   font: "30px Arial",
-  // });
+  let totalWeekNumber = 0;
 
-  // // Create pages for each month
-  // for (let month = 0; month < 12; month++) {
-  //   const monthDate = new Date(2024, month, 1);
-  //   const monthPage = notebook.createPage({
-  //     parentId: rootPage.id,
-  //     siblingIndex: month,
-  //     width: pageWidth,
-  //     height: pageHeight,
-  //     background: null,
-  //   });
+  // Create pages for each month
+  for (let month = 0; month < 12; month++) {
+    const monthDate = new Date(2024, month, 1);
+    const monthPage = notebook.createPage({
+      parentId: rootPage.id,
+      siblingIndex: month,
+      width: pageWidth,
+      height: pageHeight,
+      background: null,
+    });
 
-  //   Text.create(notebook.#state, {
-  //     parent: monthPage.paper.id,
-  //     siblingIndex: 0,
-  //     value: monthDate.toLocaleString("default", { month: "long" }),
-  //     x: 50,
-  //     y: 50,
-  //     font: "30px Arial",
-  //   });
+    monthPage.paper.addNewText({
+      siblingIndex: 0,
+      value: monthDate.toLocaleString("default", { month: "long" }),
+      x: 50,
+      y: 50,
+      font: "30px Arial",
+    });
 
-  //   const DAY_MONTH_PAPER_SIZE = (pageWidth - 50) / 7;
+    const DAY_MONTH_PAPER_SIZE = (pageWidth - 50) / 7;
 
-  //   // Create pages for each week
-  //   const weeksInMonth = getWeeksInMonth(2024, month);
-  //   for (let week = 0; week < weeksInMonth; week++) {
-  //     const weekPage = notebook.createPage({
-  //       parentId: monthPage.id,
-  //       siblingIndex: week,
-  //       width: pageWidth,
-  //       height: pageHeight,
-  //       background: null,
-  //     });
+    // Create pages for each week
+    const weeksInMonth = getWeeksInMonth(2024, month);
+    for (let week = 0; week < weeksInMonth; week++) {
+      totalWeekNumber += 1;
 
-  //     Text.create(notebook.#state, {
-  //       parent: weekPage.paper.id,
-  //       siblingIndex: 0,
-  //       value: `Week ${week + 1}`,
-  //       x: 50,
-  //       y: 50,
-  //       font: "30px Arial",
-  //     });
+      const weekPage = notebook.createPage({
+        parentId: monthPage.id,
+        siblingIndex: week,
+        width: pageWidth,
+        height: pageHeight,
+        background: null,
+      });
 
-  //     // Create pages for each day in the week
-  //     const startDay = week * 7 + 1;
-  //     const endDay = Math.min(startDay + 6, getDaysInMonth(2024, month));
+      weekPage.paper.addNewText({
+        siblingIndex: 0,
+        value: `Week ${totalWeekNumber}`,
+        x: 50,
+        y: 50,
+        font: "30px Arial",
+      });
 
-  //     for (let day = startDay; day <= endDay; day++) {
-  //       const dayDate = new Date(2024, month, day);
-  //       const dayPage = notebook.createPage({
-  //         parentId: weekPage.id,
-  //         siblingIndex: day - startDay,
-  //         width: pageWidth,
-  //         height: pageHeight,
-  //         background: null,
-  //       });
+      // Create pages for each day in the week
+      const startDay = week * 7 + 1;
+      const endDay = Math.min(startDay + 6, getDaysInMonth(2024, month));
 
-  //       Text.create(notebook.#state, {
-  //         parent: dayPage.paper.id,
-  //         siblingIndex: 0,
-  //         value: dayDate.toLocaleString("default", {
-  //           month: "long",
-  //           day: "numeric",
-  //         }),
-  //         x: 50,
-  //         y: 50,
-  //         font: "30px Arial",
-  //       });
+      for (let day = startDay; day <= endDay; day++) {
+        const dayDate = new Date(2024, month, day);
+        const dayPage = notebook.createPage({
+          parentId: weekPage.id,
+          siblingIndex: day - startDay,
+          width: pageWidth,
+          height: pageHeight,
+          background: null,
+        });
 
-  //       const monthDayPaper = dayPage.paper.addNewPaper({
-  //         siblingIndex: 0,
-  //         x: 50,
-  //         y: 100,
-  //         width: DAY_MONTH_PAPER_SIZE,
-  //         height: DAY_MONTH_PAPER_SIZE,
-  //         background: null,
-  //       });
+        dayPage.paper.addNewText({
+          siblingIndex: 0,
+          value: dayDate.toLocaleString("default", {
+            weekday: "short",
+          }),
+          x: 50,
+          y: 50,
+          font: "30px Arial",
+        });
 
-  //       Text.create(notebook.#state, {
-  //         parent: monthDayPaper.paper.id,
-  //         siblingIndex: 0,
-  //         value: "Hello",
-  //         x: 50,
-  //         y: 50,
-  //         font: "30px Arial",
-  //       });
-  //     }
-  //   }
-  // }
+        const monthDayPaper = dayPage.paper.addNewPaper({
+          siblingIndex: 0,
+          x: 50,
+          y: 100,
+          width: DAY_MONTH_PAPER_SIZE,
+          height: DAY_MONTH_PAPER_SIZE,
+          background: "red",
+        });
+
+        monthDayPaper.paper.transcludeTo(weekPage.paper, {
+          x: DAY_MONTH_PAPER_SIZE * day,
+          y: 100,
+        });
+
+        monthDayPaper.paper.addNewText({
+          siblingIndex: 0,
+          value: dayDate.toLocaleString("default", {
+            day: "numeric",
+            month: "short",
+          }),
+          x: 20,
+          y: 30,
+          font: "30px Arial",
+        });
+      }
+    }
+  }
 
   return notebook;
 }

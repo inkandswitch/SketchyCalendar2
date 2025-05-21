@@ -5,6 +5,7 @@ import { State } from "./notebook";
 import Render from "lib/render";
 import { font } from "lib/render";
 import { Point } from "lib/point";
+import { Vec } from "lib/vec";
 export type TextProps = {
   id: Id<Text>;
   parentId: Id<Paper>;
@@ -70,7 +71,9 @@ export class Text {
     return new Text(state, textProps);
   }
 
-  render(r: Render, position: Point) {
-    r.text(this.value, this.x, this.y, font(this.font, this.color));
+  render(r: Render, offset: Point) {
+    const position = Vec.add(offset, this);
+
+    r.text(this.value, position.x, position.y, font(this.font, this.color));
   }
 }
