@@ -151,7 +151,7 @@ export class Paper {
 
     // Render last so they appear on top
     if (isCalendarBackground(this.background)) {
-      renderCalendarBackground(r, this, position, this.background);
+      //renderCalendarBackground(r, this, position, this.background);
     }
 
     for (const child of this.children) {

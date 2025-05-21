@@ -6,8 +6,8 @@ export default class Navigate implements GestureHandler {
   view: View;
   touch: TouchEvent | null = null;
 
-  direction: "horizontal" | "vertical" | null = null;
-  progress: number = 0;
+  //direction: "horizontal" | "vertical" | null = null;
+  //progress: number = 0;
 
   constructor(view: View) {
     this.view = view;
@@ -26,17 +26,40 @@ export default class Navigate implements GestureHandler {
         if (this.touch && this.touch.id == e.id) {
           this.touch = e;
           const totalDelta = this.touch.totalDelta;
-          if (Math.abs(totalDelta.x) > Math.abs(totalDelta.y)) {
-            this.direction = "horizontal";
-          } else {
-            this.direction = "vertical";
+          // if (Math.abs(totalDelta.x) > Math.abs(totalDelta.y)) {
+          //   this.direction = "horizontal";
+          // } else {
+          //   this.direction = "vertical";
+          // }
+          const progress = Vec.len(totalDelta) / (window.innerWidth * 0.1);
+
+          if (progress > 1) {
+            this.touch = null;
+            if (Math.abs(totalDelta.x) > Math.abs(totalDelta.y)) {
+              if (totalDelta.x > 0) {
+                console.log("right swipe");
+                this.view.navigateHorizontal(-1);
+              } else {
+                console.log("left swipe");
+                this.view.navigateHorizontal(1);
+              }
+            } else {
+              if (totalDelta.y > 0) {
+                console.log("down swipe");
+                this.view.navigateVertical(-1);
+              } else {
+                console.log("up swipe");
+                this.view.navigateVertical(1);
+              }
+            }
           }
-          this.progress = Vec.len(totalDelta) / (window.innerWidth * 0.3);
-          console.log(this.direction, this.progress);
         }
         break;
       }
       case "ended": {
+        if (this.touch && this.touch.id == e.id) {
+          this.touch = null;
+        }
         break;
       }
     }

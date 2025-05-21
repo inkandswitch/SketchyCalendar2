@@ -6,6 +6,7 @@ import { getYear } from "date-fns";
 import { GestureSystem } from "gesturesystem";
 import PinchIn from "gestures/pinchin";
 import Draw from "gestures/draw";
+import Navigate from "gestures/navigate";
 
 import { Id } from "id";
 import { InputSystem } from "inputsystem";
@@ -58,6 +59,7 @@ console.log(notebook.rootPages);
 const gestures = new GestureSystem([
   new Draw(view, notebook),
   new PinchIn(view),
+  new Navigate(view),
 ]);
 
 //const swipe = new SwipeSystem(state.sceneGraph);
