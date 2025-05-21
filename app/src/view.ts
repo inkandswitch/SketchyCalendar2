@@ -30,7 +30,7 @@ export class View {
       new AnimateVariable(0),
     ]; // Offsets for each level
 
-    this.zoomLevel = new AnimateVariable(0.2, 60, 20);
+    this.zoomLevel = new AnimateVariable(0.3, 60, 20);
 
     this.notebook.on("changed", this.#onNotebookChanged);
 

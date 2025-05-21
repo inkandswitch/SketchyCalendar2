@@ -293,7 +293,9 @@ export function addCalendarPages(
         siblingIndex: 0,
         width: DAY_WIDTH,
         height: pageHeight - SPACE_TOP - DAY_MONTHLY_SECTION_HEIGHT,
-        background: null,
+        background: {
+          type: "Calendar",
+        },
         x: 0,
         y: SPACE_TOP + DAY_MONTHLY_SECTION_HEIGHT,
       });
@@ -320,8 +322,6 @@ export function addCalendarPages(
     const monthPage = monthPages[monthNumber];
     let currentDayInWeek = monthDates[monthNumber];
     let row = 0;
-
-    console.log(monthNumber, getMonth(monthDates[monthNumber]));
 
     while (getMonth(currentDayInWeek) === monthNumber) {
       // currentDayInWeek might not be aligned to the start of the week
