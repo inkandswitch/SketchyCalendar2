@@ -7,7 +7,7 @@ import { PaperInstance } from "./paperinstance";
 import { Paper } from "./paper";
 import { NewPageProps, Page, PageProps } from "./page";
 import { PaperProps } from "./paper";
-import { Stroke } from "./ink";
+import { StrokeProps } from "./ink";
 import { Text, TextProps } from "./text";
 import {
   isMonday,
@@ -23,7 +23,7 @@ export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;
   papers: Record<Id<Paper>, PaperProps>;
   paperInstances: Record<Id<PaperInstance>, PaperInstanceProps>;
-  strokes: ThingMap<Stroke>;
+  strokes: Record<Id<StrokeProps>, StrokeProps>;
   texts: Record<Id<Text>, TextProps>;
 };
 
@@ -34,6 +34,7 @@ export type State = {
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>>;
   pageChildrenMap: Map<Id<Page>, Array<PageProps>>;
   textChildrenMap: Map<Id<Paper>, Array<TextProps>>;
+  strokeChildrenMap: Map<Id<Paper>, Array<StrokeProps>>;
 };
 
 type NotebookEvents = {
@@ -60,9 +61,11 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       paperChildrenMap: new Map(),
       pageChildrenMap: new Map(),
       textChildrenMap: new Map(),
+      strokeChildrenMap: new Map(),
     };
 
     docHandle.addListener("change", this.#onChange);
+    this.rebuild();
   }
 
   static create(repo: Repo) {
@@ -96,6 +99,9 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     this.#state.paperChildrenMap = buildThingChildrenMap(props.paperInstances);
     this.#state.pageChildrenMap = buildThingChildrenMap(props.pages);
     this.#state.textChildrenMap = buildThingChildrenMap(props.texts);
+    this.#state.strokeChildrenMap = buildThingChildrenMap(props.strokes, false);
+
+    console.log(this);
   }
 
   createPaper(props: NewPaperInstanceProps): PaperInstance {

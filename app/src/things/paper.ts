@@ -4,6 +4,7 @@ import Render, { fillAndStroke } from "lib/render";
 import { State } from "./notebook";
 import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
+import { Stroke } from "./ink";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -28,12 +29,14 @@ export class Paper {
 
   children: Array<PaperInstance>;
   texts: Array<Text>;
+  strokes: Array<Stroke>;
 
   constructor(
     state: State,
     props: PaperProps,
     children: Array<PaperInstance>,
-    texts: Array<Text>
+    texts: Array<Text>,
+    strokes: Array<Stroke>
   ) {
     this.#state = state;
     this.id = props.id;
@@ -42,6 +45,7 @@ export class Paper {
     this.background = props.background;
     this.children = children;
     this.texts = texts;
+    this.strokes = strokes;
   }
 
   static fromId(state: State, id: Id<Paper>) {
@@ -58,14 +62,18 @@ export class Paper {
       Text.fromId(state, props.id)
     );
 
+    const strokes = (state.strokeChildrenMap.get(id) ?? []).map(
+      (props) => new Stroke(state, props)
+    );
+
     const props = state.props.papers[id];
-    const paper = new Paper(state, props, children, texts);
+    const paper = new Paper(state, props, children, texts, strokes);
     state.objMap.set(props.id, paper);
     return paper;
   }
 
   static create(state: State, props: PaperProps) {
-    const paper = new Paper(state, props, [], []);
+    const paper = new Paper(state, props, [], [], []);
 
     state.docHandle.change((state) => {
       state.papers[props.id] = props;

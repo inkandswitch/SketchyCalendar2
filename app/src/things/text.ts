@@ -1,11 +1,12 @@
-import { generateId } from "id";
-import { Id } from "id";
+import Render, { font } from "lib/render";
+
+import { Id, generateId } from "id";
 import { Paper } from "./paper";
 import { State } from "./notebook";
-import Render from "lib/render";
-import { font } from "lib/render";
+
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
+
 export type TextProps = {
   id: Id<Text>;
   parentId: Id<Paper>;

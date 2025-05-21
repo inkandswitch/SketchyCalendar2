@@ -12,8 +12,6 @@ import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { Paper } from "things/paper";
 import { View } from "view";
 
-console.log("boop");
-
 export async function initNotebook() {
   const repo = new Repo({
     network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
