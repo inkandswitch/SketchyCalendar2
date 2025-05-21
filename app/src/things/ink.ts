@@ -1,5 +1,6 @@
 import { Id, generateId } from "id";
 import { Paper, PaperProps } from "things/paper";
+import { State } from "./notebook";
 
 export type Stroke = {
   id: Id<Stroke>;
@@ -8,43 +9,3 @@ export type Stroke = {
   color: string;
   weight: number;
 };
-
-export type Text = {
-  id: Id<Text>;
-  parent: Id<Paper>;
-  siblingIndex: number;
-  value: string;
-  x: number;
-  y: number;
-  font: string;
-  color: string;
-};
-
-export function createText({
-  parent,
-  siblingIndex,
-  value,
-  x,
-  y,
-  font = "16px Arial",
-  color = "black",
-}: {
-  parent: Id<Paper>;
-  siblingIndex: number;
-  value: string;
-  x: number;
-  y: number;
-  font?: string;
-  color?: string;
-}): Text {
-  return {
-    id: generateId<Text>(),
-    parent,
-    siblingIndex,
-    value,
-    x,
-    y,
-    font,
-    color,
-  };
-}

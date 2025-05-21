@@ -1,36 +1,30 @@
-import { Id, generateId } from "id";
-
+import { Id } from "id";
 import { DocHandle, Repo } from "@automerge/automerge-repo";
-import { Stroke, Text, createText } from "things/ink";
-import {
-  NewPaperInstanceProps,
-  PaperProps,
-  PaperInstance,
-  PaperInstanceProps,
-  Paper,
-  Page,
-  PageProps,
-  NewPageProps,
-} from "things/paper";
 import { ThingMap, buildThingChildrenMap } from "things/thingmap";
 import { EventEmitter } from "eventemitter3";
+import { NewPaperInstanceProps, PaperInstanceProps } from "./paperinstance";
+import { PaperInstance } from "./paperinstance";
+import { Paper } from "./paper";
+import { NewPageProps, Page, PageProps } from "./page";
+import { PaperProps } from "./paper";
+import { Stroke } from "./ink";
+import { Text, TextProps } from "./text";
 
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;
   papers: Record<Id<Paper>, PaperProps>;
   paperInstances: Record<Id<PaperInstance>, PaperInstanceProps>;
   strokes: ThingMap<Stroke>;
-  texts: ThingMap<Text>;
+  texts: Record<Id<Text>, TextProps>;
 };
 
 export type State = {
   docHandle: DocHandle<NotebookProps>;
   props: NotebookProps;
-  pages: Map<Id<Page>, Page>;
-  papers: Map<Id<Paper>, Paper>;
-  paperInstances: Map<Id<PaperInstance>, PaperInstance>;
+  objMap: Map<string, any>;
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>>;
   pageChildrenMap: Map<Id<Page>, Array<PageProps>>;
+  textChildrenMap: Map<Id<Paper>, Array<TextProps>>;
 };
 
 type NotebookEvents = {
@@ -53,11 +47,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     this.#state = {
       docHandle,
       props,
-      pages: new Map(),
-      papers: new Map(),
-      paperInstances: new Map(),
+      objMap: new Map(),
       paperChildrenMap: new Map(),
       pageChildrenMap: new Map(),
+      textChildrenMap: new Map(),
     };
 
     docHandle.addListener("change", this.#onChange);
@@ -89,12 +82,11 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
     this.#state.props = props;
 
-    this.#state.pages.clear();
-    this.#state.papers.clear();
-    this.#state.paperInstances.clear();
+    this.#state.objMap.clear();
 
     this.#state.paperChildrenMap = buildThingChildrenMap(props.paperInstances);
     this.#state.pageChildrenMap = buildThingChildrenMap(props.pages);
+    this.#state.textChildrenMap = buildThingChildrenMap(props.texts);
 
     console.log(this.#state);
   }
@@ -108,8 +100,8 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   }
 
   get pages() {
-    return Array.from(this.#state.pages.values()).map((page) =>
-      Page.fromId(this.#state, page.id)
+    return Object.keys(this.#state.props.pages).map((pageId) =>
+      Page.fromId(this.#state, pageId as Id<Page>)
     );
   }
 
@@ -122,124 +114,125 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   }
 }
 
-// export function createEmptyNotebook(
-//   pageWidth: number,
-//   pageHeight: number
-// ): Notebook {
-//   const notebook: N = {
-//     pages: {},
-//     papers: {},
-//     paperInstances: {},
-//     strokes: {},
-//     texts: {},
-//   };
+export function createCalendarNotebook(
+  repo: Repo,
+  pageWidth: number,
+  pageHeight: number
+): Notebook {
+  const notebook = Notebook.create(repo);
 
-//   // Create root page
-//   const rootPageId = addEmptyPageToNotebook(notebook, null, 0);
-//   const rootPaperId = notebook.pages[rootPageId].paper;
-//   const rootText = createText({
-//     parent: rootPaperId,
-//     siblingIndex: 0,
-//     value: "2024 Calendar",
-//     x: 50,
-//     y: 50,
-//     font: "30px Arial",
-//   });
-//   notebook.texts[rootText.id] = rootText;
+  // Create root page
+  const rootPage = notebook.createPage({
+    parentId: null,
+    siblingIndex: 0,
+    width: pageWidth,
+    height: pageHeight,
+    background: null,
+  });
 
-//   // Create pages for each month
-//   for (let month = 0; month < 12; month++) {
-//     const monthDate = new Date(2024, month, 1);
-//     const monthPageId = addEmptyPageToNotebook(notebook, rootPageId, month);
-//     const monthPaperId = notebook.pages[monthPageId].paper;
+  // rootPage.addNewText({
 
-//     const monthText = createText({
-//       parent: monthPaperId,
-//       siblingIndex: 0,
-//       value: monthDate.toLocaleString("default", { month: "long" }),
-//       x: 50,
-//       y: 50,
-//       font: "30px Arial",
-//     });
-//     notebook.texts[monthText.id] = monthText;
+  // // Create root text
+  // Text.create(notebook.#state, {
+  //   parent: rootPage.paper.id,
+  //   siblingIndex: 0,
+  //   value: "2024 Calendar",
+  //   x: 50,
+  //   y: 50,
+  //   font: "30px Arial",
+  // });
 
-//     const DAY_MONTH_PAPER_SIZE = (pageWidth - 50) / 7;
+  // // Create pages for each month
+  // for (let month = 0; month < 12; month++) {
+  //   const monthDate = new Date(2024, month, 1);
+  //   const monthPage = notebook.createPage({
+  //     parentId: rootPage.id,
+  //     siblingIndex: month,
+  //     width: pageWidth,
+  //     height: pageHeight,
+  //     background: null,
+  //   });
 
-//     // Create pages for each week
-//     const weeksInMonth = getWeeksInMonth(2024, month);
-//     for (let week = 0; week < weeksInMonth; week++) {
-//       const weekPageId = addEmptyPageToNotebook(notebook, monthPageId, week);
-//       const weekPaperId = notebook.pages[weekPageId].paper;
-//       addTextToNotebook({
-//         notebook,
-//         parent: weekPaperId,
-//         siblingIndex: 0,
-//         value: `Week ${week + 1}`,
-//         x: 50,
-//         y: 50,
-//         font: "30px Arial",
-//       });
+  //   Text.create(notebook.#state, {
+  //     parent: monthPage.paper.id,
+  //     siblingIndex: 0,
+  //     value: monthDate.toLocaleString("default", { month: "long" }),
+  //     x: 50,
+  //     y: 50,
+  //     font: "30px Arial",
+  //   });
 
-//       // Create pages for each day in the week
-//       const startDay = week * 7 + 1;
-//       const endDay = Math.min(startDay + 6, getDaysInMonth(2024, month));
+  //   const DAY_MONTH_PAPER_SIZE = (pageWidth - 50) / 7;
 
-//       for (let day = startDay; day <= endDay; day++) {
-//         const dayDate = new Date(2024, month, day);
-//         const dayPageId = addEmptyPageToNotebook(
-//           notebook,
-//           weekPageId,
-//           day - startDay
-//         );
+  //   // Create pages for each week
+  //   const weeksInMonth = getWeeksInMonth(2024, month);
+  //   for (let week = 0; week < weeksInMonth; week++) {
+  //     const weekPage = notebook.createPage({
+  //       parentId: monthPage.id,
+  //       siblingIndex: week,
+  //       width: pageWidth,
+  //       height: pageHeight,
+  //       background: null,
+  //     });
 
-//         const dayPaperId = notebook.pages[dayPageId].paper;
-//         addTextToNotebook({
-//           notebook,
-//           parent: dayPaperId,
-//           siblingIndex: 0,
-//           value: dayDate.toLocaleString("default", {
-//             month: "long",
-//             day: "numeric",
-//           }),
-//           x: 50,
-//           y: 50,
-//           font: "30px Arial",
-//         });
+  //     Text.create(notebook.#state, {
+  //       parent: weekPage.paper.id,
+  //       siblingIndex: 0,
+  //       value: `Week ${week + 1}`,
+  //       x: 50,
+  //       y: 50,
+  //       font: "30px Arial",
+  //     });
 
-//         const monthDayPaperId = addEmptyPaperToNotebook({
-//           notebook,
-//           parent: dayPaperId,
-//           x: 50,
-//           y: 100,
-//           width: DAY_MONTH_PAPER_SIZE,
-//           height: DAY_MONTH_PAPER_SIZE,
-//           siblingIndex: 0,
-//         });
+  //     // Create pages for each day in the week
+  //     const startDay = week * 7 + 1;
+  //     const endDay = Math.min(startDay + 6, getDaysInMonth(2024, month));
 
-//         addTextToNotebook({
-//           notebook,
-//           parent: monthDayPaperId,
-//           siblingIndex: 0,
-//           value: "Hello",
-//           x: 50,
-//           y: 50,
-//           font: "30px Arial",
-//         });
+  //     for (let day = startDay; day <= endDay; day++) {
+  //       const dayDate = new Date(2024, month, day);
+  //       const dayPage = notebook.createPage({
+  //         parentId: weekPage.id,
+  //         siblingIndex: day - startDay,
+  //         width: pageWidth,
+  //         height: pageHeight,
+  //         background: null,
+  //       });
 
-//         // addPaperInstanceToNotebook({
-//         //   notebook,
-//         //   paperId: monthDayPaper.id,
-//         //   parentId: dayPaperId,
-//         //   x: 50,
-//         //   y: 100,
-//         //   siblingIndex: 0,
-//         // });
-//       }
-//     }
-//   }
+  //       Text.create(notebook.#state, {
+  //         parent: dayPage.paper.id,
+  //         siblingIndex: 0,
+  //         value: dayDate.toLocaleString("default", {
+  //           month: "long",
+  //           day: "numeric",
+  //         }),
+  //         x: 50,
+  //         y: 50,
+  //         font: "30px Arial",
+  //       });
 
-//   return notebook;
-// }
+  //       const monthDayPaper = dayPage.paper.addNewPaper({
+  //         siblingIndex: 0,
+  //         x: 50,
+  //         y: 100,
+  //         width: DAY_MONTH_PAPER_SIZE,
+  //         height: DAY_MONTH_PAPER_SIZE,
+  //         background: null,
+  //       });
+
+  //       Text.create(notebook.#state, {
+  //         parent: monthDayPaper.paper.id,
+  //         siblingIndex: 0,
+  //         value: "Hello",
+  //         x: 50,
+  //         y: 50,
+  //         font: "30px Arial",
+  //       });
+  //     }
+  //   }
+  // }
+
+  return notebook;
+}
 
 // Helper functions for calendar calculations
 

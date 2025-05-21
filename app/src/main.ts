@@ -26,7 +26,7 @@ export async function initNotebook() {
   if (!documentId) {
     notebook = Notebook.create(repo);
 
-    notebook.createPage({
+    const page = notebook.createPage({
       parentId: null,
       siblingIndex: 0,
       width: window.innerWidth,
@@ -34,8 +34,17 @@ export async function initNotebook() {
       background: null,
     });
 
+    page.paper.addNewText({
+      siblingIndex: 0,
+      value: "Hello, world!",
+      x: 100,
+      y: 100,
+      font: "16px Arial",
+      color: "black",
+    });
+
     // Update URL with the new document ID
-    //    window.location.hash = documentId;
+    window.location.hash = documentId;
   } else {
     const docHandle = await repo.find<NotebookProps>(documentId);
     notebook = new Notebook(docHandle);

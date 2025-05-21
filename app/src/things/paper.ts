@@ -1,8 +1,9 @@
-import { Id, generateId } from "id";
+import { Id } from "id";
 import { Point } from "lib/point";
 import Render, { fillAndStroke } from "lib/render";
-import { Vec } from "lib/vec";
 import { State } from "./notebook";
+import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
+import { NewTextProps, Text } from "./text";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -26,18 +27,25 @@ export class Paper {
   background: Background;
 
   children: Array<PaperInstance>;
+  texts: Array<Text>;
 
-  constructor(state: State, props: PaperProps, children: Array<PaperInstance>) {
+  constructor(
+    state: State,
+    props: PaperProps,
+    children: Array<PaperInstance>,
+    texts: Array<Text>
+  ) {
     this.#state = state;
     this.id = props.id;
     this.width = props.width;
     this.height = props.height;
     this.background = props.background;
     this.children = children;
+    this.texts = texts;
   }
 
   static fromId(state: State, id: Id<Paper>) {
-    const cached = state.papers.get(id) as Paper | undefined;
+    const cached = state.objMap.get(id) as Paper | undefined;
     if (cached) {
       return cached;
     }
@@ -46,20 +54,24 @@ export class Paper {
       PaperInstance.fromId(state, props.id)
     );
 
+    const texts = (state.textChildrenMap.get(id) ?? []).map((props) =>
+      Text.fromId(state, props.id)
+    );
+
     const props = state.props.papers[id];
-    const paper = new Paper(state, props, children);
-    state.papers.set(props.id, paper);
+    const paper = new Paper(state, props, children, texts);
+    state.objMap.set(props.id, paper);
     return paper;
   }
 
   static create(state: State, props: PaperProps) {
-    const paper = new Paper(state, props, []);
+    const paper = new Paper(state, props, [], []);
 
     state.docHandle.change((state) => {
       state.papers[props.id] = props;
     });
 
-    state.papers.set(props.id, paper);
+    state.objMap.set(props.id, paper);
     return paper;
   }
 
@@ -77,6 +89,13 @@ export class Paper {
     return paperInstance;
   }
 
+  addNewText(props: Omit<NewTextProps, "parentId">) {
+    return Text.create(this.#state, {
+      ...props,
+      parentId: this.id,
+    });
+  }
+
   render(r: Render, position: Point) {
     r.rect(
       position.x,
@@ -89,180 +108,9 @@ export class Paper {
     for (const child of this.children) {
       child.render(r, position);
     }
-  }
-}
 
-export type PaperInstanceProps = {
-  id: Id<PaperInstance>;
-  paperId: Id<Paper>;
-  parentId: Id<Paper>;
-  siblingIndex: number;
-  x: number;
-  y: number;
-};
-
-export type NewPaperInstanceProps = {
-  parentId: Id<Paper>;
-  background: Background;
-  siblingIndex: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-export class PaperInstance {
-  #state: State;
-
-  id: Id<PaperInstance>;
-  x: number;
-  y: number;
-
-  paper: Paper;
-
-  constructor(state: State, props: PaperInstanceProps, paper: Paper) {
-    this.#state = state;
-
-    this.id = props.id;
-    this.x = props.x;
-    this.y = props.y;
-    this.paper = paper;
-  }
-
-  static fromId(state: State, id: Id<PaperInstance>): PaperInstance {
-    const cached = state.paperInstances.get(id) as PaperInstance | undefined;
-    if (cached) {
-      return cached;
+    for (const text of this.texts) {
+      text.render(r, position);
     }
-
-    const props = state.props.paperInstances[id];
-    const paper = Paper.fromId(state, props.paperId);
-
-    const paperInstance = new PaperInstance(state, props, paper);
-    state.paperInstances.set(props.id, paperInstance);
-    return paperInstance;
-  }
-
-  static create(state: State, props: NewPaperInstanceProps): PaperInstance {
-    const paper = Paper.create(state, {
-      id: generateId<Paper>(),
-      width: props.width,
-      height: props.height,
-      background: props.background,
-    });
-
-    const paperInstanceProps: PaperInstanceProps = {
-      id: generateId<PaperInstance>(),
-      paperId: paper.id,
-      parentId: props.parentId,
-      siblingIndex: props.siblingIndex,
-      x: props.x,
-      y: props.y,
-    };
-
-    state.docHandle.change((state) => {
-      state.paperInstances[paperInstanceProps.id] = paperInstanceProps;
-    });
-
-    return new PaperInstance(state, paperInstanceProps, paper);
-  }
-
-  addNewPaper(props: Omit<NewPaperInstanceProps, "parentId">) {
-    return this.paper.addNewPaper(props);
-  }
-
-  render(r: Render, offset: Point) {
-    const position = Vec.add(offset, this);
-
-    this.paper.render(r, position);
-  }
-}
-
-export type PageProps = {
-  id: Id<Page>;
-  paperId: Id<Paper>;
-  parentId: Id<Page> | null; // Pages with null as a parent are at the root of the notebook
-  siblingIndex: number; // Useful for ordering siblings
-};
-
-export type NewPageProps = {
-  parentId: Id<Page> | null;
-  siblingIndex: number;
-  width: number;
-  height: number;
-  background: Background;
-};
-
-export class Page {
-  #state: State;
-
-  id: Id<Page>;
-  paper: Paper;
-  parent?: Page;
-  children: Array<Page>;
-  siblingIndex: number;
-
-  constructor(state: State, props: PageProps, children: Array<Page>) {
-    this.#state = state;
-    this.id = props.id;
-    this.siblingIndex = props.siblingIndex;
-    this.paper = Paper.fromId(state, props.paperId);
-    this.children = children;
-  }
-
-  static fromId(state: State, id: Id<Page>): Page {
-    const cached = state.pages.get(id) as Page | undefined;
-    if (cached) {
-      return cached;
-    }
-
-    const props = state.props.pages[id];
-    const children = (state.pageChildrenMap.get(id) ?? []).map((props) =>
-      Page.fromId(state, props.id)
-    );
-
-    const page = new Page(state, props, children);
-    for (const child of children) {
-      child.parent = page;
-    }
-
-    state.pages.set(props.id, page);
-    return page;
-  }
-
-  render(r: Render, offset: Point) {
-    this.paper.render(r, offset);
-  }
-
-  static create(state: State, props: NewPageProps): Page {
-    const paper = Paper.create(state, {
-      id: generateId<Paper>(),
-      width: props.width,
-      height: props.height,
-      background: props.background,
-    });
-
-    const page = new Page(
-      state,
-      {
-        id: generateId<Page>(),
-        paperId: paper.id,
-        parentId: props.parentId,
-        siblingIndex: props.siblingIndex,
-      },
-      []
-    );
-
-    state.docHandle.change((state) => {
-      state.pages[page.id] = {
-        id: page.id,
-        paperId: paper.id,
-        parentId: props.parentId,
-        siblingIndex: props.siblingIndex,
-      };
-    });
-
-    state.pages.set(page.id, page);
-    return page;
   }
 }
