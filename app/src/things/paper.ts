@@ -5,11 +5,13 @@ import Render, { fillAndStroke } from "lib/render";
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 
+export type Background = null | string | Id<PaperProps> | CalendarBackground;
+
 export type PaperProps = {
   id: Id<Paper>;
   width: number;
   height: number;
-  background: null | string | Id<PaperProps> | CalendarBackground;
+  background: Background;
 };
 
 export type CalendarBackground = {
@@ -22,7 +24,7 @@ export class Paper {
   id: Id<Paper>;
   width: number;
   height: number;
-  background: null | string | Id<PaperProps> | CalendarBackground;
+  background: Background;
 
   children: Array<PaperInstance>;
 
@@ -44,8 +46,6 @@ export class Paper {
     const children = (state.paperChildrenMap.get(id) ?? []).map((props) =>
       PaperInstance.fromId(state, props.id)
     );
-
-    console.log(children);
 
     const props = state.props.papers[id];
     const paper = new Paper(state, props, children);
@@ -102,11 +102,12 @@ export type PaperInstanceProps = {
   y: number;
 };
 
-export type NewPaperInstanceProps = Omit<
-  PaperInstanceProps,
-  "id" | "paperId"
-> & {
-  background: null | string | Id<PaperProps> | CalendarBackground;
+export type NewPaperInstanceProps = {
+  parentId: Id<Paper>;
+  background: Background;
+  siblingIndex: number;
+  x: number;
+  y: number;
   width: number;
   height: number;
 };
@@ -137,7 +138,6 @@ export class PaperInstance {
 
     const props = state.props.paperInstances[id];
     const paper = Paper.fromId(state, props.paperId);
-
     return new PaperInstance(state, props, paper);
   }
 
@@ -148,8 +148,6 @@ export class PaperInstance {
       height: props.height,
       background: props.background,
     });
-
-    console.log("created paper", paper);
 
     const paperInstanceProps: PaperInstanceProps = {
       id: generateId<PaperInstance>(),
@@ -175,5 +173,81 @@ export class PaperInstance {
     const position = Vec.add(offset, this);
 
     this.paper.render(r, position);
+  }
+}
+
+export type PageProps = {
+  id: Id<Page>;
+  paperId: Id<Paper>;
+  parentId: Id<Page> | null; // Pages with null as a parent are at the root of the notebook
+  siblingIndex: number; // Useful for ordering siblings
+};
+
+export type NewPageProps = {
+  parentId: Id<Page> | null;
+  siblingIndex: number;
+  width: number;
+  height: number;
+  background: Background;
+};
+
+export class Page {
+  #state: State;
+
+  id: Id<Page>;
+  paper: Paper;
+  parent?: Page;
+  children: Array<Page>;
+
+  constructor(state: State, props: PageProps, children: Array<Page>) {
+    this.#state = state;
+    this.id = props.id;
+    this.paper = Paper.fromId(state, props.paperId);
+    this.children = children;
+  }
+
+  static fromId(state: State, id: Id<Page>): Page {
+    const cached = state.objCache.get(id) as Page | undefined;
+    if (cached) {
+      return cached;
+    }
+
+    const props = state.props.pages[id];
+    const children = (state.pageChildrenMap.get(id) ?? []).map((props) =>
+      Page.fromId(state, props.id)
+    );
+
+    const page = new Page(state, props, children);
+    for (const child of children) {
+      child.parent = page;
+    }
+
+    state.objCache.set(props.id, page);
+    return page;
+  }
+
+  render(r: Render, offset: Point) {
+    this.paper.render(r, offset);
+  }
+
+  static create(state: State, props: NewPageProps): Page {
+    const paper = Paper.create(state, {
+      id: generateId<Paper>(),
+      width: props.width,
+      height: props.height,
+      background: props.background,
+    });
+
+    const page = new Page(
+      state,
+      {
+        id: generateId<Page>(),
+        paperId: paper.id,
+        parentId: props.parentId,
+        siblingIndex: props.siblingIndex,
+      },
+      []
+    );
+    return page;
   }
 }

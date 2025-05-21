@@ -8,13 +8,15 @@ import {
   PaperInstance,
   PaperInstanceProps,
   Paper,
+  Page,
+  PageProps,
+  NewPageProps,
 } from "things/paper";
 import { ThingMap, buildThingChildrenMap, things } from "things/thingmap";
-import { Page, PageProps } from "./page";
 
 export type NotebookProps = {
-  pages: ThingMap<Page>;
-  papers: ThingMap<PaperProps>;
+  pages: Record<Id<Page>, PageProps>;
+  papers: Record<Id<Paper>, PaperProps>;
   paperInstances: Record<Id<PaperInstance>, PaperInstanceProps>;
   strokes: ThingMap<Stroke>;
   texts: ThingMap<Text>;
@@ -25,6 +27,7 @@ export type State = {
   props: NotebookProps;
   objCache: Map<string, any>;
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>>;
+  pageChildrenMap: Map<Id<Page>, Array<PageProps>>;
 };
 
 export class Notebook {
@@ -43,6 +46,7 @@ export class Notebook {
       props,
       objCache: new Map(),
       paperChildrenMap: new Map(),
+      pageChildrenMap: new Map(),
     };
     this.rebuild = this.rebuild.bind(this);
 
@@ -71,10 +75,15 @@ export class Notebook {
     this.#state.props = props;
     this.#state.objCache.clear();
     this.#state.paperChildrenMap = buildThingChildrenMap(props.paperInstances);
+    this.#state.pageChildrenMap = buildThingChildrenMap(props.pages);
   }
 
   createPaper(props: NewPaperInstanceProps): PaperInstance {
     return PaperInstance.create(this.#state, props);
+  }
+
+  createPage(props: NewPageProps): Page {
+    return Page.create(this.#state, props);
   }
 
   rootPaper() {
@@ -216,114 +225,4 @@ function getWeeksInMonth(year: number, month: number): number {
   const firstWeekday = firstDay.getDay();
   const totalDays = lastDay.getDate();
   return Math.ceil((totalDays + firstWeekday) / 7);
-}
-
-export function createPage(
-  paper: Id<PaperProps>,
-  parent: Id<Page> | null,
-  siblingIndex: number
-): Page {
-  return {
-    id: generateId<Page>(),
-    paper,
-    parent,
-    siblingIndex,
-  };
-}
-
-export function addEmptyPageToNotebook(
-  notebook: Notebook,
-  parentId: Id<Page> | null,
-  siblingIndex: number
-): Id<Page> {
-  const paper = createPaper(window.innerWidth, window.innerHeight);
-  notebook.papers[paper.id] = paper;
-  const page = createPage(paper.id, parentId, siblingIndex);
-  notebook.pages[page.id] = page;
-  return page.id;
-}
-
-export function addEmptyPaperToNotebook({
-  notebook,
-  parent,
-  x,
-  y,
-  width,
-  height,
-  siblingIndex,
-}: {
-  notebook: Notebook;
-  parent: Id<PaperProps>;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  siblingIndex: number;
-}) {
-  const paper = createPaper(width, height);
-  notebook.papers[paper.id] = paper;
-  const instance = createPaperInstance(paper.id, parent, x, y, siblingIndex);
-  notebook.paperInstances[instance.id] = instance;
-  return instance.id;
-}
-
-export function addPaperInstanceToNotebook({
-  notebook,
-  paperId,
-  parentId,
-  x,
-  y,
-  siblingIndex,
-}: {
-  notebook: Notebook;
-  paperId: Id<PaperProps>;
-  parentId: Id<PaperProps>;
-  x: number;
-  y: number;
-  siblingIndex: number;
-}): Id<PaperInstanceProps> {
-  const instance = createPaperInstance(paperId, parentId, x, y, siblingIndex);
-  notebook.paperInstances[instance.id] = instance;
-  return instance.id;
-}
-
-export function addTextToNotebook({
-  notebook,
-  parent,
-  siblingIndex,
-  value,
-  x,
-  y,
-  font,
-  color,
-}: {
-  notebook: Notebook;
-  parent: Id<PaperProps>;
-  siblingIndex: number;
-  value: string;
-  x: number;
-  y: number;
-  font?: string;
-  color?: string;
-}): Id<Text> {
-  const text = createText({
-    parent,
-    siblingIndex,
-    value,
-    x,
-    y,
-    font,
-    color,
-  });
-  notebook.texts[text.id] = text;
-  return text.id;
-}
-
-export function findNotebookRootPages(notebook: Notebook): Array<Id<Page>> {
-  return things(notebook.pages)
-    .filter((page) => {
-      return page.parent == null;
-    })
-    .sort((a, b) => a.siblingIndex - b.siblingIndex)
-    .map((p) => p.id);
 }
