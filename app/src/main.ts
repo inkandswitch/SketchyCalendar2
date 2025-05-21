@@ -32,7 +32,7 @@ export async function initNotebook() {
     console.log("Time taken to add calendar pages", Date.now() - time);
 
     // Update URL with the new document ID
-    window.location.hash = documentId;
+    window.location.hash = notebook.documentId;
   } else {
     const docHandle = await repo.find<NotebookProps>(documentId);
     notebook = new Notebook(docHandle);

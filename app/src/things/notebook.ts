@@ -110,6 +110,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       })
       .sort((a, b) => a.siblingIndex - b.siblingIndex);
   }
+
+  get documentId(): string {
+    return this.#state.docHandle.documentId;
+  }
 }
 
 export function addCalendarPages(
