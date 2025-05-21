@@ -100,8 +100,6 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     this.#state.pageChildrenMap = buildThingChildrenMap(props.pages);
     this.#state.textChildrenMap = buildThingChildrenMap(props.texts);
     this.#state.strokeChildrenMap = buildThingChildrenMap(props.strokes, false);
-
-    console.log(this);
   }
 
   createPaper(props: NewPaperInstanceProps): PaperInstance {
@@ -128,6 +126,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   get documentId(): string {
     return this.#state.docHandle.documentId;
+  }
+
+  get state(): State {
+    return this.#state;
   }
 }
 
@@ -186,19 +188,22 @@ export function addCalendarPages(
 
   const MONTHLY_SECTION_SIZE = pageWidth / 7;
 
+  let currentRow = 0;
+  let previousMonthNumber = 0;
+
   while (getYear(currentDayInWeek) === year) {
     const monthNumber = getMonth(currentDayInWeek);
     const monthPage = monthPages[monthNumber];
     const weekNumber = getWeek(currentDayInWeek);
 
+    if (monthNumber !== previousMonthNumber) {
+      currentRow = 0;
+      previousMonthNumber = monthNumber;
+    }
+
     // currentDayInWeek might not be aligned to the start of the week
     // so here we make sure it is
     currentDayInWeek = startOfWeek(currentDayInWeek);
-
-    if (!monthPage) {
-      debugger;
-      break;
-    }
 
     const weekPage = monthPage.addChildPage({
       siblingIndex: weekNumber,
@@ -259,7 +264,14 @@ export function addCalendarPages(
         x: dayNumber * MONTHLY_SECTION_SIZE,
         y: 125,
       });
+
+      dayMonthlySection.paper.transcludeTo(monthPage.paper, {
+        x: dayNumber * MONTHLY_SECTION_SIZE,
+        y: 125 + MONTHLY_SECTION_SIZE * currentRow,
+      });
     }
+
+    currentRow++;
 
     currentDayInWeek = nextMonday(currentDayInWeek);
   }

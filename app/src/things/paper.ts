@@ -98,14 +98,12 @@ export class Paper {
   }
 
   transcludeTo(paper: Paper, position: Point): PaperInstance {
-    return PaperInstance.create(this.#state, {
+    return PaperInstance.createInstanceOf(this.#state, {
+      paperId: this.id,
       parentId: paper.id,
       siblingIndex: 0,
       x: position.x,
       y: position.y,
-      background: null,
-      width: this.width,
-      height: this.height,
     });
   }
 

@@ -36,7 +36,7 @@ export async function initNotebook() {
     console.log("Time taken to add calendar pages", Date.now() - time);
 
     // Update URL with the new document ID
-    window.location.hash = notebook.documentId;
+    // window.location.hash = notebook.documentId;
   } else {
     const docHandle = await repo.find<NotebookProps>(documentId);
     notebook = new Notebook(docHandle);
@@ -67,3 +67,5 @@ tick((dt) => {
   render.clear();
   view.render(render);
 });
+
+console.log(notebook.state);

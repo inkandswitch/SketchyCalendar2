@@ -27,6 +27,14 @@ export type NewPaperInstanceProps = {
   height: number;
 };
 
+export type NewInstanceOfProps = {
+  paperId: Id<Paper>;
+  parentId: Id<Paper>;
+  siblingIndex: number;
+  x: number;
+  y: number;
+};
+
 export class PaperInstance {
   #state: State;
 
@@ -56,6 +64,32 @@ export class PaperInstance {
 
     const paperInstance = new PaperInstance(state, props, paper);
     state.objMap.set(props.id, paperInstance);
+    return paperInstance;
+  }
+
+  static createInstanceOf(
+    state: State,
+    props: NewInstanceOfProps
+  ): PaperInstance {
+    const paper = Paper.fromId(state, props.paperId);
+
+    const paperInstanceProps: PaperInstanceProps = {
+      id: generateId<PaperInstance>(),
+      paperId: props.paperId,
+      parentId: props.parentId,
+      siblingIndex: props.siblingIndex,
+      x: props.x,
+      y: props.y,
+    };
+
+    state.docHandle.change((state) => {
+      state.paperInstances[paperInstanceProps.id] = paperInstanceProps;
+    });
+
+    const paperInstance = new PaperInstance(state, paperInstanceProps, paper);
+
+    state.objMap.set(paperInstanceProps.id, paperInstance);
+
     return paperInstance;
   }
 
