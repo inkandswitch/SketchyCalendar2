@@ -38,6 +38,13 @@ export class Page {
     this.children = children;
   }
 
+  addChildPage(props: Omit<NewPageProps, "parentId">): Page {
+    return Page.create(this.#state, {
+      ...props,
+      parentId: this.id,
+    });
+  }
+
   static fromId(state: State, id: Id<Page>): Page {
     const cached = state.objMap.get(id) as Page | undefined;
     if (cached) {

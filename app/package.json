@@ -30,6 +30,7 @@
     "@automerge/automerge-repo-network-websocket": "2.0.0-alpha.27",
     "@automerge/automerge-repo-react-hooks": "2.0.0-alpha.27",
     "@automerge/automerge-repo-storage-indexeddb": "2.0.0-alpha.27",
+    "date-fns": "^4.1.0",
     "eventemitter3": "^5.0.1",
     "react": "^18.3.1"
   }

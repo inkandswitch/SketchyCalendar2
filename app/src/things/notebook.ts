@@ -9,6 +9,15 @@ import { NewPageProps, Page, PageProps } from "./page";
 import { PaperProps } from "./paper";
 import { Stroke } from "./ink";
 import { Text, TextProps } from "./text";
+import {
+  isMonday,
+  nextMonday,
+  getYear,
+  previousMonday,
+  getMonth,
+  getWeek,
+  addDays,
+} from "date-fns";
 
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;
@@ -116,8 +125,12 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   }
 }
 
+//const FONT = "200px Arial";
+const FONT = "30px Arial";
+
 export function addCalendarPages(
   notebook: Notebook,
+  year: number,
   pageWidth: number,
   pageHeight: number
 ) {
@@ -135,17 +148,17 @@ export function addCalendarPages(
     value: "2024 Calendar",
     x: 50,
     y: 50,
-    font: "30px Arial",
+    font: FONT,
   });
 
-  let totalWeekNumber = 0;
+  const monthDates = [];
+  const monthPages = [];
 
   // Create pages for each month
-  for (let month = 0; month < 12; month++) {
-    const monthDate = new Date(2024, month, 1);
-    const monthPage = notebook.createPage({
-      parentId: rootPage.id,
-      siblingIndex: month,
+  for (let monthNumber = 0; monthNumber < 12; monthNumber++) {
+    const monthDate = new Date(year, monthNumber, 1);
+    const monthPage = rootPage.addChildPage({
+      siblingIndex: monthNumber,
       width: pageWidth,
       height: pageHeight,
       background: null,
@@ -156,82 +169,93 @@ export function addCalendarPages(
       value: monthDate.toLocaleString("default", { month: "long" }),
       x: 50,
       y: 50,
-      font: "30px Arial",
+      font: FONT,
     });
 
-    const DAY_MONTH_PAPER_SIZE = (pageWidth - 50) / 7;
+    monthDates.push(monthDate);
+    monthPages.push(monthPage);
+  }
 
-    // Create pages for each week
-    const weeksInMonth = getWeeksInMonth(2024, month);
-    for (let week = 0; week < weeksInMonth; week++) {
-      totalWeekNumber += 1;
+  let currentDayInWeek = monthDates[0];
 
-      const weekPage = notebook.createPage({
-        parentId: monthPage.id,
-        siblingIndex: week,
+  const MONTHLY_SECTION_SIZE = pageWidth / 7;
+
+  while (getYear(currentDayInWeek) === year) {
+    const monthNumber = getMonth(currentDayInWeek);
+    const monthPage = monthPages[monthNumber];
+    const weekNumber = getWeek(currentDayInWeek);
+
+    // currentDayInWeek might not be aligned to the start of the week
+    // so here we make sure it is
+    currentDayInWeek = startOfWeek(currentDayInWeek);
+
+    if (!monthPage) {
+      debugger;
+      break;
+    }
+
+    const weekPage = monthPage.addChildPage({
+      siblingIndex: weekNumber,
+      width: pageWidth,
+      height: pageHeight,
+      background: null,
+    });
+
+    weekPage.paper.addNewText({
+      siblingIndex: weekNumber,
+      value: `Week ${weekNumber}`,
+      x: 50,
+      y: 50,
+      font: FONT,
+    });
+
+    // create day pages
+
+    for (let dayNumber = 0; dayNumber < 7; dayNumber++) {
+      const dayDate = addDays(currentDayInWeek, dayNumber);
+
+      const dayPage = weekPage.addChildPage({
+        siblingIndex: dayNumber,
         width: pageWidth,
         height: pageHeight,
         background: null,
       });
 
-      weekPage.paper.addNewText({
+      dayPage.paper.addNewText({
         siblingIndex: 0,
-        value: `Week ${totalWeekNumber}`,
+        value: dayDate.toLocaleString("default", { weekday: "short" }),
         x: 50,
         y: 50,
-        font: "30px Arial",
+        font: FONT,
       });
 
-      // Create pages for each day in the week
-      const startDay = week * 7 + 1;
-      const endDay = Math.min(startDay + 6, getDaysInMonth(2024, month));
+      const dayMonthlySection = dayPage.paper.addNewPaper({
+        siblingIndex: 0,
+        width: MONTHLY_SECTION_SIZE,
+        height: MONTHLY_SECTION_SIZE,
+        background: null,
+        x: 0,
+        y: 100,
+      });
 
-      for (let day = startDay; day <= endDay; day++) {
-        const dayDate = new Date(2024, month, day);
-        const dayPage = notebook.createPage({
-          parentId: weekPage.id,
-          siblingIndex: day - startDay,
-          width: pageWidth,
-          height: pageHeight,
-          background: null,
-        });
+      dayMonthlySection.paper.addNewText({
+        siblingIndex: 0,
+        value: dayDate.toLocaleString("default", {
+          day: "numeric",
+          month: "short",
+        }),
+        x: 25,
+        y: 25,
+        font: FONT,
+      });
 
-        dayPage.paper.addNewText({
-          siblingIndex: 0,
-          value: dayDate.toLocaleString("default", {
-            weekday: "short",
-          }),
-          x: 50,
-          y: 50,
-          font: "30px Arial",
-        });
-
-        const monthDayPaper = dayPage.paper.addNewPaper({
-          siblingIndex: 0,
-          x: 50,
-          y: 100,
-          width: DAY_MONTH_PAPER_SIZE,
-          height: DAY_MONTH_PAPER_SIZE,
-          background: "red",
-        });
-
-        monthDayPaper.paper.transcludeTo(weekPage.paper, {
-          x: DAY_MONTH_PAPER_SIZE * day,
-          y: 100,
-        });
-
-        monthDayPaper.paper.addNewText({
-          siblingIndex: 0,
-          value: dayDate.toLocaleString("default", {
-            day: "numeric",
-            month: "short",
-          }),
-          x: 20,
-          y: 30,
-          font: "30px Arial",
-        });
-      }
+      dayMonthlySection.paper.transcludeTo(weekPage.paper, {
+        x: dayNumber * MONTHLY_SECTION_SIZE,
+        y: 125,
+      });
     }
+
+    currentDayInWeek = nextMonday(currentDayInWeek);
   }
 
   return notebook;
@@ -239,14 +263,15 @@ export function addCalendarPages(
 
 // Helper functions for calendar calculations
 
-function getDaysInMonth(year: number, month: number): number {
-  return new Date(year, month + 1, 0).getDate();
-}
+// If we are in the first week of january the week can contains
+// some days from the previous year. in that case we should still
+// return january
+function getMonthOfWeekIgnorePreviousYear(date: Date, year: number) {}
 
-function getWeeksInMonth(year: number, month: number): number {
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const firstWeekday = firstDay.getDay();
-  const totalDays = lastDay.getDate();
-  return Math.ceil((totalDays + firstWeekday) / 7);
+function startOfWeek(date: Date): Date {
+  if (isMonday(date)) {
+    return date;
+  }
+
+  return previousMonday(date);
 }

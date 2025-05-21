@@ -1,6 +1,7 @@
 import { DocumentId, Repo } from "@automerge/automerge-repo";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import { getYear } from "date-fns";
 import PinchIn from "gestures/pinchin";
 import { GestureSystem } from "gesturesystem";
 import { Id } from "id";
@@ -27,7 +28,12 @@ export async function initNotebook() {
     notebook = Notebook.create(repo);
 
     const time = Date.now();
-    addCalendarPages(notebook, window.innerWidth, window.innerHeight);
+    addCalendarPages(
+      notebook,
+      getYear(new Date()),
+      window.innerWidth,
+      window.innerHeight
+    );
 
     console.log("Time taken to add calendar pages", Date.now() - time);
 
@@ -56,7 +62,7 @@ const gestures = new GestureSystem([new PinchIn(view)]);
 tick((dt) => {
   // Update
   gestures.update(input.buffer);
-  view.update(dt);
+  //view.update(dt);
   input.clear(); // cleanup the input buffer for the next round
 
   // Render
