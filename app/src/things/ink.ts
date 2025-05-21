@@ -1,9 +1,9 @@
 import { Id, generateId } from "id";
-import { Paper } from "things/paper";
+import { Paper, PaperProps } from "things/paper";
 
 export type Stroke = {
   id: Id<Stroke>;
-  parent: Id<Paper>;
+  parent: Id<PaperProps>;
   points: Array<{ x: number; y: number }>;
   color: string;
   weight: number;

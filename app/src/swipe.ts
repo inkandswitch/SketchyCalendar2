@@ -1,5 +1,5 @@
 import { WrapperEvent } from "inputsystem";
-import { SceneGraph } from "scenegraph";
+import { SceneGraph } from "view";
 
 export class SwipeSystem {
   scenegraph: SceneGraph;

@@ -1,5 +1,5 @@
 import { GestureHandler, TouchEvent } from "gesturesystem";
-import { SceneGraph } from "scenegraph";
+import { SceneGraph } from "view";
 
 export default class PinchIn implements GestureHandler {
   a: TouchEvent | null = null;
@@ -53,7 +53,7 @@ export default class PinchIn implements GestureHandler {
         }
         if (this.state == "pinching") {
           this.current_distance = Math.abs(
-            this.b!.current.x - this.a!.current.x,
+            this.b!.current.x - this.a!.current.x
           );
 
           // Handle pinch in moved

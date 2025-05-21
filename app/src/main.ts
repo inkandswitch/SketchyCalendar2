@@ -1,28 +1,68 @@
-import { State, initAutomergeDoc } from "state";
+import { DocumentId, Repo } from "@automerge/automerge-repo";
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
+import PinchIn from "gestures/pinchin";
+import { GestureSystem } from "gesturesystem";
+import { Id } from "id";
+import { InputSystem } from "inputsystem";
 import Render from "lib/render";
 import tick from "lib/tick";
-import { InputSystem } from "inputsystem";
-import { GestureSystem } from "gesturesystem";
-import PinchIn from "gestures/pinchin";
-import { SwipeSystem } from "swipe";
+import { Notebook, NotebookProps } from "things/notebook";
+import { Paper } from "things/paper";
+import { View } from "view";
+
+console.log("boop");
+
+export async function initNotebook() {
+  const repo = new Repo({
+    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+    storage: new IndexedDBStorageAdapter(),
+  });
+
+  let documentId = window.location.hash.slice(1) as DocumentId;
+
+  let notebook: Notebook;
+
+  if (!documentId) {
+    notebook = Notebook.create(repo);
+
+    notebook.createPage({
+      parentId: null,
+      siblingIndex: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      background: null,
+    });
+
+    // Update URL with the new document ID
+    //    window.location.hash = documentId;
+  } else {
+    const docHandle = await repo.find<NotebookProps>(documentId);
+    notebook = new Notebook(docHandle);
+  }
+
+  return notebook;
+}
 
 const render = new Render();
 const input = new InputSystem();
 
-const automergeDoc = await initAutomergeDoc(); // TODO: make this more generic
-const state = new State(automergeDoc);
+const notebook = await initNotebook();
+const view = new View(notebook);
 
-const gestures = new GestureSystem([new PinchIn(state.sceneGraph)]);
+console.log(notebook.rootPages);
+
+const gestures = new GestureSystem([new PinchIn(view)]);
 
 //const swipe = new SwipeSystem(state.sceneGraph);
 
 tick((dt) => {
   // Update
   gestures.update(input.buffer);
-  state.sceneGraph.update(dt);
+  view.update(dt);
   input.clear(); // cleanup the input buffer for the next round
 
   // Render
   render.clear();
-  state.sceneGraph.render(render);
+  view.render(render);
 });
