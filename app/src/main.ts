@@ -4,12 +4,10 @@ import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-index
 import { getYear } from "date-fns";
 import PinchIn from "gestures/pinchin";
 import { GestureSystem } from "gesturesystem";
-import { Id } from "id";
 import { InputSystem } from "inputsystem";
 import Render from "lib/render";
 import tick from "lib/tick";
 import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
-import { Paper } from "things/paper";
 import { View } from "view";
 
 export async function initNotebook() {

@@ -17,6 +17,7 @@ import {
   getMonth,
   getWeek,
   addDays,
+  formatISO,
 } from "date-fns";
 
 export type NotebookProps = {
@@ -136,13 +137,20 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 //const FONT = "200px Arial";
 const FONT = "30px Arial";
 
+const WEEK_DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 export function addCalendarPages(
   notebook: Notebook,
   year: number,
   pageWidth: number,
   pageHeight: number
 ) {
-  // Create root page
+  const SPACE_TOP = 150;
+  const DAY_MONTHLY_SECTION_HEIGHT = (pageHeight - SPACE_TOP) / 6;
+  const DAY_WIDTH = pageWidth / 7;
+
+  // year overview page
+
   const rootPage = notebook.createPage({
     parentId: null,
     siblingIndex: 0,
@@ -162,7 +170,8 @@ export function addCalendarPages(
   const monthDates = [];
   const monthPages = [];
 
-  // Create pages for each month
+  // pages for each month
+
   for (let monthNumber = 0; monthNumber < 12; monthNumber++) {
     const monthDate = new Date(year, monthNumber, 1);
     const monthPage = rootPage.addChildPage({
@@ -180,30 +189,34 @@ export function addCalendarPages(
       font: FONT,
     });
 
+    WEEK_DAY_NAMES.forEach((weekday, index) => {
+      monthPage.paper.addNewText({
+        siblingIndex: index,
+        value: weekday,
+        x: 50 + DAY_WIDTH * index,
+        y: 100,
+        font: FONT,
+      });
+    });
+
     monthDates.push(monthDate);
     monthPages.push(monthPage);
   }
 
   let currentDayInWeek = monthDates[0];
 
-  const MONTHLY_SECTION_SIZE = pageWidth / 7;
+  const dayMonthlySectionByDay = new Map<string, Paper>();
 
-  let currentRow = 0;
-  let previousMonthNumber = 0;
+  // pages for each week with daily page
 
   while (getYear(currentDayInWeek) === year) {
     const monthNumber = getMonth(currentDayInWeek);
     const monthPage = monthPages[monthNumber];
     const weekNumber = getWeek(currentDayInWeek);
 
-    if (monthNumber !== previousMonthNumber) {
-      currentRow = 0;
-      previousMonthNumber = monthNumber;
-    }
-
     // currentDayInWeek might not be aligned to the start of the week
     // so here we make sure it is
-    currentDayInWeek = startOfWeek(currentDayInWeek);
+    currentDayInWeek = getStartOfWeek(currentDayInWeek);
 
     const weekPage = monthPage.addChildPage({
       siblingIndex: weekNumber,
@@ -218,6 +231,16 @@ export function addCalendarPages(
       x: 50,
       y: 50,
       font: FONT,
+    });
+
+    WEEK_DAY_NAMES.forEach((weekday, index) => {
+      weekPage.paper.addNewText({
+        siblingIndex: index,
+        value: weekday,
+        x: 50 + DAY_WIDTH * index,
+        y: 100,
+        font: FONT,
+      });
     });
 
     // create day pages
@@ -240,14 +263,18 @@ export function addCalendarPages(
         font: FONT,
       });
 
+      // monthly section
+
       const dayMonthlySection = dayPage.paper.addNewPaper({
         siblingIndex: 0,
-        width: MONTHLY_SECTION_SIZE,
-        height: MONTHLY_SECTION_SIZE,
+        width: DAY_WIDTH,
+        height: DAY_MONTHLY_SECTION_HEIGHT,
         background: null,
         x: 0,
-        y: 100,
+        y: SPACE_TOP,
       });
+
+      dayMonthlySectionByDay.set(dayToKey(dayDate), dayMonthlySection.paper);
 
       dayMonthlySection.paper.addNewText({
         siblingIndex: 0,
@@ -260,36 +287,79 @@ export function addCalendarPages(
         font: FONT,
       });
 
-      dayMonthlySection.paper.transcludeTo(weekPage.paper, {
-        x: dayNumber * MONTHLY_SECTION_SIZE,
-        y: 125,
+      // day timeline
+
+      const dayTimeline = dayPage.paper.addNewPaper({
+        siblingIndex: 0,
+        width: DAY_WIDTH,
+        height: pageHeight - SPACE_TOP - DAY_MONTHLY_SECTION_HEIGHT,
+        background: null,
+        x: 0,
+        y: SPACE_TOP + DAY_MONTHLY_SECTION_HEIGHT,
       });
 
-      dayMonthlySection.paper.transcludeTo(monthPage.paper, {
-        x: dayNumber * MONTHLY_SECTION_SIZE,
-        y: 125 + MONTHLY_SECTION_SIZE * currentRow,
+      // tranclusions to week page
+
+      dayMonthlySection.paper.transcludeTo(weekPage.paper, {
+        x: dayNumber * DAY_WIDTH,
+        y: SPACE_TOP,
+      });
+
+      dayTimeline.paper.transcludeTo(weekPage.paper, {
+        x: dayNumber * DAY_WIDTH,
+        y: SPACE_TOP + DAY_MONTHLY_SECTION_HEIGHT,
       });
     }
-
-    currentRow++;
 
     currentDayInWeek = nextMonday(currentDayInWeek);
   }
 
-  return notebook;
+  // create transclusions to month pages from each day
+
+  for (let monthNumber = 0; monthNumber < 12; monthNumber++) {
+    const monthPage = monthPages[monthNumber];
+    let currentDayInWeek = monthDates[monthNumber];
+    let row = 0;
+
+    console.log(monthNumber, getMonth(monthDates[monthNumber]));
+
+    while (getMonth(currentDayInWeek) === monthNumber) {
+      // currentDayInWeek might not be aligned to the start of the week
+      // so here we make sure it is
+      currentDayInWeek = getStartOfWeek(currentDayInWeek);
+
+      for (let dayNumber = 0; dayNumber < 7; dayNumber++) {
+        const dayDate = addDays(currentDayInWeek, dayNumber);
+
+        const dayMonthlySection = dayMonthlySectionByDay.get(
+          dayToKey(dayDate)
+        )!;
+
+        dayMonthlySection.transcludeTo(monthPage.paper, {
+          x: dayNumber * DAY_WIDTH,
+          y: SPACE_TOP + row * DAY_MONTHLY_SECTION_HEIGHT,
+        });
+      }
+
+      currentDayInWeek = nextMonday(currentDayInWeek);
+
+      row++;
+    }
+  }
 }
 
-// Helper functions for calendar calculations
-
-// If we are in the first week of january the week can contains
-// some days from the previous year. in that case we should still
-// return january
-function getMonthOfWeekIgnorePreviousYear(date: Date, year: number) {}
-
-function startOfWeek(date: Date): Date {
+function getStartOfWeek(date: Date): Date {
   if (isMonday(date)) {
     return date;
   }
 
   return previousMonday(date);
+}
+
+function dayToKey(date: Date): string {
+  return date.toLocaleString("default", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }
