@@ -29,14 +29,19 @@ export class Stroke {
     return new Stroke(state, props);
   }
 
-  static create(state: State, parentId: Id<Paper>): Stroke {
+  static create(
+    state: State,
+    parentId: Id<Paper>,
+    color: string,
+    weight: number
+  ): Stroke {
     const id = generateId<Stroke>();
     const props: StrokeProps = {
       id,
       parentId,
       points: [],
-      color: "black",
-      weight: 1,
+      color,
+      weight,
     };
     state.docHandle.change((state) => {
       state.strokes[props.id] = props;
@@ -55,6 +60,6 @@ export class Stroke {
       return Vec.add(offset, point);
     });
 
-    r.poly(points, stroke("black", 1), false);
+    r.poly(points, stroke(this.props.color, this.props.weight), false);
   }
 }

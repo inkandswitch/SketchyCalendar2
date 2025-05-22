@@ -132,8 +132,8 @@ export class Paper {
     });
   }
 
-  addNewStroke() {
-    return Stroke.create(this.#state, this.id);
+  addNewStroke(color: string, weight: number) {
+    return Stroke.create(this.#state, this.id, color, weight);
   }
 
   render(r: Render, position: Point) {

@@ -5,48 +5,54 @@ import { Notebook } from "things/notebook";
 
 import { Id } from "id";
 
-import { Point } from "lib/vec";
+import { Point } from "lib/point";
 import { Vec } from "lib/vec";
+import Toolbar from "toolbar";
+import { PenHandler } from "tools/pen";
 
 export default class Draw implements GestureHandler {
   notebook: Notebook;
   view: View;
-  strokeId: Id<Stroke> | null = null;
-  offset: Point | null = null;
+  toolbar: Toolbar;
 
-  constructor(view: View, notebook: Notebook) {
+  drawHandler: PenHandler | null = null;
+
+  constructor(view: View, notebook: Notebook, toolbar: Toolbar) {
+    this.toolbar = toolbar;
     this.notebook = notebook;
     this.view = view;
+
+    this.drawHandler = this.toolbar.activeTool?.getHandler(view, notebook);
+  }
+
+  tap(e: TouchEvent): boolean {
+    if (this.toolbar.tap(e.current)) {
+      console.log("Toolbar tapped");
+      this.drawHandler = this.toolbar.activeTool?.getHandler(
+        this.view,
+        this.notebook
+      );
+      return true;
+    }
+    return false;
   }
 
   onEvent(e: TouchEvent) {
     if (e.type != "pencil") return;
     switch (e.phase) {
       case "began": {
-        const currentPage = this.view.currentPage!;
-        console.log(currentPage);
-        if (!currentPage) return;
-        const found = currentPage.paper.getPaperAtPosition(e.current);
-        if (!found) return;
-        const newStroke = found.paper.addNewStroke();
-        this.offset = found.offset;
-        newStroke.addPoint(Vec.sub(e.current, this.offset));
-        this.strokeId = newStroke.props.id;
+        if (this.tap(e)) {
+        } else {
+          this.drawHandler?.penDown(e);
+        }
         break;
       }
       case "moved": {
-        if (this.strokeId != null) {
-          const stroke = this.notebook.getStrokeById(this.strokeId);
-          stroke.addPoint(Vec.sub(e.current, this.offset));
-        }
+        this.drawHandler?.penMove(e);
         break;
       }
       case "ended": {
-        if (this.strokeId != null) {
-          const stroke = this.notebook.getStrokeById(this.strokeId);
-          stroke.addPoint(Vec.sub(e.current, this.offset));
-          this.strokeId = null;
-        }
+        this.drawHandler?.penUp(e);
         break;
       }
     }
