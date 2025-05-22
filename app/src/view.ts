@@ -106,6 +106,7 @@ export class View {
     }
 
     this.updateCurrentPage();
+    console.log(this.zoomHierarchyOffsets);
   }
 
   updateCurrentPage() {
@@ -133,21 +134,31 @@ export class View {
       zoom,
     });
 
+    //const currentLevel = this.zoomHierarchyFocus.target;
+
     // Render the zoom view
-    for (let i = 0; i < this.zoomView.length; i++) {
-      const level = this.zoomView[i];
-      const x_offset = -this.zoomHierarchyOffsets[i].getCurrent();
-      for (let j = 0; j < level.length; j++) {
-        const page = level[j];
-        // if (
-        //   zoom < 0.9 ||
-        //   (this.currentPage && page.id == this.currentPage!.id)
-        // ) {
-        page.render(r, {
-          x: j * (innerWidth + 20) + x_offset * (innerWidth + 20),
-          y: i * (innerHeight + 20),
-        });
-        //}
+    if (this.zoomLevel.getCurrent() > 0.99) {
+      const currentLevel = this.zoomHierarchyFocus.target;
+
+      this.currentPage?.render(r, {
+        x: 0,
+        y: currentLevel * (innerHeight + 20),
+      });
+    } else {
+      for (let i = 0; i < this.zoomView.length; i++) {
+        const level = this.zoomView[i];
+        const x_offset = -this.zoomHierarchyOffsets[i].getCurrent();
+        const page_offset = this.zoomHierarchyOffsets[i].target;
+        for (let j = -2; j < 3; j++) {
+          const o = page_offset + j;
+          const page = level[o];
+          if (page) {
+            page.render(r, {
+              x: o * (innerWidth + 20) + x_offset * (innerWidth + 20),
+              y: i * (innerHeight + 20),
+            });
+          }
+        }
       }
     }
 

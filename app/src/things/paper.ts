@@ -2,12 +2,11 @@ import { isToday } from "date-fns";
 import { Id } from "id";
 import { GoogleCalendar } from "lib/googlecalendar";
 import { Point } from "lib/point";
-import Render, { fill, fillAndStroke, stroke } from "lib/render";
-import { Stroke } from "./ink";
+import Render, { fill, fillAndStroke, font, stroke } from "lib/render";
 import { State } from "./notebook";
 import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
-import { Stroke, StrokeProps } from "./ink";
+import { Stroke } from "./ink";
 import { Vec } from "lib/vec";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
@@ -210,7 +209,7 @@ function renderCalendarBackground(
     const hour = i + 8;
     const offset = (calendarHeight / 13) * i;
     const y = position.y + offset;
-    r.text(`${hour}:00`, position.x + 10, y + 15, fill("#AAA"));
+    r.text(`${hour}:00`, position.x + 10, y + 15, font("12px Arial", "#AAA"));
 
     r.line(position.x, y, position.x + paper.width, y, stroke("#AAA", 1));
   }

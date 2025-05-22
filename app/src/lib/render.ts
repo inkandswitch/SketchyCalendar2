@@ -67,19 +67,14 @@ export default class Render {
     this.ctx.fillStyle = style.fillStyle;
     this.ctx.strokeStyle = style.strokeStyle;
     this.ctx.lineWidth = style.lineWidth;
-    this.ctx.textBaseline = style.baseline;
     if (style.font) {
       this.ctx.font = style.font;
     }
+    if (style.baseline) {
+      this.ctx.textBaseline = style.baseline;
+    }
+
     this.ctx.setLineDash(style.dashed || []);
-  }
-
-  save() {
-    this.ctx.save();
-  }
-
-  restore() {
-    this.ctx.restore();
   }
 
   line(x1: number, y1: number, x2: number, y2: number, style: RenderStyle) {
@@ -168,15 +163,12 @@ export default class Render {
   }
 
   text(text: string, x: number, y: number, style: RenderStyle) {
-    this.save();
+    //this.ctx.save();
     this.applyStyle(style);
-    if (style.font) {
-      this.ctx.font = style.font;
-    }
     if (style.doFill) {
       this.ctx.fillText(text, x, y);
     }
-    this.restore();
+    //this.ctx.restore();
   }
 
   arrow(
