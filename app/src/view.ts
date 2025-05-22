@@ -122,7 +122,9 @@ export class View {
       const pagesAtLevel = this.zoomView[i];
       const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
 
-      if (currentFocusedPageAtLevel.parent!.id !== targetParentPage.id) {
+      if (currentFocusedPageAtLevel.parent!.id == targetParentPage.id) {
+        break;
+      } else {
         const index = pagesAtLevel.findIndex(
           (p) => p.parent!.id === targetParentPage.id
         );
@@ -136,25 +138,27 @@ export class View {
     targetParentPage = this.zoomView[target][swipedLevel.target].parent!;
 
     if (targetParentPage) {
-      const i = target - 1;
+      for (let i = target - 1; i > 0; i--) {
+        const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
+        const offsetAtLevel = offsetAtLevelVariable.target;
+        const pagesAtLevel = this.zoomView[i];
+        const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
 
-      const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
-      const offsetAtLevel = offsetAtLevelVariable.target;
-      const pagesAtLevel = this.zoomView[i];
-      const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
+        if (currentFocusedPageAtLevel.id == targetParentPage.id) {
+          break;
+        } else {
+          const index = pagesAtLevel.findIndex(
+            (p) => p.id === targetParentPage.id
+          );
 
-      if (currentFocusedPageAtLevel.id !== targetParentPage.id) {
-        const index = pagesAtLevel.findIndex(
-          (p) => p.id === targetParentPage.id
-        );
+          if (index === -1) {
+            console.error("index is -1");
+            debugger;
+          }
 
-        if (index === -1) {
-          console.error("index is -1");
-          debugger;
+          targetParentPage = pagesAtLevel[index].parent!;
+          offsetAtLevelVariable.setTarget(index);
         }
-
-        targetParentPage = pagesAtLevel[index].parent!;
-        offsetAtLevelVariable.setTarget(index);
       }
     }
 

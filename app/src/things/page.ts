@@ -69,6 +69,10 @@ export class Page {
     this.paper.render(r, offset);
   }
 
+  toDebugString() {
+    return this.paper.texts.map((t) => t.value).join(" ");
+  }
+
   static create(state: State, props: NewPageProps): Page {
     const paper = Paper.create(state, {
       id: generateId<Paper>(),
