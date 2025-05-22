@@ -1,31 +1,30 @@
 import { EventEmitter } from "eventemitter3";
 
 import {
-  isMonday,
-  nextMonday,
-  getYear,
-  previousMonday,
+  addDays,
   getMonth,
   getWeek,
-  addDays,
-  formatISO,
+  getYear,
+  isMonday,
+  nextMonday,
+  previousMonday,
 } from "date-fns";
 
-import { Id } from "id";
 import { DocHandle, Repo } from "@automerge/automerge-repo";
-import { ThingMap, buildThingChildrenMap } from "things/thingmap";
+import { Id } from "id";
+import { buildThingChildrenMap } from "things/thingmap";
 
+import { NewPageProps, Page, PageProps } from "things/page";
 import {
   NewPaperInstanceProps,
-  PaperInstanceProps,
   PaperInstance,
+  PaperInstanceProps,
 } from "things/paperinstance";
-import { NewPageProps, Page, PageProps } from "things/page";
 
-import { PaperProps, Paper } from "things/paper";
-import { StrokeProps, Stroke } from "things/ink";
-import { Text, TextProps } from "things/text";
 import { Calendar, GoogleCalendar } from "lib/googlecalendar";
+import { Stroke, StrokeProps } from "things/ink";
+import { Paper, PaperProps } from "things/paper";
+import { Text, TextProps } from "things/text";
 
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;

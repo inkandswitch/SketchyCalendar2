@@ -15,22 +15,26 @@ import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { View } from "view";
 import { Calendar } from "lib/googlecalendar";
 
+const PERSIST_NOTEBOOK = true;
+
 export async function initNotebook() {
   const repo = new Repo({
     network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
     storage: new IndexedDBStorageAdapter(),
   });
 
-  let documentId = window.location.hash.slice(1) as DocumentId;
-  let calendarDocumentId = localStorage.getItem("calendarDocId");
+  let notebookDocId = PERSIST_NOTEBOOK
+    ? (localStorage.getItem("notebookDocId") as DocumentId)
+    : undefined;
+  let calendarDocId = localStorage.getItem("calendarDocId");
 
-  let calendarDocHandle = calendarDocumentId
-    ? await repo.find<Calendar>(calendarDocumentId as DocumentId)
+  let calendarDocHandle = calendarDocId
+    ? await repo.find<Calendar>(calendarDocId as DocumentId)
     : undefined;
 
   let notebook: Notebook;
 
-  if (!documentId) {
+  if (!notebookDocId) {
     notebook = Notebook.create(repo, calendarDocHandle);
 
     const time = Date.now();
@@ -44,9 +48,9 @@ export async function initNotebook() {
     console.log("Time taken to add calendar pages", Date.now() - time);
 
     // Update URL with the new document ID
-    // window.location.hash = notebook.documentId;
+    localStorage.setItem("notebookDocId", notebook.documentId);
   } else {
-    const docHandle = await repo.find<NotebookProps>(documentId);
+    const docHandle = await repo.find<NotebookProps>(notebookDocId);
     notebook = new Notebook(docHandle, calendarDocHandle);
   }
 
