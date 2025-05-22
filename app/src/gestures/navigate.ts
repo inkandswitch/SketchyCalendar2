@@ -6,6 +6,7 @@ import { Point } from "lib/point";
 export default class Navigate implements GestureHandler {
   view: View;
   touch: TouchEvent | null = null;
+  swipedLaneOffset: number | null = null;
 
   //direction: "horizontal" | "vertical" | null = null;
   startPoint: Point | null = null;
@@ -23,6 +24,8 @@ export default class Navigate implements GestureHandler {
         if (!this.touch) {
           this.touch = e;
           this.startPoint = e.start;
+          this.swipedLaneOffset =
+            Math.floor((this.touch.current.y / window.innerHeight) * 3) - 1;
         }
         break;
       }
@@ -38,10 +41,10 @@ export default class Navigate implements GestureHandler {
             if (Math.abs(delta.x) > Math.abs(delta.y)) {
               if (delta.x > 0) {
                 console.log("right swipe");
-                this.view.navigateHorizontal(-1);
+                this.view.navigateHorizontal(-1, this.swipedLaneOffset!);
               } else {
-                console.log("left swipe");
-                this.view.navigateHorizontal(1);
+                console.log("left swipe", this.swipedLaneOffset);
+                this.view.navigateHorizontal(1, this.swipedLaneOffset!);
               }
             } else {
               if (delta.y > 0) {
@@ -52,6 +55,8 @@ export default class Navigate implements GestureHandler {
                 this.view.navigateVertical(1);
               }
             }
+
+            this.swipedLaneOffset = null;
           }
         }
         break;

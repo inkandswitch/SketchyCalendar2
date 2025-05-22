@@ -89,19 +89,23 @@ export class View {
     this.updateCurrentPage();
   }
 
-  navigateHorizontal(dx: number) {
-    const currentLevel =
-      this.zoomHierarchyOffsets[this.zoomHierarchyFocus.target];
+  navigateHorizontal(dx: number, laneOffset: number) {
+    // ignore lane offset if all the way zoomed in
+    if (this.zoomLevel.getCurrent() > 0.99) {
+      laneOffset = 0;
+    }
 
-    currentLevel.target += dx;
-    if (currentLevel.target < 0) {
-      currentLevel.target = 0;
+    const swipedLevel =
+      this.zoomHierarchyOffsets[this.zoomHierarchyFocus.target + laneOffset];
+
+    swipedLevel.target += dx;
+    if (swipedLevel.target < 0) {
+      swipedLevel.target = 0;
     }
     if (
-      currentLevel.target >=
-      this.zoomView[this.zoomHierarchyFocus.target].length
+      swipedLevel.target >= this.zoomView[this.zoomHierarchyFocus.target].length
     ) {
-      currentLevel.target =
+      swipedLevel.target =
         this.zoomView[this.zoomHierarchyFocus.target].length - 1;
     }
 
