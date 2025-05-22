@@ -16,7 +16,7 @@ export class AnimateVariable {
   }
 
   update(dx: number) {
-    this.value = this.value + (this.target - this.value) * dx * 15;
+    this.value = this.value + (this.target - this.value) * dx * 20;
   }
 }
 
