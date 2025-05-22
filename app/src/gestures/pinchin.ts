@@ -80,7 +80,7 @@ export default class PinchIn implements GestureHandler {
             this.state = "ended";
           }
         }
-        if ((this.state = "ended")) {
+        if (this.state == "ended") {
           this.state = "init";
           let percentage = this.current_distance! / window.innerWidth!;
           if (percentage > 0.8) {
