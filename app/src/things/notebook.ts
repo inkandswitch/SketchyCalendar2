@@ -154,7 +154,8 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 }
 
 //const FONT = "200px Arial";
-const FONT = "30px Arial";
+const FONT_BIG = "30px Arial";
+const FONT_SMALL = "12px Arial";
 
 const WEEK_DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -183,7 +184,7 @@ export function addCalendarPages(
     value: "2024 Calendar",
     x: 50,
     y: 50,
-    font: FONT,
+    font: FONT_BIG,
   });
 
   // test page
@@ -218,7 +219,7 @@ export function addCalendarPages(
       value: monthDate.toLocaleString("default", { month: "long" }),
       x: 50,
       y: 50,
-      font: FONT,
+      font: FONT_BIG,
     });
 
     WEEK_DAY_NAMES.forEach((weekday, index) => {
@@ -227,7 +228,7 @@ export function addCalendarPages(
         value: weekday,
         x: 50 + DAY_WIDTH * index,
         y: 100,
-        font: FONT,
+        font: FONT_BIG,
       });
     });
 
@@ -262,7 +263,7 @@ export function addCalendarPages(
       value: `Week ${weekNumber}`,
       x: 50,
       y: 50,
-      font: FONT,
+      font: FONT_BIG,
     });
 
     WEEK_DAY_NAMES.forEach((weekday, index) => {
@@ -271,7 +272,7 @@ export function addCalendarPages(
         value: weekday,
         x: 50 + DAY_WIDTH * index,
         y: 100,
-        font: FONT,
+        font: FONT_BIG,
       });
     });
 
@@ -292,7 +293,7 @@ export function addCalendarPages(
         value: dayDate.toLocaleString("default", { weekday: "short" }),
         x: 50,
         y: 50,
-        font: FONT,
+        font: FONT_BIG,
       });
 
       // monthly section
@@ -316,7 +317,7 @@ export function addCalendarPages(
         }),
         x: 25,
         y: 25,
-        font: FONT,
+        font: FONT_SMALL,
       });
 
       // day timeline

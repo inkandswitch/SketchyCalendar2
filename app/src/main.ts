@@ -21,7 +21,7 @@ import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { View } from "view";
 import EraseTool from "tools/erase";
 
-const PERSIST_NOTEBOOK = true;
+const PERSIST_NOTEBOOK = false;
 
 export async function initNotebook() {
   const repo = new Repo({
