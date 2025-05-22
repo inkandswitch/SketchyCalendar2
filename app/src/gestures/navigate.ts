@@ -14,6 +14,8 @@ export default class Navigate implements GestureHandler {
   }
 
   onEvent(e: TouchEvent) {
+    if (this.view.isZoomedIn()) return;
+
     if (e.type != "finger") return;
     switch (e.phase) {
       case "began": {
@@ -58,6 +60,9 @@ export default class Navigate implements GestureHandler {
       }
       case "ended": {
         if (this.touch && this.touch.id == e.id) {
+          if (Vec.len(this.touch.totalDelta) < 10) {
+            this.view.zoomLevel.setTarget(1);
+          }
           this.touch = null;
         }
         break;

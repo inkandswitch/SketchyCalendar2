@@ -116,6 +116,10 @@ export class View {
       this.zoomView[this.zoomHierarchyFocus.target][currentLevel.target];
   }
 
+  isZoomedIn() {
+    return this.zoomLevel.getCurrent() > 0.99;
+  }
+
   render(r: Render) {
     const innerWidth = window.innerWidth;
     const innerHeight = window.innerHeight;
