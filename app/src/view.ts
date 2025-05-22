@@ -10,7 +10,6 @@ import { Page } from "things/page";
 export class View {
   notebook: Notebook;
 
-  currentPageId: Id<Page> | null = null;
   currentPage: Page | null = null;
 
   zoomLevel: AnimateVariable = new AnimateVariable(1, 60, 20); // between zero and one
@@ -53,12 +52,7 @@ export class View {
   };
 
   rebuild() {
-    if (this.currentPageId == null) {
-      this.currentPage = this.notebook.rootPages[0];
-      this.currentPageId = this.currentPage.id;
-    } else {
-      this.currentPage = this.notebook.getPageById(this.currentPageId);
-    }
+    this.updateCurrentPage();
 
     // --- Zoomed out view
     // // Build the zoom view, sort into levels
@@ -93,10 +87,7 @@ export class View {
       this.zoomHierarchyFocus.target = this.zoomView.length - 1;
     }
 
-    const currentLevel =
-      this.zoomHierarchyOffsets[this.zoomHierarchyFocus.target];
-    this.currentPage =
-      this.zoomView[this.zoomHierarchyFocus.target][currentLevel.target];
+    this.updateCurrentPage();
   }
 
   navigateHorizontal(dx: number) {
@@ -115,6 +106,12 @@ export class View {
         this.zoomView[this.zoomHierarchyFocus.target].length - 1;
     }
 
+    this.updateCurrentPage();
+  }
+
+  updateCurrentPage() {
+    const currentLevel =
+      this.zoomHierarchyOffsets[this.zoomHierarchyFocus.target];
     this.currentPage =
       this.zoomView[this.zoomHierarchyFocus.target][currentLevel.target];
   }
@@ -137,18 +134,21 @@ export class View {
       zoom,
     });
 
-    //this.currentPage!.render(r, { x: 0, y: 0 });
-
     // Render the zoom view
     for (let i = 0; i < this.zoomView.length; i++) {
       const level = this.zoomView[i];
       const x_offset = -this.zoomHierarchyOffsets[i].getCurrent();
       for (let j = 0; j < level.length; j++) {
         const page = level[j];
+        // if (
+        //   zoom < 0.9 ||
+        //   (this.currentPage && page.id == this.currentPage!.id)
+        // ) {
         page.render(r, {
-          x: j * (page.paper.width + 20) + x_offset * (page.paper.width + 20),
-          y: i * (page.paper.height + 20),
+          x: j * (innerWidth + 20) + x_offset * (innerWidth + 20),
+          y: i * (innerHeight + 20),
         });
+        //}
       }
     }
 
