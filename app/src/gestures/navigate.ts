@@ -55,8 +55,6 @@ export default class Navigate implements GestureHandler {
                 this.view.navigateVertical(1);
               }
             }
-
-            this.swipedLaneOffset = null;
           }
         }
         break;

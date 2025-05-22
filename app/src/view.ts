@@ -90,6 +90,8 @@ export class View {
   }
 
   navigateHorizontal(dx: number, laneOffset: number) {
+    console.log("navigateHorizontal", dx, laneOffset);
+
     // ignore lane offset if all the way zoomed in
     if (this.zoomLevel.getCurrent() > 0.99) {
       laneOffset = 0;
@@ -103,18 +105,20 @@ export class View {
     swipedLevel.target += dx;
     if (swipedLevel.target < 0) {
       swipedLevel.target = 0;
+      return;
     }
+
     if (swipedLevel.target >= this.zoomView[target].length) {
       swipedLevel.target = this.zoomView[target].length - 1;
+      return;
     }
 
-    // update levels below
+    // progpagate swiped level to all levels below
     let targetParentPage = this.zoomView[target][swipedLevel.target];
 
-    // Propagate changes through all levels below
     for (let i = target + 1; i < this.zoomView.length; i++) {
       const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
-      const offsetAtLevel = Math.round(offsetAtLevelVariable.getCurrent());
+      const offsetAtLevel = offsetAtLevelVariable.target;
       const pagesAtLevel = this.zoomView[i];
       const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
 
@@ -123,10 +127,34 @@ export class View {
           (p) => p.parent!.id === targetParentPage.id
         );
 
-        if (index !== -1) {
-          targetParentPage = pagesAtLevel[index];
-          offsetAtLevelVariable.target = index;
+        targetParentPage = pagesAtLevel[index];
+        offsetAtLevelVariable.setTarget(index);
+      }
+    }
+
+    // propagate swiped level to all levels above
+    targetParentPage = this.zoomView[target][swipedLevel.target].parent!;
+
+    if (targetParentPage) {
+      const i = target - 1;
+
+      const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
+      const offsetAtLevel = offsetAtLevelVariable.target;
+      const pagesAtLevel = this.zoomView[i];
+      const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
+
+      if (currentFocusedPageAtLevel.id !== targetParentPage.id) {
+        const index = pagesAtLevel.findIndex(
+          (p) => p.id === targetParentPage.id
+        );
+
+        if (index === -1) {
+          console.error("index is -1");
+          debugger;
         }
+
+        targetParentPage = pagesAtLevel[index].parent!;
+        offsetAtLevelVariable.setTarget(index);
       }
     }
 
