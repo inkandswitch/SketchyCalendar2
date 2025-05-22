@@ -151,14 +151,7 @@ export class Paper {
       fillAndStroke("white", "black", 1)
     );
 
-    for (const text of this.texts) {
-      text.render(r, position);
-    }
-
-    for (const stroke of this.strokes) {
-      stroke.render(r, position);
-    }
-
+    // Render background
     if (isCalendarBackground(this.background)) {
       renderCalendarBackground(
         r,
@@ -167,6 +160,15 @@ export class Paper {
         this.background.date,
         this.#state.googleCalendar
       );
+    }
+
+    // Render page contents
+    for (const text of this.texts) {
+      text.render(r, position);
+    }
+
+    for (const stroke of this.strokes) {
+      stroke.render(r, position);
     }
 
     // Render last so they appear on top
