@@ -95,18 +95,39 @@ export class View {
       laneOffset = 0;
     }
 
-    const swipedLevel =
-      this.zoomHierarchyOffsets[this.zoomHierarchyFocus.target + laneOffset];
+    const target = this.zoomHierarchyFocus.target + laneOffset;
+    const swipedLevel = this.zoomHierarchyOffsets[target];
+
+    // ensure swiped level is in bounds
 
     swipedLevel.target += dx;
     if (swipedLevel.target < 0) {
       swipedLevel.target = 0;
     }
-    if (
-      swipedLevel.target >= this.zoomView[this.zoomHierarchyFocus.target].length
-    ) {
-      swipedLevel.target =
-        this.zoomView[this.zoomHierarchyFocus.target].length - 1;
+    if (swipedLevel.target >= this.zoomView[target].length) {
+      swipedLevel.target = this.zoomView[target].length - 1;
+    }
+
+    // update levels below
+    let targetParentPage = this.zoomView[target][swipedLevel.target];
+
+    // Propagate changes through all levels below
+    for (let i = target + 1; i < this.zoomView.length; i++) {
+      const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
+      const offsetAtLevel = Math.round(offsetAtLevelVariable.getCurrent());
+      const pagesAtLevel = this.zoomView[i];
+      const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
+
+      if (currentFocusedPageAtLevel.parent!.id !== targetParentPage.id) {
+        const index = pagesAtLevel.findIndex(
+          (p) => p.parent!.id === targetParentPage.id
+        );
+
+        if (index !== -1) {
+          targetParentPage = pagesAtLevel[index];
+          offsetAtLevelVariable.target = index;
+        }
+      }
     }
 
     this.updateCurrentPage();
