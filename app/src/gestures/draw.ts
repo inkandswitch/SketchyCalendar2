@@ -7,28 +7,27 @@ import { Id } from "id";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
-import Toolbar from "toolbar";
-import { PenHandler } from "tools/pen";
+import Toolbar, { ToolHandler } from "toolbar";
 
 export default class Draw implements GestureHandler {
   notebook: Notebook;
   view: View;
   toolbar: Toolbar;
 
-  drawHandler: PenHandler | null = null;
+  drawHandler: ToolHandler | null = null;
 
   constructor(view: View, notebook: Notebook, toolbar: Toolbar) {
     this.toolbar = toolbar;
     this.notebook = notebook;
     this.view = view;
 
-    this.drawHandler = this.toolbar.activeTool?.getHandler(view, notebook);
+    this.drawHandler = this.toolbar.activeTool!.getHandler(view, notebook);
   }
 
   tap(e: TouchEvent): boolean {
     if (this.toolbar.tap(e.current)) {
       console.log("Toolbar tapped");
-      this.drawHandler = this.toolbar.activeTool?.getHandler(
+      this.drawHandler = this.toolbar.activeTool!.getHandler(
         this.view,
         this.notebook
       );

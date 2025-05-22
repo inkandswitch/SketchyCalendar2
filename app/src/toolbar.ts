@@ -3,6 +3,7 @@ import { Rect } from "lib/rect";
 import Render, { fill, fillAndStroke } from "lib/render";
 import { View } from "view";
 import { Notebook } from "things/notebook";
+import { TouchEvent } from "gesturesystem";
 
 export abstract class Tool {
   position: Point = Point(0, 0);
@@ -21,9 +22,15 @@ export abstract class Tool {
     r.image("./img/" + this.icon + ".png", this.position.x, this.position.y);
   }
 
-  getHandler(view: View, notebook: Notebook): any {
+  getHandler(view: View, notebook: Notebook): ToolHandler {
     throw new Error("Method not implemented.");
   }
+}
+
+export interface ToolHandler {
+  penDown(e: TouchEvent): void;
+  penMove(e: TouchEvent): void;
+  penUp(e: TouchEvent): void;
 }
 
 export default class Toolbar {

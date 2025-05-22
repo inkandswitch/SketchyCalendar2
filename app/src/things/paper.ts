@@ -136,6 +136,12 @@ export class Paper {
     return Stroke.create(this.#state, this.id, color, weight);
   }
 
+  removeStroke(strokeId: Id<Stroke>) {
+    this.#state.docHandle.change((state) => {
+      delete state.strokes[strokeId];
+    });
+  }
+
   render(r: Render, position: Point) {
     r.rect(
       position.x,

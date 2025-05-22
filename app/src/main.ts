@@ -19,6 +19,7 @@ import { Calendar } from "lib/googlecalendar";
 
 import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { View } from "view";
+import EraseTool from "tools/erase";
 
 const PERSIST_NOTEBOOK = true;
 
@@ -74,6 +75,8 @@ const toolbar = new Toolbar({ x: 10, y: 10 }, [
   new PenTool("pen_red", "red", 1),
   new PenTool("highlight_yellow", "#FFFF0044", 20),
   new PenTool("highlight_green", "#00FF0033", 20),
+  new PenTool("whiteout", "#FFFFFF", 30),
+  new EraseTool(20),
 ]);
 
 const gestures = new GestureSystem([

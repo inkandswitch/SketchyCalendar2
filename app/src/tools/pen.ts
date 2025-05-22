@@ -4,7 +4,7 @@ import { Notebook } from "things/notebook";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
-import { Tool } from "toolbar";
+import { Tool, ToolHandler } from "toolbar";
 
 import { Id } from "id";
 import { Stroke } from "things/ink";
@@ -22,20 +22,12 @@ export default class PenTool extends Tool {
     this.weight = weight;
   }
 
-  tap(point: Point): boolean {
-    if (super.tap(point)) {
-      console.log("Pen tool tapped");
-      return true;
-    }
-    return false;
-  }
-
-  getHandler(view: View, notebook: Notebook): PenHandler {
+  getHandler(view: View, notebook: Notebook): ToolHandler {
     return new PenHandler(view, notebook, this);
   }
 }
 
-export class PenHandler {
+export class PenHandler implements ToolHandler {
   view: View;
   notebook: Notebook;
   tool: PenTool;
