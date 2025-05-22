@@ -18,8 +18,10 @@ export default class PinchIn implements GestureHandler {
 
   onEvent(e: TouchEvent) {
     if (e.type != "finger") return;
+
     switch (e.phase) {
       case "began": {
+        if (!this.view.isZoomedIn()) return;
         if (!this.a) {
           if (e.position.x < this.margin) {
             this.a = e;

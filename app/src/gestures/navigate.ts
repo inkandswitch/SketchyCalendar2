@@ -14,9 +14,9 @@ export default class Navigate implements GestureHandler {
   }
 
   onEvent(e: TouchEvent) {
+    if (e.type != "finger") return;
     if (this.view.isZoomedIn()) return;
 
-    if (e.type != "finger") return;
     switch (e.phase) {
       case "began": {
         if (!this.touch) {
