@@ -1,10 +1,12 @@
+import { isToday } from "date-fns";
 import { Id } from "id";
+import { GoogleCalendar } from "lib/googlecalendar";
 import { Point } from "lib/point";
-import Render, { fill, fillAndStroke, font, stroke } from "lib/render";
+import Render, { fill, fillAndStroke, stroke } from "lib/render";
+import { Stroke } from "./ink";
 import { State } from "./notebook";
 import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
-import { Stroke, StrokeProps } from "./ink";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -31,6 +33,7 @@ export type PaperProps = {
 
 export type CalendarBackground = {
   type: "Calendar";
+  date: Date;
 };
 
 export class Paper {
@@ -151,7 +154,13 @@ export class Paper {
 
     // Render last so they appear on top
     if (isCalendarBackground(this.background)) {
-      //renderCalendarBackground(r, this, position, this.background);
+      renderCalendarBackground(
+        r,
+        this,
+        position,
+        this.background.date,
+        this.#state.googleCalendar
+      );
     }
 
     for (const child of this.children) {
@@ -164,10 +173,9 @@ function renderCalendarBackground(
   r: Render,
   paper: Paper,
   position: Point,
-  background: CalendarBackground
+  date: Date,
+  googleCalendar: GoogleCalendar
 ) {
-  const date = new Date();
-
   // Draw calendar grid
   const calendarHeight = paper.height;
 
@@ -180,11 +188,7 @@ function renderCalendarBackground(
     r.line(position.x, y, position.x + paper.width, y, stroke("#AAA", 1));
   }
 
-  const isToday = false;
-  /*        card.props &&
-      new Date(card.props.date).toDateString() == new Date().toDateString();*/
-
-  if (isToday) {
+  if (isToday(date)) {
     const offset = getTimeOffset(new Date(), 8, 21, 0, calendarHeight);
 
     r.line(
@@ -196,29 +200,28 @@ function renderCalendarBackground(
     );
   }
 
-  // const events = []; //getEventsOnDay(date, calendarIds, this.calendarDocHandle);
-  // for (const event of events) {
-  //   const start = new Date(event.start!.dateTime!);
-  //   const start_offset =
-  //     headerHeight + getTimeOffset(start, 8, 21, 0, calendarHeight);
-  //   const end = new Date(event.end!.dateTime!);
-  //   const end_offset =
-  //     headerHeight + getTimeOffset(end, 8, 21, 0, calendarHeight);
-  //   render.round_rect(
-  //     instance.x + 50,
-  //     instance.y + start_offset,
-  //     card.width - 50,
-  //     end_offset - start_offset,
-  //     3,
-  //     fill("#00000011")
-  //   );
-  //   render.text(
-  //     event.summary!,
-  //     instance.x + 60,
-  //     instance.y + start_offset + 15,
-  //     fill("#AAA")
-  //   );
-  // }
+  const events = googleCalendar.getEventsOnDay(date);
+
+  for (const event of events) {
+    const start = new Date(event.start!.dateTime!);
+    const start_offset = getTimeOffset(start, 8, 21, 0, calendarHeight);
+    const end = new Date(event.end!.dateTime!);
+    const end_offset = getTimeOffset(end, 8, 21, 0, calendarHeight);
+    r.round_rect(
+      position.x + 50,
+      position.y + start_offset,
+      paper.width - 50,
+      end_offset - start_offset,
+      3,
+      fill("#00000011")
+    );
+    r.text(
+      event.summary!,
+      position.x + 60,
+      position.y + start_offset + 15,
+      fill("#AAA")
+    );
+  }
 }
 
 function getTimeOffset(

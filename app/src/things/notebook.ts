@@ -25,6 +25,7 @@ import { NewPageProps, Page, PageProps } from "things/page";
 import { PaperProps, Paper } from "things/paper";
 import { StrokeProps, Stroke } from "things/ink";
 import { Text, TextProps } from "things/text";
+import { Calendar, GoogleCalendar } from "lib/googlecalendar";
 
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;
@@ -42,6 +43,7 @@ export type State = {
   pageChildrenMap: Map<Id<Page>, Array<PageProps>>;
   textChildrenMap: Map<Id<Paper>, Array<TextProps>>;
   strokeChildrenMap: Map<Id<Paper>, Array<StrokeProps>>;
+  googleCalendar: GoogleCalendar;
 };
 
 type NotebookEvents = {
@@ -56,7 +58,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   papers: Map<Id<PaperProps>, Paper> = new Map();
 
-  constructor(docHandle: DocHandle<NotebookProps>) {
+  constructor(
+    docHandle: DocHandle<NotebookProps>,
+    calendarDocHandle?: DocHandle<Calendar>
+  ) {
     super();
 
     const props = docHandle.doc();
@@ -69,13 +74,14 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       pageChildrenMap: new Map(),
       textChildrenMap: new Map(),
       strokeChildrenMap: new Map(),
+      googleCalendar: new GoogleCalendar(calendarDocHandle),
     };
 
     docHandle.addListener("change", this.#onChange);
     this.rebuild();
   }
 
-  static create(repo: Repo) {
+  static create(repo: Repo, calendarDocHandle?: DocHandle<Calendar>) {
     const docHandle = repo.create<NotebookProps>({
       pages: {},
       papers: {},
@@ -84,7 +90,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       texts: {},
     });
 
-    return new Notebook(docHandle);
+    return new Notebook(docHandle, calendarDocHandle);
   }
 
   #onChange = () => {
@@ -180,6 +186,19 @@ export function addCalendarPages(
     y: 50,
     font: FONT,
   });
+
+  // test page
+  // rootPage.paper.addNewPaper({
+  //   siblingIndex: 0,
+  //   width: DAY_WIDTH,
+  //   height: pageHeight,
+  //   background: {
+  //     type: "Calendar",
+  //     date: new Date(),
+  //   },
+  //   x: 400,
+  //   y: 0,
+  // });
 
   const monthDates = [];
   const monthPages = [];
@@ -309,6 +328,7 @@ export function addCalendarPages(
         height: pageHeight - SPACE_TOP - DAY_MONTHLY_SECTION_HEIGHT,
         background: {
           type: "Calendar",
+          date: dayDate,
         },
         x: 0,
         y: SPACE_TOP + DAY_MONTHLY_SECTION_HEIGHT,

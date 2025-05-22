@@ -8,12 +8,12 @@ import PinchIn from "gestures/pinchin";
 import Draw from "gestures/draw";
 import Navigate from "gestures/navigate";
 
-import { Id } from "id";
 import { InputSystem } from "inputsystem";
 import Render from "lib/render";
 import tick from "lib/tick";
 import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { View } from "view";
+import { Calendar } from "lib/googlecalendar";
 
 export async function initNotebook() {
   const repo = new Repo({
@@ -22,11 +22,16 @@ export async function initNotebook() {
   });
 
   let documentId = window.location.hash.slice(1) as DocumentId;
+  let calendarDocumentId = localStorage.getItem("calendarDocId");
+
+  let calendarDocHandle = calendarDocumentId
+    ? await repo.find<Calendar>(calendarDocumentId as DocumentId)
+    : undefined;
 
   let notebook: Notebook;
 
   if (!documentId) {
-    notebook = Notebook.create(repo);
+    notebook = Notebook.create(repo, calendarDocHandle);
 
     const time = Date.now();
     addCalendarPages(
@@ -42,7 +47,7 @@ export async function initNotebook() {
     // window.location.hash = notebook.documentId;
   } else {
     const docHandle = await repo.find<NotebookProps>(documentId);
-    notebook = new Notebook(docHandle);
+    notebook = new Notebook(docHandle, calendarDocHandle);
   }
 
   return notebook;
