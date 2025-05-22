@@ -52,8 +52,6 @@ export class View {
   };
 
   rebuild() {
-    this.updateCurrentPage();
-
     // --- Zoomed out view
     // // Build the zoom view, sort into levels
     this.zoomView = [];
@@ -66,7 +64,8 @@ export class View {
       }
       currentLevel = nextLevel;
     }
-    console.log(this.zoomView);
+
+    this.updateCurrentPage();
   }
 
   update(dt: number) {

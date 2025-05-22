@@ -7,6 +7,8 @@ import { Stroke } from "./ink";
 import { State } from "./notebook";
 import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
+import { Stroke, StrokeProps } from "./ink";
+import { Vec } from "lib/vec";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -152,7 +154,6 @@ export class Paper {
       stroke.render(r, position);
     }
 
-    // Render last so they appear on top
     if (isCalendarBackground(this.background)) {
       renderCalendarBackground(
         r,
@@ -163,9 +164,35 @@ export class Paper {
       );
     }
 
+    // Render last so they appear on top
     for (const child of this.children) {
       child.render(r, position);
     }
+  }
+
+  getPaperAtPosition(
+    position: Point,
+    offset: Point = { x: 0, y: 0 }
+  ): { paper: Paper; offset: Point } | null {
+    const x = position.x - offset.x;
+    const y = position.y - offset.y;
+
+    if (x >= 0 && y >= 0 && x <= this.width && y <= this.height) {
+      for (const paperInstance of this.children) {
+        const childOffset = Vec.add(paperInstance, offset);
+        const childPaper = paperInstance.paper.getPaperAtPosition(
+          position,
+          childOffset
+        );
+        if (childPaper) {
+          return childPaper;
+        }
+      }
+
+      return { paper: this, offset };
+    }
+
+    return null;
   }
 }
 

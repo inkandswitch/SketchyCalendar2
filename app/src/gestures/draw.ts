@@ -5,10 +5,14 @@ import { Notebook } from "things/notebook";
 
 import { Id } from "id";
 
+import { Point } from "lib/vec";
+import { Vec } from "lib/vec";
+
 export default class Draw implements GestureHandler {
   notebook: Notebook;
   view: View;
   strokeId: Id<Stroke> | null = null;
+  offset: Point | null = null;
 
   constructor(view: View, notebook: Notebook) {
     this.notebook = notebook;
@@ -19,23 +23,28 @@ export default class Draw implements GestureHandler {
     if (e.type != "pencil") return;
     switch (e.phase) {
       case "began": {
-        const currentPaper = this.view.currentPage!.paper;
-        const newStroke = currentPaper.addNewStroke();
-        newStroke.addPoint(e.current);
+        const currentPage = this.view.currentPage!;
+        console.log(currentPage);
+        if (!currentPage) return;
+        const found = currentPage.paper.getPaperAtPosition(e.current);
+        if (!found) return;
+        const newStroke = found.paper.addNewStroke();
+        this.offset = found.offset;
+        newStroke.addPoint(Vec.sub(e.current, this.offset));
         this.strokeId = newStroke.props.id;
         break;
       }
       case "moved": {
         if (this.strokeId != null) {
           const stroke = this.notebook.getStrokeById(this.strokeId);
-          stroke.addPoint(e.current);
+          stroke.addPoint(Vec.sub(e.current, this.offset));
         }
         break;
       }
       case "ended": {
         if (this.strokeId != null) {
           const stroke = this.notebook.getStrokeById(this.strokeId);
-          stroke.addPoint(e.current);
+          stroke.addPoint(Vec.sub(e.current, this.offset));
           this.strokeId = null;
         }
         break;
