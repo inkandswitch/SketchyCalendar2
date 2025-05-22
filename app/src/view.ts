@@ -209,7 +209,9 @@ export class View {
       for (let i = 0; i < this.zoomView.length; i++) {
         const level = this.zoomView[i];
         const x_offset = -this.zoomHierarchyOffsets[i].getCurrent();
-        const page_offset = this.zoomHierarchyOffsets[i].target;
+        const page_offset = Math.round(
+          this.zoomHierarchyOffsets[i].getCurrent()
+        );
         for (let j = -2; j < 3; j++) {
           const o = page_offset + j;
           const page = level[o];
