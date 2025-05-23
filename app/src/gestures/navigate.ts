@@ -11,6 +11,8 @@ export default class Navigate implements GestureHandler {
   //direction: "horizontal" | "vertical" | null = null;
   startPoint: Point | null = null;
 
+  activeTouches: Array<TouchEvent> = [];
+
   constructor(view: View) {
     this.view = view;
   }
@@ -20,6 +22,8 @@ export default class Navigate implements GestureHandler {
 
     switch (e.phase) {
       case "began": {
+        this.activeTouches.push(e);
+
         if (!this.touch) {
           this.touch = e;
           this.startPoint = e.start;
@@ -29,6 +33,12 @@ export default class Navigate implements GestureHandler {
         break;
       }
       case "moved": {
+        // only handle this touch if there are no other active touches to avoid interfering with pinch in gesture
+        if (this.activeTouches.length > 1) {
+          this.touch = null;
+          return;
+        }
+
         if (this.touch && this.touch.id == e.id) {
           this.touch = e;
           const delta = Vec.sub(e.current, this.startPoint!);
@@ -65,6 +75,8 @@ export default class Navigate implements GestureHandler {
         break;
       }
       case "ended": {
+        this.activeTouches = this.activeTouches.filter((t) => t.id != e.id);
+
         if (this.touch && this.touch.id == e.id) {
           if (Vec.len(this.touch.totalDelta) < 10) {
             const dx =
