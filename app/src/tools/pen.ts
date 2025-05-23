@@ -1,6 +1,5 @@
 import { TouchEvent } from "gesturesystem";
 import { View } from "view";
-import { Notebook } from "things/notebook";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
@@ -8,6 +7,8 @@ import { Tool, ToolHandler } from "toolbar";
 
 import { Id } from "id";
 import { Stroke } from "things/ink";
+import { Paper } from "things/paper";
+import { Notebook } from "things/notebook";
 
 export default class PenTool extends Tool {
   color: string;
@@ -27,11 +28,13 @@ export default class PenTool extends Tool {
   }
 }
 
+// Pen handler
 export class PenHandler implements ToolHandler {
   view: View;
   notebook: Notebook;
   tool: PenTool;
 
+  paperId: Id<Paper> | null = null;
   strokeId: Id<Stroke> | null = null;
   offset: Point | null = null;
 
@@ -49,6 +52,8 @@ export class PenHandler implements ToolHandler {
     const found = currentPage.paper.getPaperAtPosition(e.current);
     if (!found) return;
 
+    this.paperId = found.paper.id;
+
     // Create a new stroke
     const newStroke = found.paper.addNewStroke(
       this.tool.color,
@@ -63,6 +68,23 @@ export class PenHandler implements ToolHandler {
 
   penMove(e: TouchEvent) {
     if (this.strokeId != null) {
+      const currentPage = this.view.currentPage!;
+      if (!currentPage) return;
+      const found = currentPage.paper.getPaperAtPosition(e.current);
+      if (!found) return;
+
+      // Check if the paper has changed
+      if (this.paperId !== found.paper.id) {
+        this.paperId = found.paper.id;
+        this.offset = found.offset;
+
+        const newStroke = found.paper.addNewStroke(
+          this.tool.color,
+          this.tool.weight
+        );
+        this.strokeId = newStroke.props.id;
+      }
+
       const stroke = this.notebook.getStrokeById(this.strokeId);
       stroke.addPoint(Vec.sub(e.current, this.offset!));
     }
