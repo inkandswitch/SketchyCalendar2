@@ -69,7 +69,7 @@ const input = new InputSystem();
 const notebook = await initNotebook();
 const view = new View(notebook);
 
-const toolbar = new Toolbar({ x: 10, y: 10 }, [
+const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
   new PenTool("pen_black", "black", 1),
   new PenTool("pen_blue", "blue", 1),
   new PenTool("pen_red", "red", 1),
