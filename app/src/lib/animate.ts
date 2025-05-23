@@ -18,6 +18,10 @@ export class AnimateVariable {
   update(dx: number) {
     this.value = this.value + (this.target - this.value) * dx * 20;
   }
+
+  isCloseEnough(): boolean {
+    return Math.abs(this.target - this.value) < 0.01;
+  }
 }
 
 // export class AnimateVariable {

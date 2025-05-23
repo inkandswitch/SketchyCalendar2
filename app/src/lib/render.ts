@@ -7,7 +7,6 @@ export interface RenderCamera {
 export default class Render {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  pattern: CanvasPattern | null = null;
   imageCache: Record<string, HTMLImageElement> = {};
 
   width!: number;

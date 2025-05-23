@@ -194,7 +194,12 @@ export class View {
     //const currentLevel = this.zoomHierarchyFocus.target;
 
     // Render the zoom view
-    if (this.zoomLevel.getCurrent() > 0.99) {
+    const renderStablePage =
+      this.isZoomedIn() &&
+      this.zoomHierarchyFocus.isCloseEnough() &&
+      this.zoomHierarchyOffsets.every((a) => a.isCloseEnough());
+
+    if (renderStablePage) {
       const currentLevel = this.zoomHierarchyFocus.target;
 
       this.currentPage?.render(r, {
