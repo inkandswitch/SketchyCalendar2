@@ -17,7 +17,6 @@ export default class Navigate implements GestureHandler {
 
   onEvent(e: TouchEvent) {
     if (e.type != "finger") return;
-    if (this.view.isZoomedIn()) return;
 
     switch (e.phase) {
       case "began": {
@@ -35,6 +34,7 @@ export default class Navigate implements GestureHandler {
           const delta = Vec.sub(e.current, this.startPoint!);
 
           const factor = window.innerWidth * 0.1;
+
           const progress = Vec.len(delta) / factor;
           if (progress > 1) {
             this.startPoint = e.current;
@@ -54,6 +54,11 @@ export default class Navigate implements GestureHandler {
                 console.log("up swipe");
                 this.view.navigateVertical(1);
               }
+            }
+
+            // in zoomed in mode don't allow continuous swiping
+            if (this.view.isZoomedIn()) {
+              this.touch = null;
             }
           }
         }
