@@ -154,8 +154,8 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 }
 
 //const FONT = "200px Arial";
-const FONT_BIG = "30px Arial";
-const FONT_SMALL = "12px Arial";
+const FONT_BIG = "100 30px Avenir";
+const FONT_SMALL = "100 16px Avenir";
 
 const WEEK_DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -182,8 +182,8 @@ export function addCalendarPages(
   rootPage.paper.addNewText({
     siblingIndex: 0,
     value: "2024 Calendar",
-    x: 50,
-    y: 50,
+    x: 10,
+    y: 10,
     font: FONT_BIG,
   });
 
@@ -217,8 +217,8 @@ export function addCalendarPages(
     monthPage.paper.addNewText({
       siblingIndex: 0,
       value: monthDate.toLocaleString("default", { month: "long" }),
-      x: 50,
-      y: 50,
+      x: 10,
+      y: 10,
       font: FONT_BIG,
     });
 
@@ -226,8 +226,8 @@ export function addCalendarPages(
       monthPage.paper.addNewText({
         siblingIndex: index,
         value: weekday,
-        x: 50 + DAY_WIDTH * index,
-        y: 100,
+        x: 10 + DAY_WIDTH * index,
+        y: 110,
         font: FONT_BIG,
       });
     });
@@ -261,8 +261,8 @@ export function addCalendarPages(
     weekPage.paper.addNewText({
       siblingIndex: weekNumber,
       value: `Week ${weekNumber}`,
-      x: 50,
-      y: 50,
+      x: 10,
+      y: 10,
       font: FONT_BIG,
     });
 
@@ -270,8 +270,8 @@ export function addCalendarPages(
       weekPage.paper.addNewText({
         siblingIndex: index,
         value: weekday,
-        x: 50 + DAY_WIDTH * index,
-        y: 100,
+        x: 10 + DAY_WIDTH * index,
+        y: 110,
         font: FONT_BIG,
       });
     });
@@ -291,8 +291,8 @@ export function addCalendarPages(
       dayPage.paper.addNewText({
         siblingIndex: 0,
         value: dayDate.toLocaleString("default", { weekday: "short" }),
-        x: 50,
-        y: 50,
+        x: 10,
+        y: 10,
         font: FONT_BIG,
       });
 
@@ -315,8 +315,8 @@ export function addCalendarPages(
           day: "numeric",
           month: "short",
         }),
-        x: 25,
-        y: 25,
+        x: 10,
+        y: 10,
         font: FONT_SMALL,
       });
 

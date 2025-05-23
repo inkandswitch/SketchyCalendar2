@@ -148,7 +148,7 @@ export class Paper {
       position.y,
       this.width,
       this.height,
-      fillAndStroke("white", "black", 1)
+      fillAndStroke("white", "#999", 1)
     );
 
     // Render background
@@ -217,9 +217,9 @@ function renderCalendarBackground(
     const hour = i + 8;
     const offset = (calendarHeight / 13) * i;
     const y = position.y + offset;
-    r.text(`${hour}:00`, position.x + 10, y + 15, font("12px Arial", "#AAA"));
+    r.text(`${hour}:00`, position.x + 10, y + 10, font("12px Arial", "#CCC"));
 
-    r.line(position.x, y, position.x + paper.width, y, stroke("#AAA", 1));
+    r.line(position.x, y, position.x + paper.width, y, stroke("#CCC", 1));
   }
 
   if (isToday(date)) {

@@ -62,7 +62,7 @@ export class Text {
       ...props,
       id: generateId<Text>(),
       font: props.font ?? "16px Arial",
-      color: props.color ?? "black",
+      color: props.color ?? "#444",
     };
 
     state.docHandle.change((state) => {
