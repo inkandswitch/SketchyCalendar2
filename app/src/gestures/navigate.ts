@@ -62,7 +62,11 @@ export default class Navigate implements GestureHandler {
       case "ended": {
         if (this.touch && this.touch.id == e.id) {
           if (Vec.len(this.touch.totalDelta) < 10) {
-            this.view.zoomLevel.setTarget(1);
+            const dx =
+              Math.floor((this.touch.current.x / window.innerWidth) * 3) - 1;
+            const dy =
+              Math.floor((this.touch.current.y / window.innerHeight) * 3) - 1;
+            this.view.zoomTo(dx, dy);
           }
           this.touch = null;
         }

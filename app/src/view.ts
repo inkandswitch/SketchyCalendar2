@@ -23,21 +23,9 @@ export class View {
 
   zoomView: Array<Array<Page>>;
 
-  // // View state
-  // zoomViewFocus: Array<number>;
-  // zoomViewOffsets: Array<AnimateVariable>;
-  // zoomLevel: AnimateVariable;
-
   constructor(notebook: Notebook) {
     this.notebook = notebook;
     this.zoomView = [[], [], []]; // Layout pages in a tree hierarchy
-    // this.zoomViewFocus = [0, 0, 0]; // Offsets for each level
-    // this.zoomViewOffsets = [
-    //   new AnimateVariable(0),
-    //   new AnimateVariable(0),
-    //   new AnimateVariable(0),
-    //   new AnimateVariable(0),
-    // ]; // Offsets for each level
 
     this.notebook.on("changed", this.#onNotebookChanged);
     this.rebuild();
@@ -89,9 +77,13 @@ export class View {
     this.updateCurrentPage();
   }
 
-  navigateHorizontal(dx: number, laneOffset: number) {
-    console.log("navigateHorizontal", dx, laneOffset);
+  zoomTo(dx: number, dy: number) {
+    this.zoomLevel.setTarget(1);
+    this.navigateHorizontal(dx, dy);
+    this.navigateVertical(dy);
+  }
 
+  navigateHorizontal(dx: number, laneOffset: number) {
     // ignore lane offset if all the way zoomed in
     if (this.zoomLevel.getCurrent() > 0.99) {
       laneOffset = 0;
@@ -101,7 +93,6 @@ export class View {
     const swipedLevel = this.zoomHierarchyOffsets[target];
 
     // ensure swiped level is in bounds
-
     swipedLevel.target += dx;
     if (swipedLevel.target < 0) {
       swipedLevel.target = 0;
@@ -113,10 +104,18 @@ export class View {
       return;
     }
 
-    // progpagate swiped level to all levels below
-    let targetParentPage = this.zoomView[target][swipedLevel.target];
+    this.propagateOffsetAtLevel(target);
 
-    for (let i = target + 1; i < this.zoomView.length; i++) {
+    this.updateCurrentPage();
+  }
+
+  propagateOffsetAtLevel(level: number) {
+    // progpagate swiped level to all levels below
+
+    const target = this.zoomHierarchyOffsets[level].target;
+    let targetParentPage = this.zoomView[level][target];
+
+    for (let i = level + 1; i < this.zoomView.length; i++) {
       const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
       const offsetAtLevel = offsetAtLevelVariable.target;
       const pagesAtLevel = this.zoomView[i];
@@ -135,10 +134,10 @@ export class View {
     }
 
     // propagate swiped level to all levels above
-    targetParentPage = this.zoomView[target][swipedLevel.target].parent!;
+    targetParentPage = this.zoomView[level][target].parent!;
 
     if (targetParentPage) {
-      for (let i = target - 1; i > 0; i--) {
+      for (let i = level - 1; i > 0; i--) {
         const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
         const offsetAtLevel = offsetAtLevelVariable.target;
         const pagesAtLevel = this.zoomView[i];
@@ -161,9 +160,6 @@ export class View {
         }
       }
     }
-
-    this.updateCurrentPage();
-    console.log(this.zoomHierarchyOffsets);
   }
 
   updateCurrentPage() {
