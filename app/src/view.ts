@@ -6,6 +6,7 @@ import Render, { fill } from "lib/render";
 import { Id } from "id";
 import { Notebook } from "things/notebook";
 import { Page } from "things/page";
+import { getWeek } from "date-fns";
 
 export class View {
   notebook: Notebook;
@@ -13,11 +14,11 @@ export class View {
   currentPage: Page | null = null;
 
   zoomLevel: AnimateVariable = new AnimateVariable(1, 60, 20); // between zero and one
-  zoomHierarchyFocus = new AnimateVariable(0, 60, 20);
+  zoomHierarchyFocus = new AnimateVariable(2, 60, 20); // focus on week
   zoomHierarchyOffsets = [
     new AnimateVariable(0, 60, 20),
     new AnimateVariable(0, 60, 20),
-    new AnimateVariable(0, 60, 20),
+    new AnimateVariable(getWeek(new Date()) - 1, 60, 20),
     new AnimateVariable(0, 60, 20),
   ];
 
@@ -29,6 +30,7 @@ export class View {
 
     this.notebook.on("changed", this.#onNotebookChanged);
     this.rebuild();
+    this.propagateOffsetAtLevel(2, true);
   }
 
   destroy() {
@@ -109,7 +111,7 @@ export class View {
     this.updateCurrentPage();
   }
 
-  propagateOffsetAtLevel(level: number) {
+  propagateOffsetAtLevel(level: number, instant: boolean = false) {
     // progpagate swiped level to all levels below
 
     const target = this.zoomHierarchyOffsets[level].target;
@@ -129,7 +131,12 @@ export class View {
         );
 
         targetParentPage = pagesAtLevel[index];
-        offsetAtLevelVariable.setTarget(index);
+
+        if (instant) {
+          offsetAtLevelVariable.value = index;
+        } else {
+          offsetAtLevelVariable.setTarget(index);
+        }
       }
     }
 
@@ -156,7 +163,11 @@ export class View {
           }
 
           targetParentPage = pagesAtLevel[index].parent!;
-          offsetAtLevelVariable.setTarget(index);
+          if (instant) {
+            offsetAtLevelVariable.value = index;
+          } else {
+            offsetAtLevelVariable.setTarget(index);
+          }
         }
       }
     }
