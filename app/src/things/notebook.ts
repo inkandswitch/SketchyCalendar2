@@ -181,7 +181,7 @@ export function addCalendarPages(
 
   rootPage.paper.addNewText({
     siblingIndex: 0,
-    value: "2024 Calendar",
+    value: `${year.toString()} Calendar`,
     x: 10,
     y: 10,
     font: FONT_BIG,

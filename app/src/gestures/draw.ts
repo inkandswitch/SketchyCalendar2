@@ -1,12 +1,7 @@
 import { GestureHandler, TouchEvent } from "gesturesystem";
-import { Stroke } from "things/ink";
-import { View } from "view";
 import { Notebook } from "things/notebook";
+import { View } from "view";
 
-import { Id } from "id";
-
-import { Point } from "lib/point";
-import { Vec } from "lib/vec";
 import Toolbar, { ToolHandler } from "toolbar";
 
 export default class Draw implements GestureHandler {
