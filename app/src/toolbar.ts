@@ -42,6 +42,8 @@ export default class Toolbar {
 
   activeTool: Tool | null = null;
 
+  isActive: boolean = true;
+
   constructor(position: Point, tools: Tool[]) {
     this.position = position;
     this.tools = tools;
@@ -59,6 +61,8 @@ export default class Toolbar {
   }
 
   tap(point: Point): boolean {
+    if (!this.isActive) return false;
+
     if (!Rect.isPointInside(this, point)) {
       return false;
     }
@@ -72,6 +76,8 @@ export default class Toolbar {
   }
 
   render(r: Render) {
+    if (!this.isActive) return;
+
     cardWithShadow(
       r,
       this.position.x,

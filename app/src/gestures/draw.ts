@@ -3,6 +3,7 @@ import { Notebook } from "things/notebook";
 import { View } from "view";
 
 import Toolbar, { ToolHandler } from "toolbar";
+import { GUI } from "gui/gui";
 
 export default class Draw implements GestureHandler {
   notebook: Notebook;

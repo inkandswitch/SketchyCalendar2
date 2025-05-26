@@ -2,9 +2,11 @@ import { GestureHandler, TouchEvent } from "gesturesystem";
 import { View } from "view";
 import { Vec } from "lib/vec";
 import { Point } from "lib/point";
+import AddPageButtons from "addpagebuttons";
 
 export default class Navigate implements GestureHandler {
   view: View;
+  addPageButtons: AddPageButtons;
   touch: TouchEvent | null = null;
   swipedLaneOffset: number | null = null;
 
@@ -13,8 +15,9 @@ export default class Navigate implements GestureHandler {
 
   activeTouches: Array<TouchEvent> = [];
 
-  constructor(view: View) {
+  constructor(view: View, addPageButtons: AddPageButtons) {
     this.view = view;
+    this.addPageButtons = addPageButtons;
   }
 
   onEvent(e: TouchEvent) {
@@ -79,6 +82,15 @@ export default class Navigate implements GestureHandler {
 
         if (this.touch && this.touch.id == e.id) {
           if (Vec.len(this.touch.totalDelta) < 10) {
+            if (this.addPageButtons.tap(this.touch.current)) {
+              this.touch = null;
+              return;
+            }
+
+            if (this.view.isZoomedIn()) {
+              return;
+            }
+
             const dx =
               Math.floor((this.touch.current.x / window.innerWidth) * 3) - 1;
             const dy =

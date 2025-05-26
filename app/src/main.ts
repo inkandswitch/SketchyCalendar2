@@ -20,6 +20,7 @@ import { Calendar } from "lib/googlecalendar";
 import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { View } from "view";
 import EraseTool from "tools/erase";
+import AddPageButtons from "addpagebuttons";
 
 const PERSIST_NOTEBOOK = true;
 
@@ -72,6 +73,8 @@ const input = new InputSystem();
 const notebook = await initNotebook();
 const view = new View(notebook);
 
+const addPageButtons = new AddPageButtons(view);
+
 const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
   new PenTool("pen_black", "black", 1),
   new PenTool("pen_blue", "blue", 1),
@@ -85,12 +88,15 @@ const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
 const gestures = new GestureSystem([
   new Draw(view, notebook, toolbar),
   new PinchIn(view),
-  new Navigate(view),
+  new Navigate(view, addPageButtons),
 ]);
 
 //const swipe = new SwipeSystem(state.sceneGraph);
 
 tick((dt) => {
+  toolbar.isActive = view.isZoomedIn();
+  addPageButtons.isActive = !view.isZoomedIn();
+
   // Update
   gestures.update(input.buffer);
   view.update(dt);
@@ -98,9 +104,9 @@ tick((dt) => {
 
   // Render
   render.clear();
-
   view.render(render);
-  toolbar.render(render); // Render the toolbar after the rest of the view
+  toolbar.render(render);
+  addPageButtons.render(render);
 });
 
 console.log(notebook.state);

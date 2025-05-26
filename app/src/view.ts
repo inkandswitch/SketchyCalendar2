@@ -1,7 +1,7 @@
 // Derived intermediate representation that's useful for rendering & interactions
 
 import { AnimateVariable } from "lib/animate";
-import Render, { fill } from "lib/render";
+import Render, { fill, stroke } from "lib/render";
 
 import { Id } from "id";
 import { Notebook } from "things/notebook";
@@ -80,6 +80,26 @@ export class View {
   }
 
   zoomTo(dx: number, dy: number) {
+    // // make sure we don't zoom to a position that doesn't exist
+    // const newFocus = this.zoomHierarchyFocus.target + dx;
+    // const currentOffset = this.zoomHierarchyOffsets[newFocus]?.target;
+
+    // if (!currentOffset) {
+    //   return;
+    // }
+
+    // const newOffset = currentOffset + dy;
+
+    // if (
+    //   newOffset < 0 ||
+    //   newOffset >= this.zoomView[newFocus].length ||
+    //   newFocus < 0 ||
+    //   newFocus >= this.zoomView.length
+    // ) {
+    //   return;
+    // }
+
+    // if the position exists, set the target to it
     this.zoomLevel.setTarget(1);
     this.navigateHorizontal(dx, dy);
     this.navigateVertical(dy);
@@ -228,10 +248,23 @@ export class View {
           const o = page_offset + j;
           const page = level[o];
           if (page) {
+            const x = o * (innerWidth + 20) + x_offset * (innerWidth + 20);
+            const y = i * (innerHeight + 20);
+
             page.render(r, {
-              x: o * (innerWidth + 20) + x_offset * (innerWidth + 20),
-              y: i * (innerHeight + 20),
+              x,
+              y,
             });
+
+            if (i == this.zoomHierarchyFocus.target && j == 0) {
+              r.rect(
+                x,
+                y,
+                page.paper.width,
+                page.paper.height,
+                stroke("#0074D9", 4)
+              );
+            }
           }
         }
       }
