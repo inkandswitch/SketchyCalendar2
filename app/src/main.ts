@@ -6,20 +6,26 @@ import { getYear } from "date-fns";
 import Render from "lib/render";
 import tick from "lib/tick";
 
+// Tools
 import Toolbar from "toolbar";
 import PenTool from "tools/pen";
+import EraseTool from "tools/erase";
+import SelectTool from "tools/select";
 
+// Gestures
 import { InputSystem } from "inputsystem";
 import { GestureSystem } from "gesturesystem";
 import PinchIn from "gestures/pinchin";
 import Draw from "gestures/draw";
 import Navigate from "gestures/navigate";
 
+// Calendar data
 import { Calendar } from "lib/googlecalendar";
 
+// Notebook
 import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { View } from "view";
-import EraseTool from "tools/erase";
+import { Selection } from "selection";
 import AddPageButtons from "addpagebuttons";
 
 const PERSIST_NOTEBOOK = true;
@@ -72,6 +78,7 @@ const input = new InputSystem();
 
 const notebook = await initNotebook();
 const view = new View(notebook);
+const selection = new Selection(view);
 
 const addPageButtons = new AddPageButtons(view);
 
@@ -83,6 +90,7 @@ const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
   new PenTool("highlight_green", "#00FF0033", 20),
   new PenTool("whiteout", "#FFFFFF", 30),
   new EraseTool(20),
+  new SelectTool(selection),
 ]);
 
 const gestures = new GestureSystem([
@@ -106,6 +114,7 @@ tick((dt) => {
   render.clear();
   view.render(render);
   toolbar.render(render);
+  selection.render(render);
   addPageButtons.render(render);
 });
 

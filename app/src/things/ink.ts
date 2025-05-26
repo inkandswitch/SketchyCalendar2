@@ -6,6 +6,7 @@ import { State } from "./notebook";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
+import { Polygon } from "lib/polygon";
 
 export type StrokeProps = {
   id: Id<Stroke>;
