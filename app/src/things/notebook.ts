@@ -93,8 +93,8 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   }
 
   #onChange = () => {
-    this.emit("changed");
     this.rebuild();
+    this.emit("changed");
   };
 
   destroy() {
