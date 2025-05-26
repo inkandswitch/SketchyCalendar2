@@ -54,7 +54,10 @@ export async function initNotebook() {
     console.log("Time taken to add calendar pages", Date.now() - time);
 
     // Update URL with the new document ID
-    localStorage.setItem("notebookDocId", notebook.documentId);
+
+    if (PERSIST_NOTEBOOK) {
+      localStorage.setItem("notebookDocId", notebook.documentId);
+    }
   } else {
     const docHandle = await repo.find<NotebookProps>(notebookDocId);
     notebook = new Notebook(docHandle, calendarDocHandle);
