@@ -8,6 +8,7 @@ import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
 import { Stroke } from "./ink";
 import { Vec } from "lib/vec";
+import { Polygon } from "lib/polygon";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -216,6 +217,35 @@ export class Paper {
     }
 
     return null;
+  }
+
+  getStrokesInsideHull(
+    hull: Polygon,
+    offset: Point = { x: 0, y: 0 }
+  ): Set<Id<Stroke>> {
+    let found = new Set<Id<Stroke>>();
+    for (const stroke of this.strokes) {
+      for (const pt of stroke.props.points) {
+        const offsestPt = Vec.add(pt, offset);
+        if (Polygon.isPointInside(hull, offsestPt)) {
+          found.add(stroke.props.id);
+          break; // No need to check other points in the stroke
+        }
+      }
+    }
+
+    for (const paperInstance of this.children) {
+      const childOffset = Vec.add(paperInstance, offset);
+      const childFound = paperInstance.paper.getStrokesInsideHull(
+        hull,
+        childOffset
+      );
+      for (const strokeId of childFound) {
+        found.add(strokeId);
+      }
+    }
+
+    return found;
   }
 }
 
