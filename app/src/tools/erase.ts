@@ -1,6 +1,6 @@
 import { TouchEvent } from "gesturesystem";
 import { View } from "view";
-import { Notebook } from "things/notebook";
+import { NotebookCollection } from "things/notebook";
 
 import { Vec } from "lib/vec";
 import { Tool, ToolHandler } from "toolbar";
@@ -16,18 +16,18 @@ export default class EraseTool extends Tool {
     this.radius = radius;
   }
 
-  getHandler(view: View, notebook: Notebook): ToolHandler {
+  getHandler(view: View, notebook: NotebookCollection): ToolHandler {
     return new EraseHandler(view, notebook, this.radius);
   }
 }
 
 export class EraseHandler implements ToolHandler {
   view: View;
-  notebook: Notebook;
+  notebook: NotebookCollection;
 
   radius: number;
 
-  constructor(view: View, notebook: Notebook, radius: number = 20) {
+  constructor(view: View, notebook: NotebookCollection, radius: number = 20) {
     this.view = view;
     this.notebook = notebook;
     this.radius = radius;

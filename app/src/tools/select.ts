@@ -1,6 +1,6 @@
 import { TouchEvent } from "gesturesystem";
 import { View } from "view";
-import { Notebook } from "things/notebook";
+import { NotebookCollection } from "things/notebook";
 
 import { Tool, ToolHandler } from "toolbar";
 import { Selection } from "selection";
@@ -16,18 +16,18 @@ export default class SelectTool extends Tool {
     this.selection = selection;
   }
 
-  getHandler(view: View, notebook: Notebook): ToolHandler {
+  getHandler(view: View, notebook: NotebookCollection): ToolHandler {
     return new SelectHandler(view, notebook, this.selection);
   }
 }
 
 export class SelectHandler implements ToolHandler {
   view: View;
-  notebook: Notebook;
+  notebook: NotebookCollection;
 
   selection: Selection;
 
-  constructor(view: View, notebook: Notebook, selection: Selection) {
+  constructor(view: View, notebook: NotebookCollection, selection: Selection) {
     this.view = view;
     this.notebook = notebook;
     this.selection = selection;

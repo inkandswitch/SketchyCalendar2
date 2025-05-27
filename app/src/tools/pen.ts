@@ -8,7 +8,6 @@ import { Tool, ToolHandler } from "toolbar";
 import { Id } from "id";
 import { Stroke } from "things/ink";
 import { Paper } from "things/paper";
-import { Notebook } from "things/notebook";
 
 export default class PenTool extends Tool {
   color: string;
@@ -23,24 +22,22 @@ export default class PenTool extends Tool {
     this.weight = weight;
   }
 
-  getHandler(view: View, notebook: Notebook): ToolHandler {
-    return new PenHandler(view, notebook, this);
+  getHandler(view: View): ToolHandler {
+    return new PenHandler(view, this);
   }
 }
 
 // Pen handler
 export class PenHandler implements ToolHandler {
   view: View;
-  notebook: Notebook;
   tool: PenTool;
 
   paperId: Id<Paper> | null = null;
   strokeId: Id<Stroke> | null = null;
   offset: Point | null = null;
 
-  constructor(view: View, notebook: Notebook, tool: PenTool) {
+  constructor(view: View, tool: PenTool) {
     this.view = view;
-    this.notebook = notebook;
     this.tool = tool;
   }
 
@@ -85,7 +82,7 @@ export class PenHandler implements ToolHandler {
         this.strokeId = newStroke.props.id;
       }
 
-      const stroke = this.notebook.getStrokeById(this.strokeId);
+      const stroke = currentPage.notebook.getStrokeById(this.strokeId);
       stroke.addPoint(Vec.sub(e.current, this.offset!));
     }
   }

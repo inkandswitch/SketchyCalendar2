@@ -5,13 +5,13 @@ import Render, { stroke } from "lib/render";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
-import { Notebook } from "things/notebook";
+import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
 
 const GAP = 20;
 
 export class View {
-  notebook: Notebook;
+  notebook: NotebookCollection;
 
   focusedPage: Page | null = null;
 
@@ -21,7 +21,7 @@ export class View {
 
   pagesByLevel: Array<Array<Page>>;
 
-  constructor(notebook: Notebook) {
+  constructor(notebook: NotebookCollection) {
     this.notebook = notebook;
     this.pagesByLevel = [];
 

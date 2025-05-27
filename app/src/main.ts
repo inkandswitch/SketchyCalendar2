@@ -29,7 +29,7 @@ import { Selection } from "selection";
 import AddPageButtons from "addpagebuttons";
 import EventCardTool from "tools/eventcard";
 
-const PERSIST_NOTEBOOK = true;
+const PERSIST_NOTEBOOK = false;
 
 export async function initNotebook() {
   const repo = new Repo({
@@ -68,7 +68,7 @@ export async function initNotebook() {
     }
   } else {
     const docHandle = await repo.find<NotebookProps>(notebookDocId);
-    notebook = new Notebook(docHandle, calendarDocHandle);
+    notebook = new NotebookCollection(docHandle, calendarDocHandle);
   }
 
   return notebook;

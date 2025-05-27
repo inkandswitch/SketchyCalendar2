@@ -35,6 +35,7 @@ export type NotebookProps = {
 };
 
 export type State = {
+  notebook: Notebook;
   docHandle: DocHandle<NotebookProps>;
   props: NotebookProps;
   objMap: Map<string, any>;
@@ -48,6 +49,33 @@ export type State = {
 type NotebookEvents = {
   changed: () => void;
 };
+
+class NotebookCollection extends EventEmitter<NotebookEvents> {
+  constructor() {
+    super();
+  }
+
+  notebooks: Set<Notebook> = new Set();
+
+  addNotebook(notebook: Notebook) {
+    this.notebooks.add(notebook);
+    notebook.addListener("changed", this.#onChange);
+    this.#onChange();
+  }
+
+  #onChange = () => {
+    this.emit("changed");
+  };
+
+  get rootPages(): Array<Page> {
+    return Array.from(this.notebooks.values())
+      .flatMap((notebook) => notebook.pages)
+      .filter((page) => {
+        return page.parent == null;
+      })
+      .sort((a, b) => a.siblingIndex - b.siblingIndex);
+  }
+}
 
 export class Notebook extends EventEmitter<NotebookEvents> {
   #state: State;
@@ -66,6 +94,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     const props = docHandle.doc();
 
     this.#state = {
+      notebook: this,
       docHandle,
       props,
       objMap: new Map(),
@@ -128,14 +157,6 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     );
   }
 
-  get rootPages(): Array<Page> {
-    return this.pages
-      .filter((page) => {
-        return page.parent == null;
-      })
-      .sort((a, b) => a.siblingIndex - b.siblingIndex);
-  }
-
   get documentId(): string {
     return this.#state.docHandle.documentId;
   }
@@ -150,10 +171,6 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   getPaperInstanceById(id: Id<PaperInstance>): PaperInstance {
     return PaperInstance.fromId(this.#state, id);
-  }
-
-  get state(): State {
-    return this.#state;
   }
 }
 
