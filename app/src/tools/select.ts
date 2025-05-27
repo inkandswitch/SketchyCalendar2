@@ -35,14 +35,14 @@ export class SelectHandler implements ToolHandler {
 
   // Tool-specific methods
   penDown(e: TouchEvent) {
-    this.selection.startSelection(e.current);
+    this.selection.penDown(e);
   }
 
   penMove(e: TouchEvent) {
-    this.selection.extendSelection(e.current);
+    this.selection.penMove(e);
   }
 
   penUp(e: TouchEvent) {
-    this.selection.finishSelection();
+    this.selection.penUp(e);
   }
 }
