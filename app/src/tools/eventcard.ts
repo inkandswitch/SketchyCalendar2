@@ -4,7 +4,6 @@ import { Notebook } from "things/notebook";
 
 import { Vec } from "lib/vec";
 import { Tool, ToolHandler } from "toolbar";
-import { Paper } from "things/paper";
 import { Id } from "id";
 import { PaperInstance } from "things/paperinstance";
 
@@ -44,7 +43,7 @@ export class EventCardHandler implements ToolHandler {
     const newCard = paper.addNewPaper({
       x: local_pos.x,
       y: local_pos.y,
-      width: 160,
+      width: 140,
       height: 100,
       background: "#feff9c", // Postitnote yellow
       locked: false,
@@ -73,7 +72,7 @@ export class EventCardHandler implements ToolHandler {
 
     const local_pos = Vec.sub(e.current, found.offset);
 
-    cardInstance.moveTo(found.paper.id, local_pos.x, local_pos.y);
+    cardInstance.moveTo(found.paper.id, 50, local_pos.y);
   }
 
   penUp(e: TouchEvent) {
