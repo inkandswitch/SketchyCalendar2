@@ -33,7 +33,7 @@ export class EventCardHandler implements ToolHandler {
 
   // Tool-specific methods
   penDown(e: TouchEvent) {
-    const currentPage = this.view.currentPage!;
+    const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
     const found = currentPage.paper.getPaperAtPosition(e.current);
     if (!found) return;
@@ -56,7 +56,7 @@ export class EventCardHandler implements ToolHandler {
     if (!this.card) return;
     const cardInstance = this.notebook.getPaperInstanceById(this.card);
 
-    const currentPage = this.view.currentPage!;
+    const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
 
     const found = currentPage.paper.getPaperAtPosition(
