@@ -30,16 +30,17 @@ export default class AddPageButtons {
         height: BUTTON_SIZE,
         icon: "add_page",
         onTap: () => {
-          const currentPage = this.view.currentPage;
-          if (currentPage) {
-            currentPage.addChildPage({
-              siblingIndex: 0,
-              width: currentPage.paper.width,
-              height: currentPage.paper.height,
-              background: null,
-            });
-            console.log("add page bottom");
-          }
+          const currentPage = this.view.currentPage!;
+
+          const firstChild = currentPage.children[0];
+          const siblingIndex = firstChild ? firstChild.siblingIndex - 10000 : 0;
+
+          currentPage.addChildPage({
+            siblingIndex: siblingIndex,
+            width: currentPage.paper.width,
+            height: currentPage.paper.height,
+            background: null,
+          });
         },
       },
       {
@@ -51,17 +52,26 @@ export default class AddPageButtons {
         height: BUTTON_SIZE,
         icon: "add_page",
         onTap: () => {
-          const currentPage = this.view.currentPage?.parent;
-          if (currentPage) {
-            this.view.notebook.createPage({
-              parentId: currentPage.parent?.id ?? null,
-              siblingIndex: 0,
-              width: currentPage.paper.width,
-              height: currentPage.paper.height,
-              background: null,
-            });
-            console.log("add page right");
-          }
+          const currentPage = this.view.currentPage!;
+          const parent = currentPage.parent;
+          const siblings = parent
+            ? parent.children
+            : this.view.notebook.rootPages;
+          const currentPageIndex = siblings.findIndex(
+            (p) => p.id === currentPage.id
+          );
+          const nextSibling = siblings[currentPageIndex + 1];
+          const newPageSiblingIndex = nextSibling
+            ? (nextSibling.siblingIndex + currentPage.siblingIndex) / 2
+            : currentPage.siblingIndex + 10000;
+
+          this.view.notebook.createPage({
+            parentId: parent?.id ?? null,
+            siblingIndex: newPageSiblingIndex,
+            width: currentPage.paper.width,
+            height: currentPage.paper.height,
+            background: null,
+          });
         },
       },
     ];

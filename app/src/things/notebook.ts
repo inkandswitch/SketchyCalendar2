@@ -208,7 +208,7 @@ export function addCalendarPages(
   for (let monthNumber = 0; monthNumber < 12; monthNumber++) {
     const monthDate = new Date(year, monthNumber, 1);
     const monthPage = rootPage.addChildPage({
-      siblingIndex: monthNumber,
+      siblingIndex: monthNumber * 10000,
       width: pageWidth,
       height: pageHeight,
       background: null,
@@ -252,7 +252,7 @@ export function addCalendarPages(
     currentDayInWeek = getStartOfWeek(currentDayInWeek);
 
     const weekPage = monthPage.addChildPage({
-      siblingIndex: weekNumber,
+      siblingIndex: weekNumber * 10000,
       width: pageWidth,
       height: pageHeight,
       background: null,
@@ -282,7 +282,7 @@ export function addCalendarPages(
       const dayDate = addDays(currentDayInWeek, dayNumber);
 
       const dayPage = weekPage.addChildPage({
-        siblingIndex: dayNumber,
+        siblingIndex: dayNumber * 10000,
         width: pageWidth,
         height: pageHeight,
         background: null,
