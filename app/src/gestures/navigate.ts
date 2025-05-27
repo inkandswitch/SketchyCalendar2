@@ -3,6 +3,7 @@ import { View } from "view";
 import { Vec } from "lib/vec";
 import { Point } from "lib/point";
 import AddPageButtons from "addpagebuttons";
+import { Page } from "things/page";
 
 export default class Navigate implements GestureHandler {
   view: View;
@@ -51,22 +52,24 @@ export default class Navigate implements GestureHandler {
           const progress = Vec.len(delta) / factor;
           if (progress > 1) {
             this.startPoint = e.current;
+            let nextPage: Page | null = null;
+
             if (Math.abs(delta.x) > Math.abs(delta.y)) {
               if (delta.x > 0) {
-                console.log("right swipe");
-                this.view.navigateHorizontal(-1, this.swipedLaneOffset!);
+                nextPage = this.view.pageToLeft();
               } else {
-                console.log("left swipe", this.swipedLaneOffset);
-                this.view.navigateHorizontal(1, this.swipedLaneOffset!);
+                nextPage = this.view.pageToRight();
               }
             } else {
               if (delta.y > 0) {
-                console.log("down swipe");
-                this.view.navigateVertical(-1);
+                nextPage = this.view.pageAbove();
               } else {
-                console.log("up swipe");
-                this.view.navigateVertical(1);
+                nextPage = this.view.pageBelow();
               }
+            }
+
+            if (nextPage) {
+              this.view.focusPage(nextPage);
             }
 
             // in zoomed in mode don't allow continuous swiping
@@ -91,11 +94,11 @@ export default class Navigate implements GestureHandler {
               return;
             }
 
-            const dx =
-              Math.floor((this.touch.current.x / window.innerWidth) * 3) - 1;
-            const dy =
-              Math.floor((this.touch.current.y / window.innerHeight) * 3) - 1;
-            this.view.zoomTo(dx, dy);
+            const tappedPage = this.view.getPageAtPosition(this.touch.current);
+            if (tappedPage) {
+              this.view.focusPage(tappedPage);
+              this.view.zoomIn();
+            }
           }
           this.touch = null;
         }

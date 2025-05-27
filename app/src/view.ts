@@ -1,36 +1,32 @@
 // Derived intermediate representation that's useful for rendering & interactions
 
 import { AnimateVariable } from "lib/animate";
-import Render, { fill, stroke } from "lib/render";
+import Render, { stroke } from "lib/render";
 
-import { Id } from "id";
+import { Point } from "lib/point";
+import { Vec } from "lib/vec";
 import { Notebook } from "things/notebook";
 import { Page } from "things/page";
-import { getWeek } from "date-fns";
+
+const GAP = 20;
 
 export class View {
   notebook: Notebook;
 
   currentPage: Page | null = null;
 
-  zoomLevel: AnimateVariable = new AnimateVariable(1, 60, 20); // between zero and one
-  zoomHierarchyFocus = new AnimateVariable(2, 60, 20); // focus on week
-  zoomHierarchyOffsets = [
-    new AnimateVariable(0, 60, 20),
-    new AnimateVariable(0, 60, 20),
-    new AnimateVariable(getWeek(new Date()) - 1, 60, 20),
-    new AnimateVariable(0, 60, 20),
-  ];
+  zoom: AnimateVariable = new AnimateVariable(1); // between zero and one
+  focusedLevel = new AnimateVariable(0); // focus on week
+  offsetByLevel: AnimateVariable[] = [];
 
-  zoomView: Array<Array<Page>>;
+  pagesByLevel: Array<Array<Page>>;
 
   constructor(notebook: Notebook) {
     this.notebook = notebook;
-    this.zoomView = [[], [], []]; // Layout pages in a tree hierarchy
+    this.pagesByLevel = [];
 
     this.notebook.on("changed", this.#onNotebookChanged);
     this.rebuild();
-    this.propagateOffsetAtLevel(2, true);
   }
 
   destroy() {
@@ -41,13 +37,80 @@ export class View {
     this.rebuild();
   };
 
+  focusPage(page: Page) {
+    for (let level = 0; level < this.pagesByLevel.length; level++) {
+      const pagesAtLevel = this.pagesByLevel[level];
+
+      for (let offset = 0; offset < pagesAtLevel.length; offset++) {
+        const pageAtLevel = pagesAtLevel[offset];
+        if (pageAtLevel.id === page.id) {
+          this.focusedLevel.target = level;
+          this.offsetByLevel[level].target = offset;
+          this.updateCurrentPage();
+          return;
+        }
+      }
+    }
+  }
+
+  zoomIn() {
+    this.zoom.target = 1;
+  }
+
+  zoomOut() {
+    this.zoom.target = 2;
+  }
+
+  pageAbove(): Page | null {
+    const levelAbove = this.focusedLevel.target - 1;
+
+    if (levelAbove < 0) {
+      return null;
+    }
+
+    return this.pagesByLevel[levelAbove][this.offsetByLevel[levelAbove].target];
+  }
+
+  pageBelow() {
+    const levelBelow = this.focusedLevel.target + 1;
+
+    if (levelBelow >= this.pagesByLevel.length) {
+      return null;
+    }
+
+    return this.pagesByLevel[levelBelow][this.offsetByLevel[levelBelow].target];
+  }
+
+  pageToLeft() {
+    const offsetToLeft =
+      this.offsetByLevel[this.focusedLevel.target].target - 1;
+
+    if (offsetToLeft < 0) {
+      return null;
+    }
+
+    return this.pagesByLevel[this.focusedLevel.target][offsetToLeft];
+  }
+
+  pageToRight() {
+    const offsetToRight =
+      this.offsetByLevel[this.focusedLevel.target].target + 1;
+
+    if (offsetToRight >= this.pagesByLevel[this.focusedLevel.target].length) {
+      return null;
+    }
+
+    return this.pagesByLevel[this.focusedLevel.target][offsetToRight];
+  }
+
   rebuild() {
     // --- Zoomed out view
     // // Build the zoom view, sort into levels
-    this.zoomView = [];
+    this.pagesByLevel = [];
     let currentLevel = this.notebook.rootPages;
+
     while (currentLevel.length > 0) {
-      this.zoomView.push(currentLevel);
+      this.pagesByLevel.push(currentLevel);
       const nextLevel = [];
       for (const page of currentLevel) {
         nextLevel.push(...page.children);
@@ -55,25 +118,38 @@ export class View {
       currentLevel = nextLevel;
     }
 
+    // ensure we have a offsetByLevel variable for each level
+    const totalLevels = this.pagesByLevel.length;
+    if (this.offsetByLevel.length < totalLevels) {
+      const missingLevels = totalLevels - this.offsetByLevel.length;
+
+      for (let i = 0; i < missingLevels; i++) {
+        this.offsetByLevel.push(new AnimateVariable(0));
+        console.log("adding offsetByLevel", i);
+      }
+    } else {
+      this.offsetByLevel = this.offsetByLevel.slice(0, totalLevels);
+    }
+
     this.updateCurrentPage();
   }
 
   update(dt: number) {
     // --- Zoomed out view
-    this.zoomLevel.update(dt);
-    this.zoomHierarchyFocus.update(dt);
-    for (const a of this.zoomHierarchyOffsets) {
+    this.zoom.update(dt);
+    this.focusedLevel.update(dt);
+    for (const a of this.offsetByLevel) {
       a.update(dt);
     }
   }
 
   navigateVertical(dx: number) {
-    this.zoomHierarchyFocus.target += dx;
-    if (this.zoomHierarchyFocus.target < 0) {
-      this.zoomHierarchyFocus.target = 0;
+    this.focusedLevel.target += dx;
+    if (this.focusedLevel.target < 0) {
+      this.focusedLevel.target = 0;
     }
-    if (this.zoomHierarchyFocus.target >= this.zoomView.length) {
-      this.zoomHierarchyFocus.target = this.zoomView.length - 1;
+    if (this.focusedLevel.target >= this.pagesByLevel.length) {
+      this.focusedLevel.target = this.pagesByLevel.length - 1;
     }
 
     this.updateCurrentPage();
@@ -100,19 +176,19 @@ export class View {
     // }
 
     // if the position exists, set the target to it
-    this.zoomLevel.setTarget(1);
+    this.zoom.target = 1;
     this.navigateHorizontal(dx, dy);
     this.navigateVertical(dy);
   }
 
   navigateHorizontal(dx: number, laneOffset: number) {
     // ignore lane offset if all the way zoomed in
-    if (this.zoomLevel.getCurrent() > 0.99) {
+    if (this.zoom.value > 0.99) {
       laneOffset = 0;
     }
 
-    const target = this.zoomHierarchyFocus.target + laneOffset;
-    const swipedLevel = this.zoomHierarchyOffsets[target];
+    const target = this.focusedLevel.target + laneOffset;
+    const swipedLevel = this.offsetByLevel[target];
 
     // ensure swiped level is in bounds
     swipedLevel.target += dx;
@@ -121,8 +197,8 @@ export class View {
       return;
     }
 
-    if (swipedLevel.target >= this.zoomView[target].length) {
-      swipedLevel.target = this.zoomView[target].length - 1;
+    if (swipedLevel.target >= this.pagesByLevel[target].length) {
+      swipedLevel.target = this.pagesByLevel[target].length - 1;
       return;
     }
 
@@ -132,15 +208,16 @@ export class View {
   }
 
   propagateOffsetAtLevel(level: number, instant: boolean = false) {
+    return;
     // progpagate swiped level to all levels below
 
-    const target = this.zoomHierarchyOffsets[level].target;
-    let targetParentPage = this.zoomView[level][target];
+    const target = this.offsetByLevel[level].target;
+    let targetParentPage = this.pagesByLevel[level][target];
 
-    for (let i = level + 1; i < this.zoomView.length; i++) {
-      const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
+    for (let i = level + 1; i < this.pagesByLevel.length; i++) {
+      const offsetAtLevelVariable = this.offsetByLevel[i];
       const offsetAtLevel = offsetAtLevelVariable.target;
-      const pagesAtLevel = this.zoomView[i];
+      const pagesAtLevel = this.pagesByLevel[i];
       const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
 
       if (currentFocusedPageAtLevel.parent!.id == targetParentPage.id) {
@@ -161,13 +238,13 @@ export class View {
     }
 
     // propagate swiped level to all levels above
-    targetParentPage = this.zoomView[level][target].parent!;
+    targetParentPage = this.pagesByLevel[level][target].parent!;
 
     if (targetParentPage) {
       for (let i = level - 1; i > 0; i--) {
-        const offsetAtLevelVariable = this.zoomHierarchyOffsets[i];
+        const offsetAtLevelVariable = this.offsetByLevel[i];
         const offsetAtLevel = offsetAtLevelVariable.target;
-        const pagesAtLevel = this.zoomView[i];
+        const pagesAtLevel = this.pagesByLevel[i];
         const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
 
         if (currentFocusedPageAtLevel.id == targetParentPage.id) {
@@ -194,22 +271,41 @@ export class View {
   }
 
   updateCurrentPage() {
-    const currentLevel =
-      this.zoomHierarchyOffsets[this.zoomHierarchyFocus.target];
+    const currentLevel = this.offsetByLevel[this.focusedLevel.target];
     this.currentPage =
-      this.zoomView[this.zoomHierarchyFocus.target][currentLevel.target];
+      this.pagesByLevel[this.focusedLevel.target][currentLevel.target];
   }
 
   isZoomedIn() {
-    return this.zoomLevel.getCurrent() > 0.99;
+    return this.zoom.value > 0.99;
+  }
+
+  getPageAtPosition(point: Point) {
+    const zoom = this.zoom.value * 0.7 + 0.3;
+    const scaledPoint = Vec.div(point, zoom);
+
+    const relativeLevel =
+      Math.floor(scaledPoint.y / (window.innerHeight + GAP)) - 1;
+    const level = relativeLevel + this.focusedLevel.target;
+
+    if (level < 0 || level >= this.pagesByLevel.length) {
+      return null;
+    }
+
+    const relativeOffset =
+      Math.floor(scaledPoint.x / (window.innerWidth + GAP)) - 1;
+
+    const offset = relativeOffset + this.offsetByLevel[level].target;
+
+    return this.pagesByLevel[level][offset];
   }
 
   render(r: Render) {
     const innerWidth = window.innerWidth;
     const innerHeight = window.innerHeight;
 
-    let zoom = this.zoomLevel.getCurrent() * 0.7 + 0.3;
-    let offset_y = this.zoomHierarchyFocus.getCurrent() * (innerHeight + 20);
+    let zoom = this.zoom.value * 0.7 + 0.3;
+    let offset_y = this.focusedLevel.value * (innerHeight + GAP);
 
     const center_x = innerWidth / 2;
     const center_y = offset_y + innerHeight / 2;
@@ -227,36 +323,34 @@ export class View {
     // Render the zoom view
     const renderStablePage =
       this.isZoomedIn() &&
-      this.zoomHierarchyFocus.isCloseEnough() &&
-      this.zoomHierarchyOffsets.every((a) => a.isCloseEnough());
+      this.focusedLevel.isCloseEnough() &&
+      this.offsetByLevel.every((a) => a.isCloseEnough());
 
     if (renderStablePage) {
-      const currentLevel = this.zoomHierarchyFocus.target;
+      const currentLevel = this.focusedLevel.target;
 
       this.currentPage?.render(r, {
         x: 0,
-        y: currentLevel * (innerHeight + 20),
+        y: currentLevel * (innerHeight + GAP),
       });
     } else {
-      for (let i = 0; i < this.zoomView.length; i++) {
-        const level = this.zoomView[i];
-        const x_offset = -this.zoomHierarchyOffsets[i].getCurrent();
-        const page_offset = Math.round(
-          this.zoomHierarchyOffsets[i].getCurrent()
-        );
+      for (let i = 0; i < this.pagesByLevel.length; i++) {
+        const level = this.pagesByLevel[i];
+        const x_offset = -this.offsetByLevel[i].value;
+        const page_offset = Math.round(this.offsetByLevel[i].value);
         for (let j = -2; j < 3; j++) {
           const o = page_offset + j;
           const page = level[o];
           if (page) {
-            const x = o * (innerWidth + 20) + x_offset * (innerWidth + 20);
-            const y = i * (innerHeight + 20);
+            const x = o * (innerWidth + GAP) + x_offset * (innerWidth + GAP);
+            const y = i * (innerHeight + GAP);
 
             page.render(r, {
               x,
               y,
             });
 
-            if (i == this.zoomHierarchyFocus.target && j == 0) {
+            if (i == this.focusedLevel.target && j == 0 && !this.isZoomedIn()) {
               r.rect(
                 x,
                 y,

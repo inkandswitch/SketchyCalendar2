@@ -62,7 +62,7 @@ export default class PinchIn implements GestureHandler {
           let percentage = this.current_distance! / window.innerWidth!;
           if (percentage > 1) percentage = 1;
           if (percentage < 0) percentage = 0;
-          this.view.zoomLevel.setTarget(percentage);
+          this.view.zoom.target = percentage;
         }
 
         break;
@@ -88,7 +88,7 @@ export default class PinchIn implements GestureHandler {
           } else {
             percentage = 0;
           }
-          this.view.zoomLevel.setTarget(percentage);
+          this.view.zoom.target = percentage;
         }
         // Handle pinch in ended
         break;

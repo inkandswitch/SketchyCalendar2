@@ -2,17 +2,9 @@ export class AnimateVariable {
   value: number;
   target: number;
 
-  constructor(value: number, a: number = 32, b: number = 20) {
+  constructor(value: number) {
     this.value = value;
     this.target = value;
-  }
-
-  setTarget(target: number) {
-    this.target = target;
-  }
-
-  getCurrent(): number {
-    return this.value;
   }
 
   update(dx: number) {
