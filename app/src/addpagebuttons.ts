@@ -30,7 +30,7 @@ export default class AddPageButtons {
         height: BUTTON_SIZE,
         icon: "add_page",
         onTap: () => {
-          const currentPage = this.view.currentPage!;
+          const currentPage = this.view.focusedPage!;
 
           const firstChild = currentPage.children[0];
           const siblingIndex = firstChild ? firstChild.siblingIndex - 10000 : 0;
@@ -52,7 +52,7 @@ export default class AddPageButtons {
         height: BUTTON_SIZE,
         icon: "add_page",
         onTap: () => {
-          const currentPage = this.view.currentPage!;
+          const currentPage = this.view.focusedPage!;
           const parent = currentPage.parent;
           const siblings = parent
             ? parent.children

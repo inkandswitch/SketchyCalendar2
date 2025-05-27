@@ -35,7 +35,7 @@ export class EraseHandler implements ToolHandler {
 
   erase(e: TouchEvent) {
     // Get the current paper
-    const currentPage = this.view.currentPage!;
+    const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
     const found = currentPage.paper.getPaperAtPosition(e.current);
     if (!found) return;

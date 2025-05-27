@@ -47,7 +47,7 @@ export class PenHandler implements ToolHandler {
   // Tool-specific methods
   penDown(e: TouchEvent) {
     // Get the current paper
-    const currentPage = this.view.currentPage!;
+    const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
     const found = currentPage.paper.getPaperAtPosition(e.current);
     if (!found) return;
@@ -68,7 +68,7 @@ export class PenHandler implements ToolHandler {
 
   penMove(e: TouchEvent) {
     if (this.strokeId != null) {
-      const currentPage = this.view.currentPage!;
+      const currentPage = this.view.focusedPage!;
       if (!currentPage) return;
       const found = currentPage.paper.getPaperAtPosition(e.current);
       if (!found) return;

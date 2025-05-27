@@ -13,7 +13,7 @@ const GAP = 20;
 export class View {
   notebook: Notebook;
 
-  currentPage: Page | null = null;
+  focusedPage: Page | null = null;
 
   zoom: AnimateVariable = new AnimateVariable(1); // between zero and one
   focusedLevel = new AnimateVariable(0); // focus on week
@@ -37,20 +37,8 @@ export class View {
     this.rebuild();
   };
 
-  focusPage(page: Page) {
-    for (let level = 0; level < this.pagesByLevel.length; level++) {
-      const pagesAtLevel = this.pagesByLevel[level];
-
-      for (let offset = 0; offset < pagesAtLevel.length; offset++) {
-        const pageAtLevel = pagesAtLevel[offset];
-        if (pageAtLevel.id === page.id) {
-          this.focusedLevel.target = level;
-          this.offsetByLevel[level].target = offset;
-          this.updateCurrentPage();
-          return;
-        }
-      }
-    }
+  isZoomedIn() {
+    return this.zoom.value > 0.99;
   }
 
   zoomIn() {
@@ -59,6 +47,32 @@ export class View {
 
   zoomOut() {
     this.zoom.target = 2;
+  }
+
+  focusPage(page: Page) {
+    const location = this.getPageLocation(page);
+    if (!location) {
+      return;
+    }
+
+    this.focusedLevel.target = location.level;
+    this.offsetByLevel[location.level].target = location.offset;
+    this.updateCurrentPage();
+  }
+
+  getPageLocation(page: Page): { level: number; offset: number } | null {
+    for (let level = 0; level < this.pagesByLevel.length; level++) {
+      const pagesAtLevel = this.pagesByLevel[level];
+
+      for (let offset = 0; offset < pagesAtLevel.length; offset++) {
+        const pageAtLevel = pagesAtLevel[offset];
+        if (pageAtLevel.id === page.id) {
+          return { level, offset };
+        }
+      }
+    }
+
+    return null;
   }
 
   pageAbove(): Page | null {
@@ -103,6 +117,26 @@ export class View {
     return this.pagesByLevel[this.focusedLevel.target][offsetToRight];
   }
 
+  getPageAtPosition(point: Point) {
+    const zoom = this.zoom.value * 0.7 + 0.3;
+    const scaledPoint = Vec.div(point, zoom);
+
+    const relativeLevel =
+      Math.floor(scaledPoint.y / (window.innerHeight + GAP)) - 1;
+    const level = relativeLevel + this.focusedLevel.target;
+
+    if (level < 0 || level >= this.pagesByLevel.length) {
+      return null;
+    }
+
+    const relativeOffset =
+      Math.floor(scaledPoint.x / (window.innerWidth + GAP)) - 1;
+
+    const offset = relativeOffset + this.offsetByLevel[level].target;
+
+    return this.pagesByLevel[level][offset];
+  }
+
   rebuild() {
     // --- Zoomed out view
     // // Build the zoom view, sort into levels
@@ -125,7 +159,6 @@ export class View {
 
       for (let i = 0; i < missingLevels; i++) {
         this.offsetByLevel.push(new AnimateVariable(0));
-        console.log("adding offsetByLevel", i);
       }
     } else {
       this.offsetByLevel = this.offsetByLevel.slice(0, totalLevels);
@@ -134,114 +167,47 @@ export class View {
     this.updateCurrentPage();
   }
 
-  update(dt: number) {
-    // --- Zoomed out view
-    this.zoom.update(dt);
-    this.focusedLevel.update(dt);
-    for (const a of this.offsetByLevel) {
-      a.update(dt);
-    }
-  }
+  updateCurrentPage() {
+    const focusedLevel = this.focusedLevel.target;
+    const focusedLevelOffset = this.offsetByLevel[focusedLevel].target;
+    const focusedPage = (this.focusedPage =
+      this.pagesByLevel[focusedLevel][focusedLevelOffset]);
 
-  navigateVertical(dx: number) {
-    this.focusedLevel.target += dx;
-    if (this.focusedLevel.target < 0) {
-      this.focusedLevel.target = 0;
-    }
-    if (this.focusedLevel.target >= this.pagesByLevel.length) {
-      this.focusedLevel.target = this.pagesByLevel.length - 1;
-    }
-
-    this.updateCurrentPage();
-  }
-
-  zoomTo(dx: number, dy: number) {
-    // // make sure we don't zoom to a position that doesn't exist
-    // const newFocus = this.zoomHierarchyFocus.target + dx;
-    // const currentOffset = this.zoomHierarchyOffsets[newFocus]?.target;
-
-    // if (!currentOffset) {
-    //   return;
-    // }
-
-    // const newOffset = currentOffset + dy;
-
-    // if (
-    //   newOffset < 0 ||
-    //   newOffset >= this.zoomView[newFocus].length ||
-    //   newFocus < 0 ||
-    //   newFocus >= this.zoomView.length
-    // ) {
-    //   return;
-    // }
-
-    // if the position exists, set the target to it
-    this.zoom.target = 1;
-    this.navigateHorizontal(dx, dy);
-    this.navigateVertical(dy);
-  }
-
-  navigateHorizontal(dx: number, laneOffset: number) {
-    // ignore lane offset if all the way zoomed in
-    if (this.zoom.value > 0.99) {
-      laneOffset = 0;
-    }
-
-    const target = this.focusedLevel.target + laneOffset;
-    const swipedLevel = this.offsetByLevel[target];
-
-    // ensure swiped level is in bounds
-    swipedLevel.target += dx;
-    if (swipedLevel.target < 0) {
-      swipedLevel.target = 0;
-      return;
-    }
-
-    if (swipedLevel.target >= this.pagesByLevel[target].length) {
-      swipedLevel.target = this.pagesByLevel[target].length - 1;
-      return;
-    }
-
-    this.propagateOffsetAtLevel(target);
-
-    this.updateCurrentPage();
-  }
-
-  propagateOffsetAtLevel(level: number, instant: boolean = false) {
-    return;
     // progpagate swiped level to all levels below
+    const hasPageChildren = focusedPage.children.length > 0;
 
-    const target = this.offsetByLevel[level].target;
-    let targetParentPage = this.pagesByLevel[level][target];
+    // propagate focus to all levels below
+    if (hasPageChildren) {
+      let targetParentPage = focusedPage;
 
-    for (let i = level + 1; i < this.pagesByLevel.length; i++) {
-      const offsetAtLevelVariable = this.offsetByLevel[i];
-      const offsetAtLevel = offsetAtLevelVariable.target;
-      const pagesAtLevel = this.pagesByLevel[i];
-      const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
+      for (let i = focusedLevel + 1; i < this.pagesByLevel.length; i++) {
+        const offsetAtLevelVariable = this.offsetByLevel[i];
+        const offsetAtLevel = offsetAtLevelVariable.target;
+        const pagesAtLevel = this.pagesByLevel[i];
+        const currentFocusedPageAtLevel = pagesAtLevel[offsetAtLevel];
 
-      if (currentFocusedPageAtLevel.parent!.id == targetParentPage.id) {
-        break;
-      } else {
-        const index = pagesAtLevel.findIndex(
-          (p) => p.parent!.id === targetParentPage.id
-        );
-
-        targetParentPage = pagesAtLevel[index];
-
-        if (instant) {
-          offsetAtLevelVariable.value = index;
+        if (currentFocusedPageAtLevel.parent!.id == targetParentPage.id) {
+          break;
         } else {
-          offsetAtLevelVariable.setTarget(index);
+          const index = pagesAtLevel.findIndex(
+            (p) => p.parent!.id === targetParentPage.id
+          );
+
+          if (index === -1) {
+            break;
+          }
+
+          targetParentPage = pagesAtLevel[index];
+          offsetAtLevelVariable.target = index;
         }
       }
     }
 
     // propagate swiped level to all levels above
-    targetParentPage = this.pagesByLevel[level][target].parent!;
+    let targetParentPage = focusedPage.parent!;
 
     if (targetParentPage) {
-      for (let i = level - 1; i > 0; i--) {
+      for (let i = focusedLevel - 1; i > 0; i--) {
         const offsetAtLevelVariable = this.offsetByLevel[i];
         const offsetAtLevel = offsetAtLevelVariable.target;
         const pagesAtLevel = this.pagesByLevel[i];
@@ -255,49 +221,23 @@ export class View {
           );
 
           if (index === -1) {
-            console.error("index is -1");
-            debugger;
+            break;
           }
 
           targetParentPage = pagesAtLevel[index].parent!;
-          if (instant) {
-            offsetAtLevelVariable.value = index;
-          } else {
-            offsetAtLevelVariable.setTarget(index);
-          }
+          offsetAtLevelVariable.target = index;
         }
       }
     }
   }
 
-  updateCurrentPage() {
-    const currentLevel = this.offsetByLevel[this.focusedLevel.target];
-    this.currentPage =
-      this.pagesByLevel[this.focusedLevel.target][currentLevel.target];
-  }
-
-  isZoomedIn() {
-    return this.zoom.value > 0.99;
-  }
-
-  getPageAtPosition(point: Point) {
-    const zoom = this.zoom.value * 0.7 + 0.3;
-    const scaledPoint = Vec.div(point, zoom);
-
-    const relativeLevel =
-      Math.floor(scaledPoint.y / (window.innerHeight + GAP)) - 1;
-    const level = relativeLevel + this.focusedLevel.target;
-
-    if (level < 0 || level >= this.pagesByLevel.length) {
-      return null;
+  update(dt: number) {
+    // --- Zoomed out view
+    this.zoom.update(dt);
+    this.focusedLevel.update(dt);
+    for (const a of this.offsetByLevel) {
+      a.update(dt);
     }
-
-    const relativeOffset =
-      Math.floor(scaledPoint.x / (window.innerWidth + GAP)) - 1;
-
-    const offset = relativeOffset + this.offsetByLevel[level].target;
-
-    return this.pagesByLevel[level][offset];
   }
 
   render(r: Render) {
@@ -329,7 +269,7 @@ export class View {
     if (renderStablePage) {
       const currentLevel = this.focusedLevel.target;
 
-      this.currentPage?.render(r, {
+      this.focusedPage?.render(r, {
         x: 0,
         y: currentLevel * (innerHeight + GAP),
       });

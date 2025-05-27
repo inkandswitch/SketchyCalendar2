@@ -58,7 +58,7 @@ export class Selection {
 
     // Collect the points of the hull
     this.selectedStrokes = new Set<Id<Stroke>>();
-    const currentPaper = this.view.currentPage!.paper;
+    const currentPaper = this.view.focusedPage!.paper;
     for (const stroke of currentPaper.strokes) {
       for (const pt of stroke.props.points) {
         if (Polygon.isPointInside(this.hull!, pt)) {
