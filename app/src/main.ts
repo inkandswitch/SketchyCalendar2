@@ -27,6 +27,7 @@ import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
 import { View } from "view";
 import { Selection } from "selection";
 import AddPageButtons from "addpagebuttons";
+import EventCardTool from "tools/eventcard";
 
 const PERSIST_NOTEBOOK = true;
 
@@ -91,6 +92,7 @@ const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
   new PenTool("whiteout", "#FFFFFF", 30),
   new EraseTool(20),
   new SelectTool(selection),
+  new EventCardTool(),
 ]);
 
 const gestures = new GestureSystem([

@@ -110,6 +110,7 @@ export class Paper {
       background: props.background,
       width: props.width,
       height: props.height,
+      locked: props.locked,
     });
 
     return paperInstance;
@@ -122,6 +123,7 @@ export class Paper {
       siblingIndex: 0,
       x: position.x,
       y: position.y,
+      locked: true,
     });
   }
 
@@ -142,14 +144,24 @@ export class Paper {
     });
   }
 
-  render(r: Render, position: Point) {
-    r.rect(
-      position.x,
-      position.y,
-      this.width,
-      this.height,
-      fillAndStroke("white", "#999", 1)
-    );
+  render(r: Render, position: Point, shadow: boolean = false) {
+    // Render background color if specified
+    let backgroundColor = fillAndStroke("white", "#999", 1);
+    if (typeof this.background == "string") {
+      backgroundColor = fillAndStroke(this.background, "#00000022", 1);
+    }
+
+    if (shadow) {
+      r.rect(
+        position.x + 3,
+        position.y + 3,
+        this.width,
+        this.height,
+        fill("#00000011")
+      );
+    }
+
+    r.rect(position.x, position.y, this.width, this.height, backgroundColor);
 
     // Render background
     if (isCalendarBackground(this.background)) {
@@ -179,8 +191,11 @@ export class Paper {
 
   getPaperAtPosition(
     position: Point,
-    offset: Point = { x: 0, y: 0 }
+    offset: Point = { x: 0, y: 0 },
+    ignore: Set<Id<Paper>> = new Set()
   ): { paper: Paper; offset: Point } | null {
+    if (ignore.has(this.id)) return null;
+
     const x = position.x - offset.x;
     const y = position.y - offset.y;
 
@@ -189,7 +204,8 @@ export class Paper {
         const childOffset = Vec.add(paperInstance, offset);
         const childPaper = paperInstance.paper.getPaperAtPosition(
           position,
-          childOffset
+          childOffset,
+          ignore
         );
         if (childPaper) {
           return childPaper;

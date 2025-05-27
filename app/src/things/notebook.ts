@@ -148,6 +148,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     return Stroke.fromId(this.#state, id);
   }
 
+  getPaperInstanceById(id: Id<PaperInstance>): PaperInstance {
+    return PaperInstance.fromId(this.#state, id);
+  }
+
   get state(): State {
     return this.#state;
   }
@@ -305,6 +309,7 @@ export function addCalendarPages(
         background: null,
         x: 0,
         y: SPACE_TOP,
+        locked: true,
       });
 
       dayMonthlySectionByDay.set(dayToKey(dayDate), dayMonthlySection.paper);
@@ -332,6 +337,7 @@ export function addCalendarPages(
         },
         x: 0,
         y: SPACE_TOP + DAY_MONTHLY_SECTION_HEIGHT,
+        locked: true,
       });
 
       // tranclusions to week page

@@ -6,7 +6,6 @@ import { State } from "./notebook";
 import { Point } from "lib/point";
 import Render from "lib/render";
 import { Vec } from "lib/vec";
-import { NewTextProps } from "./text";
 
 export type PaperInstanceProps = {
   id: Id<PaperInstance>;
@@ -15,6 +14,7 @@ export type PaperInstanceProps = {
   siblingIndex: number;
   x: number;
   y: number;
+  locked: boolean;
 };
 
 export type NewPaperInstanceProps = {
@@ -25,6 +25,7 @@ export type NewPaperInstanceProps = {
   y: number;
   width: number;
   height: number;
+  locked: boolean;
 };
 
 export type NewInstanceOfProps = {
@@ -33,6 +34,7 @@ export type NewInstanceOfProps = {
   siblingIndex: number;
   x: number;
   y: number;
+  locked: boolean;
 };
 
 export class PaperInstance {
@@ -41,6 +43,7 @@ export class PaperInstance {
   id: Id<PaperInstance>;
   x: number;
   y: number;
+  locked: boolean;
 
   paper: Paper;
 
@@ -50,6 +53,7 @@ export class PaperInstance {
     this.id = props.id;
     this.x = props.x;
     this.y = props.y;
+    this.locked = props.locked;
     this.paper = paper;
   }
 
@@ -80,6 +84,7 @@ export class PaperInstance {
       siblingIndex: props.siblingIndex,
       x: props.x,
       y: props.y,
+      locked: props.locked,
     };
 
     state.docHandle.change((state) => {
@@ -108,6 +113,7 @@ export class PaperInstance {
       siblingIndex: props.siblingIndex,
       x: props.x,
       y: props.y,
+      locked: props.locked,
     };
 
     state.docHandle.change((state) => {
@@ -117,9 +123,17 @@ export class PaperInstance {
     return new PaperInstance(state, paperInstanceProps, paper);
   }
 
+  moveTo(parentId: Id<Paper>, x: number, y: number) {
+    this.#state.docHandle.change((state) => {
+      state.paperInstances[this.id].parentId = parentId;
+      state.paperInstances[this.id].x = x;
+      state.paperInstances[this.id].y = y;
+    });
+  }
+
   render(r: Render, offset: Point) {
     const position = Vec.add(offset, this);
 
-    this.paper.render(r, position);
+    this.paper.render(r, position, !this.locked);
   }
 }

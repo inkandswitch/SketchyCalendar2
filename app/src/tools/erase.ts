@@ -2,12 +2,8 @@ import { TouchEvent } from "gesturesystem";
 import { View } from "view";
 import { Notebook } from "things/notebook";
 
-import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { Tool, ToolHandler } from "toolbar";
-
-import { Id } from "id";
-import { Stroke } from "things/ink";
 
 export default class EraseTool extends Tool {
   icon: string;

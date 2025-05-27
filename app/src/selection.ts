@@ -67,12 +67,10 @@ export class Selection {
         }
       }
     }
-
-    console.log(this.selectedStrokes);
-    // Find the elements within the hull
   }
 
   // Move selection
+  // TODO: maybe we should re-parent strokes to a new paper when moving?
   moveSelection(delta: Point) {
     if (this.mode == "selected" && this.selectedStrokes) {
       for (const strokeId of this.selectedStrokes) {
