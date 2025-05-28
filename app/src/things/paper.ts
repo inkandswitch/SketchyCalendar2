@@ -26,7 +26,7 @@ export type PaperRenderOptions = {
   highlighted?: boolean;
 };
 
-function isCalendarBackground(
+export function isCalendarBackground(
   background: Background
 ): background is CalendarBackground {
   if (

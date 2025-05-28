@@ -6,6 +6,9 @@ import { Vec } from "lib/vec";
 import { PaperInstance } from "things/paperinstance";
 import { Tool, ToolHandler } from "toolbar";
 import { Rect } from "lib/rect";
+import { NotebookCollection } from "things/notebook";
+import { isCalendarBackground } from "things/paper";
+import { Page } from "things/page";
 
 export default class EventCardTool extends Tool {
   icon: string;
@@ -60,22 +63,12 @@ export class EventCardHandler implements ToolHandler {
     if (!currentPage) return;
 
     const cardInstance = currentPage.notebook.getPaperInstanceById(this.card);
-    cardInstance.moveTo(cardInstance.parentId, e.current.x, e.current.y);
-    const cardRect = cardInstance.getRect();
 
-    const layout = currentPage.getLayout();
-    // Find paperInstance that partially overlaps
-    for (const instanceId in layout.paperInstances) {
-      if (instanceId == cardInstance.id) continue; // Skip the card's own instance
-      const rect = layout.paperInstances[instanceId as Id<PaperInstance>];
-
-      if (Rect.isMostlyInside(rect, cardRect)) {
-        PaperInstance.highlighted.set(instanceId as Id<PaperInstance>, true);
-        return; // Stop after moving to the first found instance
-      }
+    const found = getMostlyOverlappingInstance(currentPage, cardInstance);
+    if (found) {
+      PaperInstance.highlighted.set(found.instance.id, true);
     }
 
-    // If no paper instance was found, the card will remain in its current position
     cardInstance.moveTo(currentPage.paper.id, e.current.x, e.current.y);
   }
 
@@ -87,32 +80,41 @@ export class EventCardHandler implements ToolHandler {
     if (!currentPage) return;
 
     const cardInstance = currentPage.notebook.getPaperInstanceById(this.card);
-    cardInstance.moveTo(cardInstance.parentId, e.current.x, e.current.y);
-    const cardRect = cardInstance.getRect();
-
-    const layout = currentPage.getLayout();
-    // Find paperInstance that partially overlaps
-    for (const instanceId in layout.paperInstances) {
-      if (instanceId == cardInstance.id) continue; // Skip the card's own instance
-      const rect = layout.paperInstances[instanceId as Id<PaperInstance>];
-
-      if (Rect.isMostlyInside(rect, cardRect)) {
-        // If the card is mostly inside another paper instance, move it to that instance
-        const targetInstance = currentPage.notebook.getPaperInstanceById(
-          instanceId as Id<PaperInstance>
-        );
-
-        cardInstance.moveTo(
-          targetInstance.paper.id,
-          50,
-          e.current.y - rect.position.y
-        );
-        return; // Stop after moving to the first found instance
-      }
+    const found = getMostlyOverlappingInstance(currentPage, cardInstance);
+    if (found) {
+      cardInstance.moveTo(
+        found.instance.paper.id,
+        50,
+        e.current.y - found.rect.position.y
+      );
+      return; // Stop after moving to the first found instance
     }
 
     // If no paper instance was found, the card will remain in its current position
-
     this.card = null;
   }
+}
+
+function getMostlyOverlappingInstance(
+  currentPage: Page,
+  cardInstance: PaperInstance
+): { instance: PaperInstance; rect: Rect } | null {
+  const layout = currentPage.getLayout();
+  const cardRect = cardInstance.getRect();
+
+  // Find paperInstance that partially overlaps
+  for (const id in layout.paperInstances) {
+    const instanceId = id as Id<PaperInstance>;
+    const instance = currentPage.notebook.getPaperInstanceById(instanceId);
+    if (!isCalendarBackground(instance.paper.background)) continue; // Skip non-calendar backgrounds
+
+    if (instanceId == cardInstance.id) continue; // Skip the card's own instance
+    const rect = layout.paperInstances[instanceId];
+
+    if (Rect.isMostlyInside(rect, cardRect)) {
+      return { instance, rect }; // Stop after moving to the first found instance
+    }
+  }
+
+  return null;
 }

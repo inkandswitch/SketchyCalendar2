@@ -52,7 +52,7 @@ Rect.overlapArea = (a: Rect, b: Rect): number => {
 Rect.isMostlyInside = (
   outer: Rect,
   inner: Rect,
-  overlap: number = 0.5
+  overlap: number = 0.6
 ): boolean => {
   // Calculate the area of overlap between the two rectangles
   const overlapArea = Rect.overlapArea(outer, inner);
