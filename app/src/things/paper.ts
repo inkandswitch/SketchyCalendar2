@@ -116,6 +116,15 @@ export class Paper {
       }
     }
 
+    for (const paperInstance of this.children) {
+      const localPosition = Vec.sub(position, paperInstance);
+
+      const link = paperInstance.paper.getLinkAtPosition(localPosition);
+      if (link) {
+        return link;
+      }
+    }
+
     return null;
   }
 

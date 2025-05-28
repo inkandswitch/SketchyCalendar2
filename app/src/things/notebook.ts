@@ -375,7 +375,7 @@ export function addCalendarPages({
 
       dayMonthlySectionByDay.set(dayToKey(dayDate), dayMonthlySection.paper);
 
-      dayMonthlySection.paper.addNewText({
+      const dayMonthlySectionText = dayMonthlySection.paper.addNewText({
         siblingIndex: 0,
         value: dayDate.toLocaleString("default", {
           day: "numeric",
@@ -385,6 +385,8 @@ export function addCalendarPages({
         y: 10,
         font: FONT_SMALL,
       });
+
+      dayMonthlySectionText.addLinkTo(dayPage);
 
       // day timeline
 
