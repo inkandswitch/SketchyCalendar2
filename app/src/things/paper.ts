@@ -102,6 +102,10 @@ export class Paper {
     return paper;
   }
 
+  get notebook() {
+    return this.#state.notebook;
+  }
+
   addNewPaper(props: Omit<NewPaperInstanceProps, "parentId">) {
     const paperInstance = PaperInstance.create(this.#state, {
       parentId: this.id,

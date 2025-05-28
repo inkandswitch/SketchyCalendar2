@@ -56,7 +56,7 @@ export default class AddPageButtons {
           const parent = currentPage.parent;
           const siblings = parent
             ? parent.children
-            : this.view.notebook.rootPages;
+            : this.view.notebookCollection.rootPages;
           const currentPageIndex = siblings.findIndex(
             (p) => p.id === currentPage.id
           );
@@ -65,7 +65,7 @@ export default class AddPageButtons {
             ? (nextSibling.siblingIndex + currentPage.siblingIndex) / 2
             : currentPage.siblingIndex + 10000;
 
-          this.view.notebook.createPage({
+          this.view.focusedPage!.notebook.createPage({
             parentId: parent?.id ?? null,
             siblingIndex: newPageSiblingIndex,
             width: currentPage.paper.width,

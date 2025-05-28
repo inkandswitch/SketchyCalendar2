@@ -35,6 +35,7 @@ export type NotebookProps = {
 };
 
 export type State = {
+  notebook: Notebook;
   docHandle: DocHandle<NotebookProps>;
   props: NotebookProps;
   objMap: Map<string, any>;
@@ -48,6 +49,33 @@ export type State = {
 type NotebookEvents = {
   changed: () => void;
 };
+
+export class NotebookCollection extends EventEmitter<NotebookEvents> {
+  constructor() {
+    super();
+  }
+
+  notebooks: Set<Notebook> = new Set();
+
+  addNotebook(notebook: Notebook) {
+    this.notebooks.add(notebook);
+    notebook.addListener("changed", this.#onChange);
+    this.#onChange();
+  }
+
+  #onChange = () => {
+    this.emit("changed");
+  };
+
+  get rootPages(): Array<Page> {
+    return Array.from(this.notebooks.values())
+      .flatMap((notebook) => notebook.pages)
+      .filter((page) => {
+        return page.parent == null;
+      })
+      .sort((a, b) => a.siblingIndex - b.siblingIndex);
+  }
+}
 
 export class Notebook extends EventEmitter<NotebookEvents> {
   #state: State;
@@ -66,6 +94,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     const props = docHandle.doc();
 
     this.#state = {
+      notebook: this,
       docHandle,
       props,
       objMap: new Map(),
@@ -128,14 +157,6 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     );
   }
 
-  get rootPages(): Array<Page> {
-    return this.pages
-      .filter((page) => {
-        return page.parent == null;
-      })
-      .sort((a, b) => a.siblingIndex - b.siblingIndex);
-  }
-
   get documentId(): string {
     return this.#state.docHandle.documentId;
   }
@@ -151,10 +172,6 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   getPaperInstanceById(id: Id<PaperInstance>): PaperInstance {
     return PaperInstance.fromId(this.#state, id);
   }
-
-  get state(): State {
-    return this.#state;
-  }
 }
 
 //const FONT = "200px Arial";
@@ -163,12 +180,19 @@ const FONT_SMALL = "100 16px Avenir";
 
 const WEEK_DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export function addCalendarPages(
-  notebook: Notebook,
-  year: number,
-  pageWidth: number,
-  pageHeight: number
-) {
+export function addCalendarPages({
+  notebook,
+  title,
+  year,
+  pageWidth,
+  pageHeight,
+}: {
+  title: string;
+  notebook: Notebook;
+  year: number;
+  pageWidth: number;
+  pageHeight: number;
+}) {
   const SPACE_TOP = 150;
   const DAY_MONTHLY_SECTION_HEIGHT = (pageHeight - SPACE_TOP) / 6;
   const DAY_WIDTH = pageWidth / 7;
@@ -185,7 +209,7 @@ export function addCalendarPages(
 
   rootPage.paper.addNewText({
     siblingIndex: 0,
-    value: `${year.toString()} Calendar`,
+    value: `${title} ${year.toString()}`,
     x: 10,
     y: 10,
     font: FONT_BIG,

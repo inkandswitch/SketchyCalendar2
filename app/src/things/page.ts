@@ -45,6 +45,10 @@ export class Page {
     });
   }
 
+  get notebook() {
+    return this.#state.notebook;
+  }
+
   static fromId(state: State, id: Id<Page>): Page {
     const cached = state.objMap.get(id) as Page | undefined;
     if (cached) {

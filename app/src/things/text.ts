@@ -72,6 +72,10 @@ export class Text {
     return new Text(state, textProps);
   }
 
+  get notebook() {
+    return this.#state.notebook;
+  }
+
   render(r: Render, offset: Point) {
     const position = Vec.add(offset, this);
 

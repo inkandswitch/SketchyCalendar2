@@ -1,11 +1,10 @@
 import { TouchEvent } from "gesturesystem";
 import { View } from "view";
-import { Notebook } from "things/notebook";
 
-import { Vec } from "lib/vec";
-import { Tool, ToolHandler } from "toolbar";
 import { Id } from "id";
+import { Vec } from "lib/vec";
 import { PaperInstance } from "things/paperinstance";
+import { Tool, ToolHandler } from "toolbar";
 
 export default class EventCardTool extends Tool {
   icon: string;
@@ -16,19 +15,17 @@ export default class EventCardTool extends Tool {
     this.icon = "card";
   }
 
-  getHandler(view: View, notebook: Notebook): ToolHandler {
-    return new EventCardHandler(view, notebook);
+  getHandler(view: View): ToolHandler {
+    return new EventCardHandler(view);
   }
 }
 
 export class EventCardHandler implements ToolHandler {
   view: View;
-  notebook: Notebook;
   card: Id<PaperInstance> | null = null;
 
-  constructor(view: View, notebook: Notebook) {
+  constructor(view: View) {
     this.view = view;
-    this.notebook = notebook;
   }
 
   // Tool-specific methods
@@ -54,10 +51,11 @@ export class EventCardHandler implements ToolHandler {
 
   penMove(e: TouchEvent) {
     if (!this.card) return;
-    const cardInstance = this.notebook.getPaperInstanceById(this.card);
 
     const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
+
+    const cardInstance = currentPage.notebook.getPaperInstanceById(this.card);
 
     const found = currentPage.paper.getPaperAtPosition(
       e.current,

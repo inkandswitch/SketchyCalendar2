@@ -123,6 +123,10 @@ export class PaperInstance {
     return new PaperInstance(state, paperInstanceProps, paper);
   }
 
+  get notebook() {
+    return this.#state.notebook;
+  }
+
   moveTo(parentId: Id<Paper>, x: number, y: number) {
     this.#state.docHandle.change((state) => {
       state.paperInstances[this.id].parentId = parentId;

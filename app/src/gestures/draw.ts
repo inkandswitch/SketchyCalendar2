@@ -1,18 +1,18 @@
 import { GestureHandler, TouchEvent } from "gesturesystem";
-import { Notebook } from "things/notebook";
+import { NotebookCollection } from "things/notebook";
 import { View } from "view";
 
 import Toolbar, { ToolHandler } from "toolbar";
 import { GUI } from "gui/gui";
 
 export default class Draw implements GestureHandler {
-  notebook: Notebook;
+  notebook: NotebookCollection;
   view: View;
   toolbar: Toolbar;
 
   drawHandler: ToolHandler | null = null;
 
-  constructor(view: View, notebook: Notebook, toolbar: Toolbar) {
+  constructor(view: View, notebook: NotebookCollection, toolbar: Toolbar) {
     this.toolbar = toolbar;
     this.notebook = notebook;
     this.view = view;
