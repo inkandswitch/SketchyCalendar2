@@ -23,13 +23,17 @@ export default class SelectTool extends Tool {
 
 export class SelectHandler implements ToolHandler {
   view: View;
-  notebook: NotebookCollection;
+  notebookCollection: NotebookCollection;
 
   selection: Selection;
 
-  constructor(view: View, notebook: NotebookCollection, selection: Selection) {
+  constructor(
+    view: View,
+    notebookCollection: NotebookCollection,
+    selection: Selection
+  ) {
     this.view = view;
-    this.notebook = notebook;
+    this.notebookCollection = notebookCollection;
     this.selection = selection;
   }
 

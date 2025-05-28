@@ -11,7 +11,7 @@ import { Page } from "things/page";
 const GAP = 20;
 
 export class View {
-  notebook: NotebookCollection;
+  notebookCollection: NotebookCollection;
 
   focusedPage: Page | null = null;
 
@@ -22,15 +22,15 @@ export class View {
   pagesByLevel: Array<Array<Page>>;
 
   constructor(notebook: NotebookCollection) {
-    this.notebook = notebook;
+    this.notebookCollection = notebook;
     this.pagesByLevel = [];
 
-    this.notebook.on("changed", this.#onNotebookChanged);
+    this.notebookCollection.on("changed", this.#onNotebookChanged);
     this.rebuild();
   }
 
   destroy() {
-    this.notebook.off("changed", this.#onNotebookChanged);
+    this.notebookCollection.off("changed", this.#onNotebookChanged);
   }
 
   #onNotebookChanged = () => {
@@ -141,7 +141,7 @@ export class View {
     // --- Zoomed out view
     // // Build the zoom view, sort into levels
     this.pagesByLevel = [];
-    let currentLevel = this.notebook.rootPages;
+    let currentLevel = this.notebookCollection.rootPages;
 
     while (currentLevel.length > 0) {
       this.pagesByLevel.push(currentLevel);

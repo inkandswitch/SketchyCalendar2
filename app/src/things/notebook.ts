@@ -50,7 +50,7 @@ type NotebookEvents = {
   changed: () => void;
 };
 
-class NotebookCollection extends EventEmitter<NotebookEvents> {
+export class NotebookCollection extends EventEmitter<NotebookEvents> {
   constructor() {
     super();
   }
@@ -180,12 +180,19 @@ const FONT_SMALL = "100 16px Avenir";
 
 const WEEK_DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export function addCalendarPages(
-  notebook: Notebook,
-  year: number,
-  pageWidth: number,
-  pageHeight: number
-) {
+export function addCalendarPages({
+  notebook,
+  title,
+  year,
+  pageWidth,
+  pageHeight,
+}: {
+  title: string;
+  notebook: Notebook;
+  year: number;
+  pageWidth: number;
+  pageHeight: number;
+}) {
   const SPACE_TOP = 150;
   const DAY_MONTHLY_SECTION_HEIGHT = (pageHeight - SPACE_TOP) / 6;
   const DAY_WIDTH = pageWidth / 7;
@@ -202,7 +209,7 @@ export function addCalendarPages(
 
   rootPage.paper.addNewText({
     siblingIndex: 0,
-    value: `${year.toString()} Calendar`,
+    value: `${title} ${year.toString()}`,
     x: 10,
     y: 10,
     font: FONT_BIG,

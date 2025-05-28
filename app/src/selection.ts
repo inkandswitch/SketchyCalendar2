@@ -74,7 +74,7 @@ export class Selection {
   moveSelection(delta: Point) {
     if (this.mode == "selected" && this.selectedStrokes) {
       for (const strokeId of this.selectedStrokes) {
-        const stroke = this.view.notebook.getStrokeById(strokeId);
+        const stroke = this.view.focusedPage!.notebook.getStrokeById(strokeId);
         if (stroke) {
           stroke.props.points = stroke.props.points.map((pt) =>
             Vec.add(pt, delta)
@@ -101,7 +101,8 @@ export class Selection {
     if (this.mode == "selected") {
       if (this.selectedStrokes) {
         for (const strokeId of this.selectedStrokes) {
-          const stroke = this.view.notebook.getStrokeById(strokeId);
+          const stroke =
+            this.view.focusedPage!.notebook.getStrokeById(strokeId);
           if (stroke) {
           }
         }

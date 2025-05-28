@@ -1,5 +1,4 @@
 import { DocumentId, Repo } from "@automerge/automerge-repo";
-import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import { getYear } from "date-fns";
 
@@ -8,77 +7,98 @@ import tick from "lib/tick";
 
 // Tools
 import Toolbar from "toolbar";
-import PenTool from "tools/pen";
 import EraseTool from "tools/erase";
+import PenTool from "tools/pen";
 import SelectTool from "tools/select";
 
 // Gestures
-import { InputSystem } from "inputsystem";
-import { GestureSystem } from "gesturesystem";
-import PinchIn from "gestures/pinchin";
 import Draw from "gestures/draw";
 import Navigate from "gestures/navigate";
-
-// Calendar data
-import { Calendar } from "lib/googlecalendar";
+import PinchIn from "gestures/pinchin";
+import { GestureSystem } from "gesturesystem";
+import { InputSystem } from "inputsystem";
 
 // Notebook
-import { addCalendarPages, Notebook, NotebookProps } from "things/notebook";
-import { View } from "view";
-import { Selection } from "selection";
 import AddPageButtons from "addpagebuttons";
+import { Selection } from "selection";
+import {
+  addCalendarPages,
+  Notebook,
+  NotebookCollection,
+  NotebookProps,
+} from "things/notebook";
 import EventCardTool from "tools/eventcard";
+import { View } from "view";
 
 const PERSIST_NOTEBOOK = false;
 
-export async function initNotebook() {
+async function loadOrCreateNotebook(
+  repo: Repo,
+  key: string,
+  onInit: (notebook: Notebook) => void
+) {
+  const notebookDocId = localStorage.getItem(`${key}:docId`) as DocumentId;
+
+  if (notebookDocId && PERSIST_NOTEBOOK) {
+    const docHandle = await repo.find<NotebookProps>(notebookDocId);
+    const notebook = new Notebook(docHandle);
+
+    return notebook;
+  } else {
+    const notebook = Notebook.create(repo);
+    onInit(notebook);
+    localStorage.setItem(`${key}:docId`, notebook.documentId);
+
+    return notebook;
+  }
+}
+
+export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+    network: [], //[new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
     storage: new IndexedDBStorageAdapter(),
   });
 
-  let notebookDocId = PERSIST_NOTEBOOK
-    ? (localStorage.getItem("notebookDocId") as DocumentId)
-    : undefined;
-  let calendarDocId = localStorage.getItem("calendarDocId");
-
-  let calendarDocHandle = calendarDocId
-    ? await repo.find<Calendar>(calendarDocId as DocumentId)
-    : undefined;
-
-  let notebook: Notebook;
-
-  if (!notebookDocId) {
-    notebook = Notebook.create(repo, calendarDocHandle);
-
-    const time = Date.now();
-    addCalendarPages(
-      notebook,
-      getYear(new Date()),
-      window.innerWidth,
-      window.innerHeight
-    );
-
-    console.log("Time taken to add calendar pages", Date.now() - time);
-
-    // Update URL with the new document ID
-
-    if (PERSIST_NOTEBOOK) {
-      localStorage.setItem("notebookDocId", notebook.documentId);
+  const personalCalendarNotebook = await loadOrCreateNotebook(
+    repo,
+    "personalCalendar",
+    (notebook) => {
+      addCalendarPages({
+        notebook,
+        title: "Personal Calendar",
+        year: getYear(new Date()),
+        pageWidth: window.innerWidth,
+        pageHeight: window.innerHeight,
+      });
     }
-  } else {
-    const docHandle = await repo.find<NotebookProps>(notebookDocId);
-    notebook = new NotebookCollection(docHandle, calendarDocHandle);
-  }
+  );
 
-  return notebook;
+  const sharedCalendarNotebook = await loadOrCreateNotebook(
+    repo,
+    "sharedCalendar",
+    (notebook) => {
+      addCalendarPages({
+        notebook,
+        title: "Lab Calendar",
+        year: getYear(new Date()),
+        pageWidth: window.innerWidth,
+        pageHeight: window.innerHeight,
+      });
+    }
+  );
+
+  const notebookCollection = new NotebookCollection();
+  notebookCollection.addNotebook(personalCalendarNotebook);
+  notebookCollection.addNotebook(sharedCalendarNotebook);
+
+  return notebookCollection;
 }
 
 const render = new Render();
 const input = new InputSystem();
 
-const notebook = await initNotebook();
-const view = new View(notebook);
+const notebookCollection = await initNotebookCollection();
+const view = new View(notebookCollection);
 const selection = new Selection(view);
 
 const addPageButtons = new AddPageButtons(view);
@@ -96,12 +116,12 @@ const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
 ]);
 
 const gestures = new GestureSystem([
-  new Draw(view, notebook, toolbar),
+  new Draw(view, notebookCollection, toolbar),
   new PinchIn(view),
   new Navigate(view, addPageButtons),
 ]);
 
-//const swipe = new SwipeSystem(state.sceneGraph);
+console.log(notebookCollection.rootPages);
 
 tick((dt) => {
   toolbar.isActive = view.isZoomedIn();
@@ -119,5 +139,3 @@ tick((dt) => {
   selection.render(render);
   addPageButtons.render(render);
 });
-
-console.log(notebook.state);
