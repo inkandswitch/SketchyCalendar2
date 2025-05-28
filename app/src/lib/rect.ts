@@ -18,3 +18,48 @@ Rect.isPointInside = (rect: Rect, point: Point): boolean => {
     point.y <= rect.position.y + rect.height
   );
 };
+
+Rect.isRectInside = (outer: Rect, inner: Rect): boolean => {
+  return (
+    inner.position.x >= outer.position.x &&
+    inner.position.x + inner.width <= outer.position.x + outer.width &&
+    inner.position.y >= outer.position.y &&
+    inner.position.y + inner.height <= outer.position.y + outer.height
+  );
+};
+
+Rect.overlapArea = (a: Rect, b: Rect): number => {
+  // Calculate the intersection rectangle
+  const xOverlapStart = Math.max(a.position.x, b.position.x);
+  const yOverlapStart = Math.max(a.position.y, b.position.y);
+  const xOverlapEnd = Math.min(a.position.x + a.width, b.position.x + b.width);
+  const yOverlapEnd = Math.min(
+    a.position.y + a.height,
+    b.position.y + b.height
+  );
+
+  // If there is no overlap, return 0
+  if (xOverlapStart >= xOverlapEnd || yOverlapStart >= yOverlapEnd) {
+    return 0;
+  }
+
+  // Calculate the area of the overlap
+  const overlapWidth = xOverlapEnd - xOverlapStart;
+  const overlapHeight = yOverlapEnd - yOverlapStart;
+  return overlapWidth * overlapHeight;
+};
+
+Rect.isMostlyInside = (
+  outer: Rect,
+  inner: Rect,
+  overlap: number = 0.5
+): boolean => {
+  // Calculate the area of overlap between the two rectangles
+  const overlapArea = Rect.overlapArea(outer, inner);
+
+  // Calculate the area of the inner rectangle
+  const innerArea = inner.width * inner.height;
+
+  // Return true if the overlap area is at least the specified percentage of the inner area
+  return overlapArea >= innerArea * overlap;
+};

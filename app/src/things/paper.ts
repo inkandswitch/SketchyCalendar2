@@ -23,6 +23,7 @@ export type PaperRenderOptions = {
   mode?: PaperRenderMode;
   isSelected?: boolean;
   hasShadow?: boolean;
+  highlighted?: boolean;
 };
 
 function isCalendarBackground(
@@ -188,7 +189,12 @@ export class Paper {
   }
 
   render(r: Render, position: Point, options: PaperRenderOptions = {}) {
-    const { hasShadow = false, isSelected = false, mode = "DEFAULT" } = options;
+    const {
+      hasShadow = false,
+      isSelected = false,
+      mode = "DEFAULT",
+      highlighted = false,
+    } = options;
 
     // Render background color if specified
     let backgroundColor = fillAndStroke("white", "#999", 1);
@@ -222,8 +228,17 @@ export class Paper {
 
     r.rect(position.x, position.y, this.width, this.height, backgroundColor);
 
-    // Render background
+    if (highlighted) {
+      r.rect(
+        position.x,
+        position.y,
+        this.width,
+        this.height,
+        stroke("#0000FF", 3)
+      );
+    }
     if (isCalendarBackground(this.background)) {
+      // Render background
       renderCalendarBackground(
         r,
         this,

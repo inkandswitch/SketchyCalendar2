@@ -6,6 +6,8 @@ import { NotebookCollection, State } from "./notebook";
 import Render, { fillAndStroke, font } from "lib/render";
 import { Point } from "lib/point";
 import { PaperInstance } from "./paperinstance";
+import { Rect } from "lib/rect";
+import { Vec } from "lib/vec";
 
 export type Template =
   | { type: "day"; date: string }
@@ -27,6 +29,10 @@ export type NewPageProps = {
   height: number;
   background: Background;
   template?: Template;
+};
+
+export type PageLayout = {
+  paperInstances: Record<Id<PaperInstance>, Rect>;
 };
 
 export class Page {
@@ -109,8 +115,8 @@ export class Page {
       mode: isBackground
         ? "AS_BACKGROUND"
         : matchingPages.length > 0
-        ? "WITHOUT_BACKGROUND"
-        : "DEFAULT",
+          ? "WITHOUT_BACKGROUND"
+          : "DEFAULT",
     });
   }
 
@@ -145,6 +151,26 @@ export class Page {
 
     state.objMap.set(page.id, page);
     return page;
+  }
+
+  // Just walk the graph so we can gather all paper instances
+  getLayout(): PageLayout {
+    const paperInstances: Record<Id<PaperInstance>, Rect> = {};
+
+    function getRectForInstance(instance: PaperInstance, offset: Point) {
+      const rect = instance.getRect(offset);
+      paperInstances[instance.id] = rect;
+
+      for (const child of instance.paper.children) {
+        getRectForInstance(child, Vec.add(instance, offset));
+      }
+    }
+    // Recursively gather all paper instances in this page and its children
+    for (const instance of this.paper.children) {
+      getRectForInstance(instance, { x: 0, y: 0 });
+    }
+
+    return { paperInstances };
   }
 
   getPaperInstanceAtPosition(position: Point): PaperInstance | null {

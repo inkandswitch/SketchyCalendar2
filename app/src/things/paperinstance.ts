@@ -52,6 +52,7 @@ export class PaperInstance {
   paper: Paper;
 
   static selected = new Map<Id<PaperInstance>, boolean>();
+  static highlighted = new Map<Id<PaperInstance>, boolean>();
 
   constructor(state: State, props: PaperInstanceProps, paper: Paper) {
     this.#state = state;
@@ -166,12 +167,18 @@ export class PaperInstance {
     return null;
   }
 
+  getRect(offset: Point = Point(0, 0)): Rect {
+    const position = Vec.add(offset, this);
+    return Rect(position, this.paper.width, this.paper.height);
+  }
+
   render(r: Render, offset: Point, mode: PaperRenderMode) {
     const position = Vec.add(offset, this);
 
     this.paper.render(r, position, {
       hasShadow: !this.locked,
       isSelected: PaperInstance.selected.has(this.id),
+      highlighted: PaperInstance.highlighted.has(this.id),
       mode,
     });
   }
