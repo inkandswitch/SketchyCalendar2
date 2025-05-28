@@ -150,7 +150,7 @@ export class PaperInstance {
       for (const instance of this.paper.children) {
         // Calculate the position of the child instance relative to this instance
         const found = instance.getPaperInstanceAtPosition(
-          Vec.sub(this, position)
+          Vec.sub(position, this)
         );
         if (found) {
           return found;
@@ -158,7 +158,9 @@ export class PaperInstance {
       }
 
       // If no children contain the position, return this instance
-      return this;
+      if (!this.locked) {
+        return this;
+      }
     }
 
     return null;
