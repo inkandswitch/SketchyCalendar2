@@ -30,7 +30,7 @@ import {
 import EventCardTool from "tools/eventcard";
 import { View } from "view";
 
-const PERSIST_NOTEBOOK = false;
+const PERSIST_NOTEBOOK = true;
 
 async function loadOrCreateNotebook(
   repo: Repo,

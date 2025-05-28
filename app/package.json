@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "dist/patchwork.js",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
@@ -12,7 +11,6 @@
     "watch": "nodemon --watch src -e js,tsx,ts,tsx,css,json --exec 'vite build && jacquard push'"
   },
   "devDependencies": {
-    "@patchwork/sdk": "file:../patchwork/sdk",
     "@types/gapi": "^0.0.47",
     "@types/gapi.client.calendar-v3": "^0.0.4",
     "@types/google.accounts": "^0.0.15",
