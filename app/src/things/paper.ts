@@ -166,7 +166,12 @@ export class Paper {
     });
   }
 
-  render(r: Render, position: Point, shadow: boolean = false) {
+  render(
+    r: Render,
+    position: Point,
+    shadow: boolean = false,
+    selected: boolean = false
+  ) {
     // Render background color if specified
     let backgroundColor = fillAndStroke("white", "#999", 1);
     if (typeof this.background == "string") {
@@ -180,6 +185,16 @@ export class Paper {
         this.width,
         this.height,
         fill("#00000011")
+      );
+    }
+
+    if (selected) {
+      r.rect(
+        position.x - 2,
+        position.y - 2,
+        this.width + 4,
+        this.height + 4,
+        fill("#00FF0033")
       );
     }
 

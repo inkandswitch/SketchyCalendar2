@@ -19,6 +19,8 @@ export class Stroke {
   #state: State;
   props: StrokeProps;
 
+  static selected = new Map<Id<Stroke>, boolean>();
+
   constructor(state: State, props: StrokeProps) {
     this.#state = state;
     this.props = props;
@@ -61,5 +63,9 @@ export class Stroke {
     });
 
     r.poly(points, stroke(this.props.color, this.props.weight), false);
+
+    if (Stroke.selected.get(this.props.id)) {
+      r.poly(points, stroke("#00FF0033", this.props.weight + 5), false);
+    }
   }
 }

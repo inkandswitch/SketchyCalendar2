@@ -1,11 +1,14 @@
 import { Background } from "./paper";
 
 import { generateId, Id } from "id";
+import Render from "lib/render";
+
 import { Paper } from "./paper";
 import { State } from "./notebook";
+
 import { Point } from "lib/point";
-import Render from "lib/render";
 import { Vec } from "lib/vec";
+import { Rect } from "lib/rect";
 
 export type PaperInstanceProps = {
   id: Id<PaperInstance>;
@@ -41,16 +44,20 @@ export class PaperInstance {
   #state: State;
 
   id: Id<PaperInstance>;
+  parentId: Id<Paper>;
   x: number;
   y: number;
   locked: boolean;
 
   paper: Paper;
 
+  static selected = new Map<Id<PaperInstance>, boolean>();
+
   constructor(state: State, props: PaperInstanceProps, paper: Paper) {
     this.#state = state;
 
     this.id = props.id;
+    this.parentId = props.parentId;
     this.x = props.x;
     this.y = props.y;
     this.locked = props.locked;
@@ -135,9 +142,36 @@ export class PaperInstance {
     });
   }
 
+  // Return this top-level paper instance if the position is inside it, otherwise return null.
+  getPaperInstanceAtPosition(position: Point): PaperInstance | null {
+    const rect = Rect(this, this.paper.width, this.paper.height);
+    if (Rect.isPointInside(rect, position)) {
+      // If the position is inside this paper instance, check it's children first
+      for (const instance of this.paper.children) {
+        // Calculate the position of the child instance relative to this instance
+        const found = instance.getPaperInstanceAtPosition(
+          Vec.sub(this, position)
+        );
+        if (found) {
+          return found;
+        }
+      }
+
+      // If no children contain the position, return this instance
+      return this;
+    }
+
+    return null;
+  }
+
   render(r: Render, offset: Point) {
     const position = Vec.add(offset, this);
 
-    this.paper.render(r, position, !this.locked);
+    this.paper.render(
+      r,
+      position,
+      !this.locked,
+      PaperInstance.selected.has(this.id)
+    );
   }
 }

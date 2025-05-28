@@ -5,6 +5,7 @@ import { Paper } from "./paper";
 import { State } from "./notebook";
 import Render from "lib/render";
 import { Point } from "lib/point";
+import { PaperInstance } from "./paperinstance";
 
 export type PageProps = {
   id: Id<Page>;
@@ -107,5 +108,15 @@ export class Page {
 
     state.objMap.set(page.id, page);
     return page;
+  }
+
+  getPaperInstanceAtPosition(position: Point): PaperInstance | null {
+    for (const instance of this.paper.children) {
+      const found = instance.getPaperInstanceAtPosition(position);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
   }
 }
