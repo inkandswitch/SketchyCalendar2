@@ -10,6 +10,10 @@ import { Page } from "things/page";
 
 const GAP = 20;
 
+type TransitionConfig = {
+  noAnimation?: boolean;
+};
+
 export class View {
   notebookCollection: NotebookCollection;
 
@@ -49,15 +53,24 @@ export class View {
     this.zoom.target = 2;
   }
 
-  focusPage(page: Page) {
+  focusPage(page: Page, config: TransitionConfig = {}) {
     const location = this.getPageLocation(page);
     if (!location) {
+      console.error("page not found in hierarchy", page);
       return;
     }
 
+    const offsetVariableAtFocusedLevel = this.offsetByLevel[location.level];
+
+    if (config.noAnimation) {
+      this.focusedLevel.value = location.level;
+      offsetVariableAtFocusedLevel.value = location.offset;
+    }
+
     this.focusedLevel.target = location.level;
-    this.offsetByLevel[location.level].target = location.offset;
-    this.updateCurrentPage();
+    offsetVariableAtFocusedLevel.target = location.offset;
+
+    this.updateCurrentPage(config);
   }
 
   getPageLocation(page: Page): { level: number; offset: number } | null {
@@ -164,10 +177,11 @@ export class View {
       this.offsetByLevel = this.offsetByLevel.slice(0, totalLevels);
     }
 
+    debugger;
     this.updateCurrentPage();
   }
 
-  updateCurrentPage() {
+  updateCurrentPage(config: TransitionConfig = {}) {
     const focusedLevel = this.focusedLevel.target;
     const focusedLevelOffset = this.offsetByLevel[focusedLevel].target;
     const focusedPage = (this.focusedPage =
@@ -198,6 +212,11 @@ export class View {
           }
 
           targetParentPage = pagesAtLevel[index];
+
+          if (config.noAnimation) {
+            offsetAtLevelVariable.value = index;
+          }
+
           offsetAtLevelVariable.target = index;
         }
       }
@@ -225,6 +244,9 @@ export class View {
           }
 
           targetParentPage = pagesAtLevel[index].parent!;
+          if (config.noAnimation) {
+            offsetAtLevelVariable.value = index;
+          }
           offsetAtLevelVariable.target = index;
         }
       }

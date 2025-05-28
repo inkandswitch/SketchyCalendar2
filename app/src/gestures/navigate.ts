@@ -93,7 +93,9 @@ export default class Navigate implements GestureHandler {
                 console.log("tap", this.touch.current, link);
 
                 if (link) {
-                  this.view.focusPage(link.getTargetPage());
+                  this.view.focusPage(link.getTargetPage(), {
+                    noAnimation: true,
+                  });
                 }
               }
             } else {

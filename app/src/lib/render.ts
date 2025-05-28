@@ -272,7 +272,7 @@ export function fillAndStroke(
   return s;
 }
 
-export function font(font: string, fill: string): RenderStyle {
+export function font(font: string, fill: string = "black"): RenderStyle {
   let s = defaultStyle();
   s.font = font;
   s.doFill = true;

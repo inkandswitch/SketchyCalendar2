@@ -26,6 +26,7 @@ import { Stroke, StrokeProps } from "things/ink";
 import { Paper, PaperProps } from "things/paper";
 import { Text, TextProps } from "things/text";
 import { LinkableId, LinkProps } from "./link";
+import { font } from "lib/render";
 
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;
@@ -177,9 +178,9 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   }
 }
 
-//const FONT = "200px Arial";
 const FONT_BIG = "100 30px Avenir";
 const FONT_SMALL = "100 16px Avenir";
+const GAP = 30;
 
 const WEEK_DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -217,19 +218,6 @@ export function addCalendarPages({
     y: 10,
     font: FONT_BIG,
   });
-
-  // test page
-  // rootPage.paper.addNewPaper({
-  //   siblingIndex: 0,
-  //   width: DAY_WIDTH,
-  //   height: pageHeight,
-  //   background: {
-  //     type: "Calendar",
-  //     date: new Date(),
-  //   },
-  //   x: 400,
-  //   y: 0,
-  // });
 
   const monthDates = [];
   const monthPages = [];
@@ -313,8 +301,6 @@ export function addCalendarPages({
       const dayDate = addDays(currentDayInWeek, dayNumber);
       const weekdayTitleText = weekdayTitleTexts[dayNumber];
 
-      weekdayTitleText.addLinkTo(weekPage);
-
       const dayPage = weekPage.addChildPage({
         siblingIndex: dayNumber * 10000,
         width: pageWidth,
@@ -322,13 +308,31 @@ export function addCalendarPages({
         background: null,
       });
 
-      dayPage.paper.addNewText({
+      weekdayTitleText.addLinkTo(dayPage);
+
+      const weekDayText = dayPage.paper.addNewText({
         siblingIndex: 0,
         value: dayDate.toLocaleString("default", { weekday: "short" }),
         x: 10,
         y: 10,
         font: FONT_BIG,
       });
+
+      const weekNumberText = weekDayText.addTextAfter({
+        gap: GAP * 2,
+        text: `Week ${weekNumber}`,
+        font: FONT_BIG,
+      });
+
+      weekNumberText.addLinkTo(weekPage);
+
+      const monthNameText = weekNumberText.addTextAfter({
+        gap: GAP,
+        text: dayDate.toLocaleString("default", { month: "short" }),
+        font: FONT_BIG,
+      });
+
+      monthNameText.addLinkTo(monthPage);
 
       // monthly section
 

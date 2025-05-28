@@ -64,11 +64,12 @@ export class Text {
     });
   }
 
+  getSize(): { width: number; height: number } {
+    return measureText(this.value, font(this.font, this.color));
+  }
+
   isPointInside(position: Point) {
-    const { width, height } = measureText(
-      this.value,
-      font(this.font, this.color)
-    );
+    const { width, height } = this.getSize();
 
     return (
       position.x >= this.x &&
@@ -76,6 +77,30 @@ export class Text {
       position.y >= this.y &&
       position.y <= this.y + height
     );
+  }
+
+  addTextAfter({
+    gap,
+    text,
+    font,
+    color,
+  }: {
+    gap: number;
+    text: string;
+    font: string;
+    color?: string;
+  }) {
+    const { width } = this.getSize();
+
+    return Text.create(this.#state, {
+      parentId: this.parentId,
+      siblingIndex: this.siblingIndex + 1,
+      value: text,
+      x: this.x + width + gap,
+      y: this.y,
+      font,
+      color,
+    });
   }
 
   static fromId(state: State, id: Id<Text>): Text {
@@ -105,6 +130,13 @@ export class Text {
   render(r: Render, offset: Point) {
     const position = Vec.add(offset, this);
 
-    r.text(this.value, position.x, position.y, font(this.font, this.color));
+    const isLink = this.#state.props.links[this.id];
+
+    r.text(
+      this.value,
+      position.x,
+      position.y,
+      font(this.font, isLink ? "#0074D9" : this.color)
+    );
   }
 }
