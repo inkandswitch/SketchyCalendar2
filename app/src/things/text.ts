@@ -1,12 +1,12 @@
-import Render, { font } from "lib/render";
+import Render, { font, measureText } from "lib/render";
 
 import { Id, generateId } from "id";
+import { State } from "./notebook";
 import { Paper } from "./paper";
-import { Notebook, State } from "./notebook";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
-import { Link, LinkTarget } from "./link";
+import { Link } from "./link";
 import { Page } from "./page";
 
 export type TextProps = {
@@ -65,12 +65,16 @@ export class Text {
   }
 
   isPointInside(position: Point) {
-    // todo: actually measure the text
+    const { width, height } = measureText(
+      this.value,
+      font(this.font, this.color)
+    );
+
     return (
       position.x >= this.x &&
-      position.x <= this.x + 100 &&
+      position.x <= this.x + width &&
       position.y >= this.y &&
-      position.y <= this.y + 100
+      position.y <= this.y + height
     );
   }
 

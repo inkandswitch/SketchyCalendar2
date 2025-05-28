@@ -29,17 +29,7 @@ export default class Render {
 
   // Changed to arrow function to automatically bind 'this'
   private handleResize = () => {
-    const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = window.innerWidth * dpr;
-    this.canvas.height = window.innerHeight * dpr;
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-    this.canvas.style.width = this.width + "px";
-    this.canvas.style.height = this.height + "px";
-    this.ctx.scale(dpr, dpr);
-
-    // Re-apply default context settings that might be lost on resize
-    this.ctx.lineJoin = "round";
+    resizeCanvasToFitScreen(this.canvas, this.ctx);
   };
 
   destroy() {
@@ -63,17 +53,7 @@ export default class Render {
   }
 
   applyStyle(style: RenderStyle) {
-    this.ctx.fillStyle = style.fillStyle;
-    this.ctx.strokeStyle = style.strokeStyle;
-    this.ctx.lineWidth = style.lineWidth;
-    if (style.font) {
-      this.ctx.font = style.font;
-    }
-    if (style.baseline) {
-      this.ctx.textBaseline = style.baseline;
-    }
-
-    this.ctx.setLineDash(style.dashed || []);
+    applyStyle(this.ctx, style);
   }
 
   line(x1: number, y1: number, x2: number, y2: number, style: RenderStyle) {
@@ -299,4 +279,55 @@ export function font(font: string, fill: string): RenderStyle {
   s.fillStyle = fill;
   s.doStroke = false;
   return s;
+}
+
+function applyStyle(ctx: CanvasRenderingContext2D, style: RenderStyle) {
+  ctx.fillStyle = style.fillStyle;
+  ctx.strokeStyle = style.strokeStyle;
+  ctx.lineWidth = style.lineWidth;
+  if (style.font) {
+    ctx.font = style.font;
+  }
+  if (style.baseline) {
+    ctx.textBaseline = style.baseline;
+  }
+
+  ctx.setLineDash(style.dashed || []);
+}
+
+function resizeCanvasToFitScreen(
+  canvas: HTMLCanvasElement,
+  ctx: CanvasRenderingContext2D
+) {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  ctx.scale(dpr, dpr);
+
+  // Re-apply default context settings that might be lost on resize
+  ctx.lineJoin = "round";
+}
+
+const measureCanvas = document.createElement("canvas");
+const measureCtx = measureCanvas.getContext("2d")!;
+
+resizeCanvasToFitScreen(measureCanvas, measureCtx);
+
+window.addEventListener("resize", () => {
+  resizeCanvasToFitScreen(measureCanvas, measureCtx);
+});
+
+export function measureText(
+  text: string,
+  font: RenderStyle
+): { width: number; height: number } {
+  applyStyle(measureCtx, font);
+
+  const metrics = measureCtx.measureText(text);
+  return {
+    width: metrics.width,
+    height: metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent,
+  };
 }

@@ -1,4 +1,4 @@
-import Render, { font, stroke } from "lib/render";
+import Render, { stroke } from "lib/render";
 
 import { Id, generateId } from "id";
 import { Paper } from "things/paper";
@@ -6,7 +6,6 @@ import { State } from "./notebook";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
-import { Polygon } from "lib/polygon";
 
 export type StrokeProps = {
   id: Id<Stroke>;
