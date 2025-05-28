@@ -25,6 +25,7 @@ import { generateCalendarPages } from "things/calendar";
 import EventCardTool from "tools/eventcard";
 import { View } from "view";
 import { getYear } from "date-fns";
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 
 const PERSIST_NOTEBOOK = true;
 
@@ -54,7 +55,7 @@ async function loadOrCreateNotebook(
 
 export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [], //[new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
     storage: new IndexedDBStorageAdapter(),
   });
 
