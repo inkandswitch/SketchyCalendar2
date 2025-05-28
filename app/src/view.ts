@@ -177,7 +177,6 @@ export class View {
       this.offsetByLevel = this.offsetByLevel.slice(0, totalLevels);
     }
 
-    debugger;
     this.updateCurrentPage();
   }
 

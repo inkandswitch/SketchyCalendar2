@@ -26,7 +26,6 @@ import { Stroke, StrokeProps } from "things/ink";
 import { Paper, PaperProps } from "things/paper";
 import { Text, TextProps } from "things/text";
 import { LinkableId, LinkProps } from "./link";
-import { font } from "lib/render";
 
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;

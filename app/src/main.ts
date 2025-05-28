@@ -119,20 +119,20 @@ export async function initNotebookCollection() {
 
   notebookCollection.addNotebook(personalCalendarNotebook);
 
-  // const sharedCalendarNotebook = await loadOrCreateNotebook(
-  //   repo,
-  //   "sharedCalendar",
-  //   (notebook) => {
-  //     addCalendarPages({
-  //       notebook,
-  //       title: "Lab Calendar",
-  //       year: getYear(new Date()),
-  //       pageWidth: window.innerWidth,
-  //       pageHeight: window.innerHeight,
-  //     });
-  //   }
-  // );
-  // notebookCollection.addNotebook(sharedCalendarNotebook);
+  const sharedCalendarNotebook = await loadOrCreateNotebook(
+    repo,
+    "sharedCalendar",
+    (notebook) => {
+      addCalendarPages({
+        notebook,
+        title: "Lab Calendar",
+        year: getYear(new Date()),
+        pageWidth: window.innerWidth,
+        pageHeight: window.innerHeight,
+      });
+    }
+  );
+  notebookCollection.addNotebook(sharedCalendarNotebook);
 
   return notebookCollection;
 }
