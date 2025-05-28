@@ -43,10 +43,9 @@ export default class Navigate implements GestureHandler {
           return;
         }
 
-        if (this.touch && this.touch.id == e.id) {
+        if (this.touch && this.touch.id == e.id && !this.view.isZoomedIn()) {
           this.touch = e;
           const delta = Vec.sub(e.current, this.startPoint!);
-
           const factor = window.innerWidth * 0.1;
 
           const progress = Vec.len(delta) / factor;
@@ -71,11 +70,6 @@ export default class Navigate implements GestureHandler {
             if (nextPage) {
               this.view.focusPage(nextPage);
             }
-
-            // in zoomed in mode don't allow continuous swiping
-            if (this.view.isZoomedIn()) {
-              this.touch = null;
-            }
           }
         }
         break;
@@ -91,13 +85,25 @@ export default class Navigate implements GestureHandler {
             }
 
             if (this.view.isZoomedIn()) {
-              return;
-            }
+              if (this.view.focusedPage) {
+                const link = this.view.focusedPage.paper.getLinkAtPosition(
+                  this.touch.current
+                );
 
-            const tappedPage = this.view.getPageAtPosition(this.touch.current);
-            if (tappedPage) {
-              this.view.focusPage(tappedPage);
-              this.view.zoomIn();
+                console.log("tap", this.touch.current, link);
+
+                if (link) {
+                  this.view.focusPage(link.getTargetPage());
+                }
+              }
+            } else {
+              const tappedPage = this.view.getPageAtPosition(
+                this.touch.current
+              );
+              if (tappedPage) {
+                this.view.focusPage(tappedPage);
+                this.view.zoomIn();
+              }
             }
           }
           this.touch = null;

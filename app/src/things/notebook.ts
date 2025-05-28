@@ -10,7 +10,7 @@ import {
   previousMonday,
 } from "date-fns";
 
-import { DocHandle, Repo } from "@automerge/automerge-repo";
+import { DocHandle, DocumentId, Repo } from "@automerge/automerge-repo";
 import { Id } from "id";
 import { buildThingChildrenMap } from "things/thingmap";
 
@@ -25,6 +25,7 @@ import { Calendar, GoogleCalendar } from "lib/googlecalendar";
 import { Stroke, StrokeProps } from "things/ink";
 import { Paper, PaperProps } from "things/paper";
 import { Text, TextProps } from "things/text";
+import { LinkableId, LinkProps } from "./link";
 
 export type NotebookProps = {
   pages: Record<Id<Page>, PageProps>;
@@ -32,6 +33,7 @@ export type NotebookProps = {
   paperInstances: Record<Id<PaperInstance>, PaperInstanceProps>;
   strokes: Record<Id<Stroke>, StrokeProps>;
   texts: Record<Id<Text>, TextProps>;
+  links: Record<LinkableId, LinkProps>;
 };
 
 export type State = {
@@ -116,6 +118,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       paperInstances: {},
       strokes: {},
       texts: {},
+      links: {},
     });
 
     return new Notebook(docHandle, calendarDocHandle);
@@ -157,7 +160,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     );
   }
 
-  get documentId(): string {
+  get documentId(): DocumentId {
     return this.#state.docHandle.documentId;
   }
 
@@ -294,20 +297,23 @@ export function addCalendarPages({
       font: FONT_BIG,
     });
 
-    WEEK_DAY_NAMES.forEach((weekday, index) => {
+    const weekdayTitleTexts = WEEK_DAY_NAMES.map((weekday, index) =>
       weekPage.paper.addNewText({
         siblingIndex: index,
         value: weekday,
         x: 10 + DAY_WIDTH * index,
         y: 110,
         font: FONT_BIG,
-      });
-    });
+      })
+    );
 
     // create day pages
 
     for (let dayNumber = 0; dayNumber < 7; dayNumber++) {
       const dayDate = addDays(currentDayInWeek, dayNumber);
+      const weekdayTitleText = weekdayTitleTexts[dayNumber];
+
+      weekdayTitleText.addLinkTo(weekPage);
 
       const dayPage = weekPage.addChildPage({
         siblingIndex: dayNumber * 10000,

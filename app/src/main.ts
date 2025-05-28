@@ -1,6 +1,5 @@
 import { DocumentId, Repo } from "@automerge/automerge-repo";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
-import { getYear } from "date-fns";
 
 import Render from "lib/render";
 import tick from "lib/tick";
@@ -21,12 +20,7 @@ import { InputSystem } from "inputsystem";
 // Notebook
 import AddPageButtons from "addpagebuttons";
 import { Selection } from "selection";
-import {
-  addCalendarPages,
-  Notebook,
-  NotebookCollection,
-  NotebookProps,
-} from "things/notebook";
+import { Notebook, NotebookCollection, NotebookProps } from "things/notebook";
 import EventCardTool from "tools/eventcard";
 import { View } from "view";
 
@@ -47,7 +41,10 @@ async function loadOrCreateNotebook(
   } else {
     const notebook = Notebook.create(repo);
     onInit(notebook);
-    localStorage.setItem(`${key}:docId`, notebook.documentId);
+
+    if (PERSIST_NOTEBOOK) {
+      localStorage.setItem(`${key}:docId`, notebook.documentId);
+    }
 
     return notebook;
   }
@@ -59,37 +56,78 @@ export async function initNotebookCollection() {
     storage: new IndexedDBStorageAdapter(),
   });
 
-  const personalCalendarNotebook = await loadOrCreateNotebook(
-    repo,
-    "personalCalendar",
-    (notebook) => {
-      addCalendarPages({
-        notebook,
-        title: "Personal Calendar",
-        year: getYear(new Date()),
-        pageWidth: window.innerWidth,
-        pageHeight: window.innerHeight,
-      });
-    }
-  );
-
-  const sharedCalendarNotebook = await loadOrCreateNotebook(
-    repo,
-    "sharedCalendar",
-    (notebook) => {
-      addCalendarPages({
-        notebook,
-        title: "Lab Calendar",
-        year: getYear(new Date()),
-        pageWidth: window.innerWidth,
-        pageHeight: window.innerHeight,
-      });
-    }
-  );
-
   const notebookCollection = new NotebookCollection();
-  notebookCollection.addNotebook(personalCalendarNotebook);
-  notebookCollection.addNotebook(sharedCalendarNotebook);
+
+  const testNotebook = await loadOrCreateNotebook(repo, "test", (notebook) => {
+    const rootPage = notebook.createPage({
+      parentId: null,
+      siblingIndex: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      background: null,
+    });
+
+    const childPage = rootPage.addChildPage({
+      siblingIndex: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      background: null,
+    });
+
+    const text = rootPage.paper.addNewText({
+      siblingIndex: 0,
+      value: "Down",
+      x: 50,
+      y: 50,
+      font: "100px Arial",
+    });
+
+    text.addLinkTo(childPage);
+
+    const text2 = childPage.paper.addNewText({
+      siblingIndex: 0,
+      value: "UP",
+      x: 50,
+      y: 50,
+      font: "100px Arial",
+    });
+
+    text2.addLinkTo(rootPage);
+  });
+
+  notebookCollection.addNotebook(testNotebook);
+
+  // const personalCalendarNotebook = await loadOrCreateNotebook(
+  //   repo,
+  //   "personalCalendar",
+  //   (notebook) => {
+  //     addCalendarPages({
+  //       notebook,
+  //       title: "Personal Calendar",
+  //       year: getYear(new Date()),
+  //       pageWidth: window.innerWidth,
+  //       pageHeight: window.innerHeight,
+  //     });
+  //   }
+  // );
+
+  // notebookCollection.addNotebook(personalCalendarNotebook);
+
+  // const sharedCalendarNotebook = await loadOrCreateNotebook(
+  //   repo,
+  //   "sharedCalendar",
+  //   (notebook) => {
+  //     addCalendarPages({
+  //       notebook,
+  //       title: "Lab Calendar",
+  //       year: getYear(new Date()),
+  //       pageWidth: window.innerWidth,
+  //       pageHeight: window.innerHeight,
+  //     });
+  //   }
+  // );
+
+  // notebookCollection.addNotebook(sharedCalendarNotebook);
 
   return notebookCollection;
 }

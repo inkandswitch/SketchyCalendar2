@@ -9,6 +9,7 @@ import { NewTextProps, Text } from "./text";
 import { Stroke } from "./ink";
 import { Vec } from "lib/vec";
 import { Polygon } from "lib/polygon";
+import { Link } from "./link";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -100,6 +101,22 @@ export class Paper {
 
     state.objMap.set(props.id, paper);
     return paper;
+  }
+
+  getLinkAtPosition(position: Point): Link | null {
+    for (const text of this.texts) {
+      const link = this.#state.props.links[text.id];
+
+      if (!link) {
+        continue;
+      }
+
+      if (text.isPointInside(position)) {
+        return Link.fromId(this.#state, link.id);
+      }
+    }
+
+    return null;
   }
 
   get notebook() {

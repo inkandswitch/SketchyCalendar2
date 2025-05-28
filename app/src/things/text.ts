@@ -2,10 +2,12 @@ import Render, { font } from "lib/render";
 
 import { Id, generateId } from "id";
 import { Paper } from "./paper";
-import { State } from "./notebook";
+import { Notebook, State } from "./notebook";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
+import { Link, LinkTarget } from "./link";
+import { Page } from "./page";
 
 export type TextProps = {
   id: Id<Text>;
@@ -50,6 +52,26 @@ export class Text {
     this.y = props.y;
     this.font = props.font;
     this.color = props.color;
+  }
+
+  addLinkTo(target: Page) {
+    return Link.create(this.#state, {
+      id: this.id,
+      targetPage: {
+        id: target.id,
+        notebookDocId: target.notebook.documentId,
+      },
+    });
+  }
+
+  isPointInside(position: Point) {
+    // todo: actually measure the text
+    return (
+      position.x >= this.x &&
+      position.x <= this.x + 100 &&
+      position.y >= this.y &&
+      position.y <= this.y + 100
+    );
   }
 
   static fromId(state: State, id: Id<Text>): Text {
