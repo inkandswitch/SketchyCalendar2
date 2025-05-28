@@ -10,8 +10,20 @@ import { Stroke } from "./ink";
 import { Vec } from "lib/vec";
 import { Polygon } from "lib/polygon";
 import { Link } from "./link";
+import { SELECTION_COLOR, SHADOW_COLOR } from "theme";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
+
+export type PaperRenderMode =
+  | "DEFAULT"
+  | "AS_BACKGROUND"
+  | "WITHOUT_BACKGROUND";
+
+export type PaperRenderOptions = {
+  mode?: PaperRenderMode;
+  isSelected?: boolean;
+  hasShadow?: boolean;
+};
 
 function isCalendarBackground(
   background: Background
@@ -175,35 +187,36 @@ export class Paper {
     });
   }
 
-  render(
-    r: Render,
-    position: Point,
-    shadow: boolean = false,
-    selected: boolean = false
-  ) {
+  render(r: Render, position: Point, options: PaperRenderOptions = {}) {
+    const { hasShadow = false, isSelected = false, mode = "DEFAULT" } = options;
+
     // Render background color if specified
     let backgroundColor = fillAndStroke("white", "#999", 1);
     if (typeof this.background == "string") {
       backgroundColor = fillAndStroke(this.background, "#00000022", 1);
     }
 
-    if (shadow) {
+    if (mode == "WITHOUT_BACKGROUND" || mode == "AS_BACKGROUND") {
+      backgroundColor = stroke("#999", 1);
+    }
+
+    if (hasShadow) {
       r.rect(
         position.x + 3,
         position.y + 3,
         this.width,
         this.height,
-        fill("#00000011")
+        fill(SHADOW_COLOR)
       );
     }
 
-    if (selected) {
+    if (isSelected) {
       r.rect(
         position.x - 2,
         position.y - 2,
         this.width + 4,
         this.height + 4,
-        fill("#00FF0033")
+        fill(SELECTION_COLOR)
       );
     }
 
@@ -222,16 +235,16 @@ export class Paper {
 
     // Render page contents
     for (const text of this.texts) {
-      text.render(r, position);
+      text.render(r, position, mode === "AS_BACKGROUND");
     }
 
     for (const stroke of this.strokes) {
-      stroke.render(r, position);
+      stroke.render(r, position, mode === "AS_BACKGROUND");
     }
 
     // Render last so they appear on top
     for (const child of this.children) {
-      child.render(r, position);
+      child.render(r, position, mode);
     }
   }
 

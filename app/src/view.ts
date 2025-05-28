@@ -290,10 +290,14 @@ export class View {
     if (renderStablePage) {
       const currentLevel = this.focusedLevel.target;
 
-      this.focusedPage?.render(r, {
-        x: 0,
-        y: currentLevel * (innerHeight + GAP),
-      });
+      this.focusedPage?.render(
+        r,
+        {
+          x: 0,
+          y: currentLevel * (innerHeight + GAP),
+        },
+        this.notebookCollection
+      );
     } else {
       for (let i = 0; i < this.pagesByLevel.length; i++) {
         const level = this.pagesByLevel[i];
@@ -306,10 +310,14 @@ export class View {
             const x = o * (innerWidth + GAP) + x_offset * (innerWidth + GAP);
             const y = i * (innerHeight + GAP);
 
-            page.render(r, {
-              x,
-              y,
-            });
+            page.render(
+              r,
+              {
+                x,
+                y,
+              },
+              this.notebookCollection
+            );
 
             if (i == this.focusedLevel.target && j == 0 && !this.isZoomedIn()) {
               r.rect(

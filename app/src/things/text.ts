@@ -8,6 +8,7 @@ import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { Link } from "./link";
 import { Page } from "./page";
+import { BACKGROUND_COLOR } from "theme";
 
 export type TextProps = {
   id: Id<Text>;
@@ -127,16 +128,18 @@ export class Text {
     return this.#state.notebook;
   }
 
-  render(r: Render, offset: Point) {
+  render(r: Render, offset: Point, isBackground: boolean) {
     const position = Vec.add(offset, this);
 
     const isLink = this.#state.props.links[this.id];
 
-    r.text(
-      this.value,
-      position.x,
-      position.y,
-      font(this.font, isLink ? "#0074D9" : this.color)
-    );
+    let color = this.color;
+    if (isBackground) {
+      color = BACKGROUND_COLOR;
+    } else if (isLink) {
+      color = "#0074D9";
+    }
+
+    r.text(this.value, position.x, position.y, font(this.font, color));
   }
 }

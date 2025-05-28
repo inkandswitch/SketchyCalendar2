@@ -1,4 +1,4 @@
-import { Background } from "./paper";
+import { Background, PaperRenderMode } from "./paper";
 
 import { generateId, Id } from "id";
 import Render from "lib/render";
@@ -166,14 +166,13 @@ export class PaperInstance {
     return null;
   }
 
-  render(r: Render, offset: Point) {
+  render(r: Render, offset: Point, mode: PaperRenderMode) {
     const position = Vec.add(offset, this);
 
-    this.paper.render(
-      r,
-      position,
-      !this.locked,
-      PaperInstance.selected.has(this.id)
-    );
+    this.paper.render(r, position, {
+      hasShadow: !this.locked,
+      isSelected: PaperInstance.selected.has(this.id),
+      mode,
+    });
   }
 }

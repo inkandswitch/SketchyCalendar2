@@ -20,12 +20,8 @@ import { InputSystem } from "inputsystem";
 // Notebook
 import AddPageButtons from "addpagebuttons";
 import { Selection } from "selection";
-import {
-  addCalendarPages,
-  Notebook,
-  NotebookCollection,
-  NotebookProps,
-} from "things/notebook";
+import { Notebook, NotebookCollection, NotebookProps } from "things/notebook";
+import { generateCalendarPages } from "things/calendar";
 import EventCardTool from "tools/eventcard";
 import { View } from "view";
 import { getYear } from "date-fns";
@@ -107,7 +103,7 @@ export async function initNotebookCollection() {
     repo,
     "personalCalendar",
     (notebook) => {
-      addCalendarPages({
+      generateCalendarPages({
         notebook,
         title: "Personal Calendar",
         year: getYear(new Date()),
@@ -123,7 +119,7 @@ export async function initNotebookCollection() {
     repo,
     "sharedCalendar",
     (notebook) => {
-      addCalendarPages({
+      generateCalendarPages({
         notebook,
         title: "Lab Calendar",
         year: getYear(new Date()),

@@ -1,12 +1,11 @@
 import { Id } from "id";
-import { Paper } from "things/paper";
 import { State } from "./notebook";
 
 import { DocumentId } from "@automerge/automerge-repo";
 import { Stroke } from "./ink";
+import { Page } from "./page";
 import { PaperInstance } from "./paperinstance";
 import { Text } from "./text";
-import { Page } from "./page";
 
 export type LinkableId = Id<Text | PaperInstance | Stroke | Page>;
 

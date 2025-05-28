@@ -2,13 +2,19 @@ import { Background } from "./paper";
 
 import { generateId, Id } from "id";
 import { Paper } from "./paper";
-import { State } from "./notebook";
-import Render from "lib/render";
+import { NotebookCollection, State } from "./notebook";
+import Render, { fillAndStroke, font } from "lib/render";
 import { Point } from "lib/point";
 import { PaperInstance } from "./paperinstance";
 
+export type Template =
+  | { type: "day"; date: string }
+  | { type: "month"; date: string }
+  | { type: "week"; date: string };
+
 export type PageProps = {
   id: Id<Page>;
+  template?: Template;
   paperId: Id<Paper>;
   parentId: Id<Page> | null; // Pages with null as a parent are at the root of the notebook
   siblingIndex: number; // Useful for ordering siblings
@@ -20,6 +26,7 @@ export type NewPageProps = {
   width: number;
   height: number;
   background: Background;
+  template?: Template;
 };
 
 export class Page {
@@ -30,6 +37,7 @@ export class Page {
   parent?: Page;
   children: Array<Page>;
   siblingIndex: number;
+  template?: Template;
 
   constructor(state: State, props: PageProps, children: Array<Page>) {
     this.#state = state;
@@ -37,6 +45,7 @@ export class Page {
     this.siblingIndex = props.siblingIndex;
     this.paper = Paper.fromId(state, props.paperId);
     this.children = children;
+    this.template = props.template;
   }
 
   addChildPage(props: Omit<NewPageProps, "parentId">): Page {
@@ -70,8 +79,39 @@ export class Page {
     return page;
   }
 
-  render(r: Render, offset: Point) {
-    this.paper.render(r, offset);
+  render(
+    r: Render,
+    offset: Point,
+    notebookCollection: NotebookCollection,
+    isBackground: boolean = false
+  ) {
+    let matchingPages: Array<Page> = [];
+
+    r.rect(
+      offset.x,
+      offset.y,
+      this.paper.width,
+      this.paper.height,
+      fillAndStroke("white", "#999", 1)
+    );
+
+    // EXPERIMENT
+    // render matching pages as background
+    if (this.template && !isBackground) {
+      matchingPages = notebookCollection.getMatchingPages(this.template);
+
+      for (const page of matchingPages) {
+        page.render(r, offset, notebookCollection, true);
+      }
+    }
+
+    this.paper.render(r, offset, {
+      mode: isBackground
+        ? "AS_BACKGROUND"
+        : matchingPages.length > 0
+        ? "WITHOUT_BACKGROUND"
+        : "DEFAULT",
+    });
   }
 
   toDebugString() {
@@ -86,24 +126,21 @@ export class Page {
       background: props.background,
     });
 
-    const page = new Page(
-      state,
-      {
-        id: generateId<Page>(),
-        paperId: paper.id,
-        parentId: props.parentId,
-        siblingIndex: props.siblingIndex,
-      },
-      []
-    );
+    const pageProps: PageProps = {
+      id: generateId<Page>(),
+      paperId: paper.id,
+      parentId: props.parentId,
+      siblingIndex: props.siblingIndex,
+    };
+
+    if (props.template) {
+      pageProps.template = props.template;
+    }
+
+    const page = new Page(state, pageProps, []);
 
     state.docHandle.change((state) => {
-      state.pages[page.id] = {
-        id: page.id,
-        paperId: paper.id,
-        parentId: props.parentId,
-        siblingIndex: props.siblingIndex,
-      };
+      state.pages[page.id] = pageProps;
     });
 
     state.objMap.set(page.id, page);
