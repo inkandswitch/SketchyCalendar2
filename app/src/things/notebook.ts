@@ -277,13 +277,40 @@ export function addCalendarPages({
       background: null,
     });
 
-    weekPage.paper.addNewText({
-      siblingIndex: weekNumber,
+    const weekNumberText = weekPage.paper.addNewText({
+      siblingIndex: 0,
       value: `Week ${weekNumber}`,
       x: 10,
       y: 10,
       font: FONT_BIG,
     });
+
+    const monthNameText = weekNumberText.addTextAfter({
+      gap: GAP,
+      text: currentDayInWeek.toLocaleString("default", { month: "short" }),
+      font: FONT_BIG,
+    });
+
+    monthNameText.addLinkTo(monthPage);
+
+    // add optional second link to month page if end of week is in next month
+
+    const endOfWeek = getEndOfWeek(currentDayInWeek);
+    if (getMonth(getEndOfWeek(currentDayInWeek)) !== monthNumber) {
+      const dividerDotText = monthNameText.addTextAfter({
+        gap: GAP / 2,
+        text: "-",
+        font: FONT_BIG,
+      });
+
+      const secondMonthNameText = dividerDotText.addTextAfter({
+        gap: GAP / 2,
+        text: endOfWeek.toLocaleString("default", { month: "short" }),
+        font: FONT_BIG,
+      });
+
+      secondMonthNameText.addLinkTo(monthPages[getMonth(endOfWeek)]);
+    }
 
     const weekdayTitleTexts = WEEK_DAY_NAMES.map((weekday, index) =>
       weekPage.paper.addNewText({
@@ -428,6 +455,10 @@ function getStartOfWeek(date: Date): Date {
   }
 
   return previousMonday(date);
+}
+
+function getEndOfWeek(date: Date): Date {
+  return addDays(getStartOfWeek(date), 6);
 }
 
 function dayToKey(date: Date): string {
