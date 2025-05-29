@@ -38,3 +38,11 @@ canvas {
   background: white;
 }
 
+img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  mix-blend-mode: darken;
+  z-index: 99999999;
+  opacity: 0.5;
+}

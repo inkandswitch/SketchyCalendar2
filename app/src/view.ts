@@ -268,14 +268,17 @@ export class View {
   }
 
   render(r: Render) {
-    let zoom = this.zoom.value * 0.7 + 0.3;
+    let zoom = this.overrideZoom ?? this.zoom.value * 0.7 + 0.3;
 
-    this.camera.set(this.overrideZoom ?? zoom, {
+    this.camera.set(zoom, {
       x: this.center.x,
       y: this.center.y,
     });
     r.beginOffset(this.camera);
-
+    const img = document.querySelector("img")!;
+    img.style.transform = `scale(${zoom}) translate(${window.innerWidth / 2 - this.center.x}px, ${window.innerHeight / 2 - this.center.y}px)`;
+    img.style.opacity = `${(zoom - 1) / 16}`;
+    console.log();
     //const currentLevel = this.zoomHierarchyFocus.target;
 
     // Show settings link on root page
@@ -339,7 +342,8 @@ export class View {
       }
     }
 
-    r.circle(this.center.x, this.center.y, 1, fill("red"));
+    // Render the center of the camera
+    //r.circle(this.center.x, this.center.y, 1, fill("red"));
 
     r.endOffset();
   }
