@@ -1,6 +1,11 @@
 import { EventEmitter } from "eventemitter3";
 
-import { DocHandle, DocumentId, Repo } from "@automerge/automerge-repo";
+import {
+  AutomergeUrl,
+  DocHandle,
+  DocumentId,
+  Repo,
+} from "@automerge/automerge-repo";
 import { Id } from "id";
 import { buildThingChildrenMap } from "things/thingmap";
 
@@ -24,6 +29,7 @@ export type NotebookProps = {
   strokes: Record<Id<Stroke>, StrokeProps>;
   texts: Record<Id<Text>, TextProps>;
   links: Record<LinkableId, LinkProps>;
+  calendarDocUrl?: AutomergeUrl;
 };
 
 export type State = {
@@ -144,6 +150,12 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     return new Notebook(docHandle, calendarDocHandle);
   }
 
+  setCalendarUrl(url: AutomergeUrl) {
+    this.#state.docHandle.change((props) => {
+      props.calendarDocUrl = url;
+    });
+  }
+
   #onChange = () => {
     this.rebuild();
     this.emit("changed");
@@ -155,6 +167,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   get state(): State {
     return this.#state;
+  }
+
+  get calendarDocUrl(): AutomergeUrl | undefined {
+    return this.#state.props.calendarDocUrl;
   }
 
   rebuild() {

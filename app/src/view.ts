@@ -7,6 +7,7 @@ import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
+import { hideSettingsLink, showSettingsLink } from "settings";
 
 const GAP = 20;
 
@@ -280,6 +281,14 @@ export class View {
     });
 
     //const currentLevel = this.zoomHierarchyFocus.target;
+
+    // Show settings link on root page
+
+    if (this.focusedPage?.template?.type === "year" && this.isZoomedIn()) {
+      showSettingsLink(this.focusedPage.notebook);
+    } else {
+      hideSettingsLink();
+    }
 
     // Render the zoom view
     const renderStablePage =

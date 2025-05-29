@@ -8,7 +8,7 @@ import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { Link } from "./link";
 import { Page } from "./page";
-import { BACKGROUND_COLOR } from "theme";
+import { BACKGROUND_COLOR, LINK_COLOR } from "theme";
 
 export type TextProps = {
   id: Id<Text>;
@@ -145,7 +145,7 @@ export class Text {
     if (isBackground) {
       color = BACKGROUND_COLOR;
     } else if (isLink) {
-      color = "#0074D9";
+      color = LINK_COLOR;
     }
 
     r.text(this.value, position.x, position.y, font(this.font, color));

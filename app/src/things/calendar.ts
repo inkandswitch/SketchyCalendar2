@@ -10,9 +10,8 @@ import {
 } from "date-fns";
 import { Notebook } from "./notebook";
 import { Paper } from "./paper";
+import { FONT_BIG, FONT_SMALL } from "theme";
 
-const FONT_BIG = "100 30px Avenir";
-const FONT_SMALL = "100 16px Avenir";
 const GAP = 30;
 
 const WEEK_DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

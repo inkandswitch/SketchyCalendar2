@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link href="index.css" rel="stylesheet" />
+    <title>Sketchy Calendar Config</title>
+    <style>
+      .page {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .form-field {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .button-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      input {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="loading-page">Loading ...</div>
+
+    <div class="page hidden" id="config-page">
+      <h1 id="page-title"></h1>
+
+      <p>If you don't have a calendar url ask Paul to set it up for you</p>
+
+      <div class="form-field">
+        <label>Calendar URL:</label>
+        <input type="text" id="calendar-url" id="calendar-url-input" />
+      </div>
+
+      <div class="button-row">
+        <button id="save-button">Save</button>
+      </div>
+    </div>
+
+    <script type="module" src="./src/config.ts"></script>
+  </body>
+</html>
