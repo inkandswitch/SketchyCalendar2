@@ -1,5 +1,6 @@
 import { GestureHandler, TouchEvent } from "gesturesystem";
 import { View } from "view";
+import { Vec } from "lib/vec";
 
 export default class PinchIn implements GestureHandler {
   a: TouchEvent | null = null;
@@ -53,6 +54,7 @@ export default class PinchIn implements GestureHandler {
         if (this.b && this.b.id == e.id) {
           this.b = e;
         }
+
         if (this.state == "pinching") {
           this.current_distance = Math.abs(
             this.b!.current.x - this.a!.current.x
@@ -63,6 +65,23 @@ export default class PinchIn implements GestureHandler {
           if (percentage > 1) percentage = 1;
           if (percentage < 0) percentage = 0;
           this.view.zoom.target = percentage;
+        } else if (this.state == "init") {
+          if (this.a) {
+            const factor = window.innerWidth * 0.1;
+            const progress = Vec.len(this.a!.totalDelta) / factor;
+
+            if (progress > 1) {
+              let nextPage = this.view.pageToRight();
+              if (this.a_side == "left") {
+                nextPage = this.view.pageToLeft();
+              }
+
+              if (nextPage) {
+                this.view.focusPage(nextPage);
+                this.a = null;
+              }
+            }
+          }
         }
 
         break;
@@ -70,11 +89,13 @@ export default class PinchIn implements GestureHandler {
       case "ended": {
         if (this.a && this.a.id == e.id) {
           this.a = null;
+          this.b = null;
           if (this.state == "pinching") {
             this.state = "ended";
           }
         }
         if (this.b && this.b.id == e.id) {
+          this.a = null;
           this.b = null;
           if (this.state == "pinching") {
             this.state = "ended";
