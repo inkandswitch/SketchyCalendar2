@@ -2,13 +2,10 @@ import { TouchEvent } from "gesturesystem";
 import { View } from "view";
 
 import { Id } from "id";
-import { Vec } from "lib/vec";
+import { Rect } from "lib/rect";
+import { Page } from "things/page";
 import { PaperInstance } from "things/paperinstance";
 import { Tool, ToolHandler } from "toolbar";
-import { Rect } from "lib/rect";
-import { NotebookCollection } from "things/notebook";
-import { isCalendarBackground } from "things/paper";
-import { Page } from "things/page";
 
 export default class EventCardTool extends Tool {
   icon: string;

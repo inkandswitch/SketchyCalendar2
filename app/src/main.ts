@@ -39,7 +39,7 @@ async function loadOrCreateNotebook(
 
   if (notebookDocId) {
     const docHandle = await repo.find<NotebookProps>(notebookDocId);
-    const notebook = new Notebook(docHandle);
+    const notebook = new Notebook(repo, docHandle);
 
     return notebook;
   } else {

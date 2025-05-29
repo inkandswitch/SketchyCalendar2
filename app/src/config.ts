@@ -25,7 +25,7 @@ if (notebookDocId) {
   const loadingPage = document.getElementById("loading-page") as HTMLDivElement;
   const configPage = document.getElementById("config-page") as HTMLDivElement;
 
-  const notebook = new Notebook(docHandle);
+  const notebook = new Notebook(repo, docHandle);
 
   calendarUrlInput.value = notebook.calendarDocUrl ?? "";
 

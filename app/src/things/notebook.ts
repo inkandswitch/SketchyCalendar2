@@ -113,13 +113,16 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   papers: Map<Id<PaperProps>, Paper> = new Map();
 
-  constructor(
-    docHandle: DocHandle<NotebookProps>,
-    calendarDocHandle?: DocHandle<Calendar>
-  ) {
+  constructor(repo: Repo, docHandle: DocHandle<NotebookProps>) {
     super();
 
     const props = docHandle.doc();
+
+    if (props.calendarDocUrl) {
+      repo.find<Calendar>(props.calendarDocUrl).then((calendarDocHandle) => {
+        this.#state.googleCalendar = new GoogleCalendar(calendarDocHandle);
+      });
+    }
 
     this.#state = {
       notebook: this,
@@ -130,14 +133,14 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       pageChildrenMap: new Map(),
       textChildrenMap: new Map(),
       strokeChildrenMap: new Map(),
-      googleCalendar: new GoogleCalendar(calendarDocHandle),
+      googleCalendar: new GoogleCalendar(),
     };
 
     docHandle.addListener("change", this.#onChange);
     this.rebuild();
   }
 
-  static create(repo: Repo, calendarDocHandle?: DocHandle<Calendar>) {
+  static create(repo: Repo) {
     const docHandle = repo.create<NotebookProps>({
       pages: {},
       papers: {},
@@ -147,7 +150,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       links: {},
     });
 
-    return new Notebook(docHandle, calendarDocHandle);
+    return new Notebook(repo, docHandle);
   }
 
   setCalendarUrl(url: AutomergeUrl) {
