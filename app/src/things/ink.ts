@@ -63,7 +63,17 @@ export class Stroke {
       return Vec.add(offset, point);
     });
 
-    const color = isBackground ? BACKGROUND_COLOR : this.props.color;
+    let color = this.props.color;
+
+    if (isBackground) {
+      if (this.props.color.length === 9) {
+        // Check if color has alpha value (#RRGGBBAA)
+        const alpha = this.props.color.slice(-2);
+        color = BACKGROUND_COLOR + alpha;
+      } else {
+        color = BACKGROUND_COLOR;
+      }
+    }
 
     r.poly(points, stroke(color, this.props.weight), false);
 

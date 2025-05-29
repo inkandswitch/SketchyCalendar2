@@ -10,17 +10,12 @@ import { Stroke } from "./ink";
 import { Vec } from "lib/vec";
 import { Polygon } from "lib/polygon";
 import { Link } from "./link";
-import { SELECTION_COLOR, SHADOW_COLOR } from "theme";
+import { BACKGROUND_COLOR, SELECTION_COLOR, SHADOW_COLOR } from "theme";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
-export type PaperRenderMode =
-  | "DEFAULT"
-  | "AS_BACKGROUND"
-  | "WITHOUT_BACKGROUND";
-
 export type PaperRenderOptions = {
-  mode?: PaperRenderMode;
+  isBackground?: boolean;
   isSelected?: boolean;
   hasShadow?: boolean;
   highlighted?: boolean;
@@ -192,18 +187,16 @@ export class Paper {
     const {
       hasShadow = false,
       isSelected = false,
-      mode = "DEFAULT",
+      isBackground = false,
       highlighted = false,
     } = options;
 
     // Render background color if specified
-    let backgroundColor = fillAndStroke("white", "#999", 1);
+    let backgroundColor = stroke("#999", 1);
     if (typeof this.background == "string") {
-      backgroundColor = fillAndStroke(this.background, "#00000022", 1);
-    }
-
-    if (mode == "WITHOUT_BACKGROUND" || mode == "AS_BACKGROUND") {
-      backgroundColor = stroke("#999", 1);
+      backgroundColor = isBackground
+        ? fillAndStroke(BACKGROUND_COLOR, "#999", 1)
+        : fillAndStroke(this.background, "#00000022", 1);
     }
 
     if (hasShadow) {
@@ -250,16 +243,16 @@ export class Paper {
 
     // Render page contents
     for (const text of this.texts) {
-      text.render(r, position, mode === "AS_BACKGROUND");
+      text.render(r, position, isBackground);
     }
 
     for (const stroke of this.strokes) {
-      stroke.render(r, position, mode === "AS_BACKGROUND");
+      stroke.render(r, position, isBackground);
     }
 
     // Render last so they appear on top
     for (const child of this.children) {
-      child.render(r, position, mode);
+      child.render(r, position, isBackground);
     }
   }
 

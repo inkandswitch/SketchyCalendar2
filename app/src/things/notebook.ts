@@ -55,17 +55,22 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
     this.#onChange();
   }
 
-  getMatchingPages(template: Template): Array<Page> {
+  getMatchingPages(page: Page): Array<Page> {
+    const template = page.template;
+    if (!template) {
+      return [];
+    }
+
     return Array.from(this.notebooks.values())
       .flatMap((notebook) => notebook.pages)
-      .filter((page) => {
-        if (!page.template) {
+      .filter((otherPage) => {
+        if (!otherPage.template || otherPage.id === page.id) {
           return false;
         }
 
         return (
-          page.template.type === template.type &&
-          page.template.date === template.date
+          otherPage.template.type === template.type &&
+          otherPage.template.date === template.date
         );
       });
   }

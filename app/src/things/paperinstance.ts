@@ -1,14 +1,14 @@
-import { Background, PaperRenderMode } from "./paper";
+import { Background } from "./paper";
 
 import { generateId, Id } from "id";
 import Render from "lib/render";
 
-import { Paper } from "./paper";
 import { State } from "./notebook";
+import { Paper } from "./paper";
 
 import { Point } from "lib/point";
-import { Vec } from "lib/vec";
 import { Rect } from "lib/rect";
+import { Vec } from "lib/vec";
 
 export type PaperInstanceProps = {
   id: Id<PaperInstance>;
@@ -172,14 +172,14 @@ export class PaperInstance {
     return Rect(position, this.paper.width, this.paper.height);
   }
 
-  render(r: Render, offset: Point, mode: PaperRenderMode) {
+  render(r: Render, offset: Point, isBackground: boolean) {
     const position = Vec.add(offset, this);
 
     this.paper.render(r, position, {
       hasShadow: !this.locked,
       isSelected: PaperInstance.selected.has(this.id),
       highlighted: PaperInstance.highlighted.has(this.id),
-      mode,
+      isBackground,
     });
   }
 }

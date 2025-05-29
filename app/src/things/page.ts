@@ -104,7 +104,7 @@ export class Page {
     // EXPERIMENT
     // render matching pages as background
     if (this.template && !isBackground) {
-      matchingPages = notebookCollection.getMatchingPages(this.template);
+      matchingPages = notebookCollection.getMatchingPages(this);
 
       for (const page of matchingPages) {
         page.render(r, offset, notebookCollection, true);
@@ -112,11 +112,7 @@ export class Page {
     }
 
     this.paper.render(r, offset, {
-      mode: isBackground
-        ? "AS_BACKGROUND"
-        : matchingPages.length > 0
-          ? "WITHOUT_BACKGROUND"
-          : "DEFAULT",
+      isBackground,
     });
   }
 
