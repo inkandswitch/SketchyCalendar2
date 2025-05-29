@@ -9,6 +9,7 @@ export default class Zoom implements GestureHandler {
 
   view: View;
   initialDistance: number | null = null;
+  previousScreenCenter: Point | null = null;
 
   constructor(view: View) {
     this.view = view;
@@ -27,6 +28,10 @@ export default class Zoom implements GestureHandler {
           } else if (!this.b) {
             this.b = e;
             this.initialDistance = Vec.dist(this.a.current, this.b.current);
+            this.previousScreenCenter = Vec.mulS(
+              Vec.add(this.a.current, this.b.current),
+              0.5
+            );
           }
         }
 
@@ -53,7 +58,7 @@ export default class Zoom implements GestureHandler {
 
           // Save previous zoom and compute new zoom
           const oldZoom = this.view.overrideZoom || 1;
-          const newZoom = Math.min(Math.max(1, oldZoom + delta), 4.5);
+          const newZoom = Math.min(Math.max(1, oldZoom + delta), 4);
 
           // Adjust view center to maintain the world point under the screen center
 
@@ -70,6 +75,14 @@ export default class Zoom implements GestureHandler {
           this.view.center.y +=
             (screenCenterOffset.y / oldZoom) * (1 - 1 / zoomRatio);
           this.view.overrideZoom = newZoom;
+          this.initialDistance = currentDistance;
+
+          // Pan adjustment
+          const screenDelta = Vec.sub(screenCenter, this.previousScreenCenter);
+          this.view.center.x -= screenDelta.x / newZoom;
+          this.view.center.y -= screenDelta.y / newZoom;
+
+          this.previousScreenCenter = screenCenter;
           this.initialDistance = currentDistance;
         }
         break;
