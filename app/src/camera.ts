@@ -9,8 +9,8 @@ export class Camera {
   halfHeight: number = window.innerHeight / 2;
 
   set(zoom: number, center: Point) {
-    this.position.x = -center.x + this.halfWidth / zoom;
-    this.position.y = -center.y + this.halfHeight / zoom;
+    this.position.x = this.halfWidth / zoom - center.x;
+    this.position.y = this.halfHeight / zoom - center.y;
     this.zoom = zoom;
   }
 

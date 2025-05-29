@@ -42,15 +42,35 @@ export default class Zoom implements GestureHandler {
 
         if (this.a && this.b) {
           const currentDistance = Vec.dist(this.a.current, this.b.current);
-          const factor = window.innerWidth * 0.1;
+          const factor = window.innerWidth * 0.08;
           const delta = (currentDistance - this.initialDistance!) / factor;
-          const screencenter = Vec.mulS(
+
+          // Get the screen-space midpoint between the two fingers
+          const screenCenter = Vec.mulS(
             Vec.add(this.a.current, this.b.current),
             0.5
           );
 
-          this.view.overrideZoom = Math.max(1, 1 + delta);
-          this.view.center = screencenter;
+          // Save previous zoom and compute new zoom
+          const oldZoom = this.view.overrideZoom || 1;
+          const newZoom = Math.min(Math.max(1, oldZoom + delta), 4.5);
+
+          // Adjust view center to maintain the world point under the screen center
+
+          const screenCenterOffset = {
+            x: screenCenter.x - window.innerWidth / 2,
+            y: screenCenter.y - window.innerHeight / 2,
+          };
+
+          const zoomRatio = newZoom / oldZoom;
+
+          // Now adjust center based on offset from screen center
+          this.view.center.x +=
+            (screenCenterOffset.x / oldZoom) * (1 - 1 / zoomRatio);
+          this.view.center.y +=
+            (screenCenterOffset.y / oldZoom) * (1 - 1 / zoomRatio);
+          this.view.overrideZoom = newZoom;
+          this.initialDistance = currentDistance;
         }
         break;
       }
