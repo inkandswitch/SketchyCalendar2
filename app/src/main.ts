@@ -26,6 +26,7 @@ import EventCardTool from "tools/eventcard";
 import { View } from "view";
 import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
+import OverlaySwitcher from "overlayswitcher";
 
 const ADD_DEV_NOTEBOOK = true;
 const PERSIST_DEV_NOTEBOOK = true;
@@ -173,6 +174,7 @@ const view = new View(notebookCollection);
 const selection = new Selection(view, notebookCollection);
 
 const addPageButtons = new AddPageButtons(view);
+const overlaySwitcher = new OverlaySwitcher(view, notebookCollection);
 
 const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
   new PenTool("pen_black", "black", 1),
@@ -189,13 +191,14 @@ const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
 const gestures = new GestureSystem([
   new Draw(view, notebookCollection, toolbar),
   new PinchIn(view),
-  new Navigate(view, addPageButtons),
+  new Navigate(view, addPageButtons, overlaySwitcher),
 ]);
 
 console.log(notebookCollection.rootPages);
 
 tick((dt) => {
   toolbar.isActive = view.isZoomedIn();
+  overlaySwitcher.isActive = view.isZoomedIn();
   addPageButtons.isActive = !view.isZoomedIn();
 
   // Update
@@ -210,4 +213,5 @@ tick((dt) => {
   toolbar.render(render);
   selection.render(render);
   addPageButtons.render(render);
+  overlaySwitcher.render(render);
 });

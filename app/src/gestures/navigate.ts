@@ -4,10 +4,12 @@ import { Vec } from "lib/vec";
 import { Point } from "lib/point";
 import AddPageButtons from "addpagebuttons";
 import { Page } from "things/page";
+import OverlaySwitcher from "overlayswitcher";
 
 export default class Navigate implements GestureHandler {
   view: View;
   addPageButtons: AddPageButtons;
+  overlaySwitcher: OverlaySwitcher;
   touch: TouchEvent | null = null;
   swipedLaneOffset: number | null = null;
 
@@ -16,9 +18,14 @@ export default class Navigate implements GestureHandler {
 
   activeTouches: Array<TouchEvent> = [];
 
-  constructor(view: View, addPageButtons: AddPageButtons) {
+  constructor(
+    view: View,
+    addPageButtons: AddPageButtons,
+    overlaySwitcher: OverlaySwitcher
+  ) {
     this.view = view;
     this.addPageButtons = addPageButtons;
+    this.overlaySwitcher = overlaySwitcher;
   }
 
   onEvent(e: TouchEvent) {
@@ -80,6 +87,11 @@ export default class Navigate implements GestureHandler {
         if (this.touch && this.touch.id == e.id) {
           if (Vec.len(this.touch.totalDelta) < 10) {
             if (this.addPageButtons.tap(this.touch.current)) {
+              this.touch = null;
+              return;
+            }
+
+            if (this.overlaySwitcher.tap(this.touch.current)) {
               this.touch = null;
               return;
             }
