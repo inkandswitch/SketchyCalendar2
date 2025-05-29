@@ -88,6 +88,15 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
       })
       .sort((a, b) => a.siblingIndex - b.siblingIndex);
   }
+
+  getPaperInstanceById(id: Id<PaperInstance>): PaperInstance {
+    for (const notebook of this.notebooks.values()) {
+      if (notebook.hasPaperInstance(id)) {
+        return notebook.getPaperInstanceById(id);
+      }
+    }
+    throw new Error(`PaperInstance with id ${id} not found in any notebook.`);
+  }
 }
 
 export class Notebook extends EventEmitter<NotebookEvents> {
@@ -185,6 +194,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   getStrokeById(id: Id<Stroke>): Stroke {
     return Stroke.fromId(this.#state, id);
+  }
+
+  hasPaperInstance(id: Id<PaperInstance>): boolean {
+    return this.#state.props.paperInstances.hasOwnProperty(id);
   }
 
   getPaperInstanceById(id: Id<PaperInstance>): PaperInstance {

@@ -232,7 +232,7 @@ export class Paper {
         position.y,
         this.width,
         this.height,
-        stroke("#0000FF", 3)
+        fill("#0000FF0A")
       );
     }
     if (isCalendarBackground(this.background)) {

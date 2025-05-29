@@ -9,6 +9,9 @@ import { TouchEvent } from "gesturesystem";
 import Render, { dashedStroke } from "lib/render";
 import { View } from "view";
 import { PaperInstance } from "things/paperinstance";
+import { NotebookCollection } from "things/notebook";
+
+import { getMostlyOverlappingInstance } from "tools/eventcard";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -18,20 +21,24 @@ export class Selection {
   selectedPaperInstances: Set<Id<PaperInstance>> | null = null;
 
   view: View;
+  notebookCollection: NotebookCollection;
 
-  constructor(view: View) {
+  delta: Vec = { x: 0, y: 0 };
+
+  constructor(view: View, notebookCollection: NotebookCollection) {
     this.view = view;
+    this.notebookCollection = notebookCollection;
   }
 
   penDown(e: TouchEvent) {
     if (this.mode == "off") {
-      this.startSelection(e.current);
+      this.startHull(e.current);
     }
   }
 
   penMove(e: TouchEvent) {
     if (this.mode == "selecting") {
-      this.extendSelection(e.current);
+      this.extendHull(e.current);
     } else if (this.mode == "selected") {
       this.moveSelection(e.delta);
     }
@@ -39,30 +46,39 @@ export class Selection {
 
   penUp(e: TouchEvent) {
     if (this.mode == "selecting") {
-      this.finishSelection(e.current, e.totalDelta);
+      this.finishHull(e.current, e.totalDelta);
     } else if (this.mode == "selected") {
       this.finishMoveSelection(e.totalDelta);
     }
   }
 
   // Selection hull
-  startSelection(point: Point) {
+  startHull(point: Point) {
     this.mode = "selecting";
     this.hull = [point];
   }
 
-  extendSelection(point: Point) {
+  extendHull(point: Point) {
     this.hull!.push(point);
   }
 
-  finishSelection(point: Point, totalDelta: Vec) {
+  finishHull(point: Point, totalDelta: Vec) {
     if (Vec.len(totalDelta) < 5) {
       const currentPage = this.view.focusedPage!;
+      const layout = currentPage.getLayout();
+
       const foundPaper = currentPage.getPaperInstanceAtPosition(point);
       if (foundPaper) {
         this.mode = "selected";
         this.selectedPaperInstances = new Set([foundPaper.id]);
         PaperInstance.selected.set(foundPaper.id, true);
+        // Reparent the card instance to the current page
+        const rect = layout.paperInstances[foundPaper.id];
+        foundPaper.moveTo(
+          currentPage.paper.id,
+          rect.position.x,
+          rect.position.y
+        );
         return;
       }
     }
@@ -88,37 +104,95 @@ export class Selection {
   // TODO: maybe we should re-parent strokes to a new paper when moving?
   moveSelection(delta: Vec) {
     if (this.mode == "selected") {
-      if (this.selectedStrokes) {
-        for (const strokeId of this.selectedStrokes) {
-          const stroke =
-            this.view.focusedPage!.notebook.getStrokeById(strokeId);
-          if (stroke) {
-            stroke.props.points = stroke.props.points.map((pt) =>
-              Vec.add(pt, delta)
+      this.delta = Vec.add(this.delta, delta);
+    }
+    //   const currentPage = this.view.focusedPage!;
+
+    //   if (this.selectedStrokes) {
+    //     for (const strokeId of this.selectedStrokes) {
+    //       const stroke =
+    //         this.view.focusedPage!.notebook.getStrokeById(strokeId);
+    //       if (stroke) {
+    //         stroke.props.points = stroke.props.points.map((pt) =>
+    //           Vec.add(pt, delta)
+    //         );
+    //       }
+    //     }
+    //   }
+
+    //   if (this.selectedPaperInstances) {
+    //     for (const paperInstanceId of this.selectedPaperInstances) {
+    //       const paperInstance =
+    //         this.view.focusedPage!.notebook.getPaperInstanceById(
+    //           paperInstanceId
+    //         );
+    //       paperInstance.moveTo(
+    //         currentPage.paper.id,
+    //         paperInstance.x + delta.x,
+    //         paperInstance.y + delta.y
+    //       );
+    //     }
+    //   }
+    // }
+  }
+
+  update() {
+    if (this.mode !== "selected") return;
+
+    PaperInstance.highlighted.clear();
+    const currentPage = this.view.focusedPage!;
+
+    if (this.selectedPaperInstances) {
+      for (const paperInstanceId of this.selectedPaperInstances) {
+        const paperInstance =
+          this.notebookCollection.getPaperInstanceById(paperInstanceId);
+        if (paperInstance.paper.id != currentPage.paper.id) {
+          paperInstance.moveTo(
+            currentPage.paper.id,
+            paperInstance.x + this.delta.x,
+            paperInstance.y + this.delta.y
+          );
+
+          const found = getMostlyOverlappingInstance(
+            currentPage,
+            paperInstance
+          );
+          if (found) {
+            PaperInstance.highlighted.set(found.instance.id, true);
+          }
+        }
+      }
+    }
+
+    this.delta = { x: 0, y: 0 }; // Reset delta after applying
+  }
+
+  finishMoveSelection(totalDelta: Vec) {
+    if (Vec.len(totalDelta) < 5) {
+      const currentPage = this.view.focusedPage!;
+
+      if (this.selectedPaperInstances) {
+        for (const paperInstanceId of this.selectedPaperInstances) {
+          const paperInstance =
+            this.notebookCollection.getPaperInstanceById(paperInstanceId);
+          const found = getMostlyOverlappingInstance(
+            currentPage,
+            paperInstance
+          );
+          if (found == null) continue;
+
+          if (paperInstance.paper.id != currentPage.paper.id) {
+            paperInstance.moveTo(
+              found.instance.paper.id,
+              50,
+              paperInstance.y - found.rect.position.y
             );
           }
         }
       }
 
-      if (this.selectedPaperInstances) {
-        for (const paperInstanceId of this.selectedPaperInstances) {
-          const paperInstance =
-            this.view.focusedPage!.notebook.getPaperInstanceById(
-              paperInstanceId
-            );
-          paperInstance.moveTo(
-            paperInstance.parentId,
-            paperInstance.x + delta.x,
-            paperInstance.y + delta.y
-          );
-        }
-      }
-    }
-  }
-
-  finishMoveSelection(totalDelta: Vec) {
-    if (Vec.len(totalDelta) < 5) {
       // If the total movement is small, we consider it a click
+      PaperInstance.highlighted.clear();
       this.clear();
     }
   }

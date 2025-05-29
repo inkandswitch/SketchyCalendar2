@@ -95,7 +95,7 @@ export class EventCardHandler implements ToolHandler {
   }
 }
 
-function getMostlyOverlappingInstance(
+export function getMostlyOverlappingInstance(
   currentPage: Page,
   cardInstance: PaperInstance
 ): { instance: PaperInstance; rect: Rect } | null {
@@ -106,7 +106,7 @@ function getMostlyOverlappingInstance(
   for (const id in layout.paperInstances) {
     const instanceId = id as Id<PaperInstance>;
     const instance = currentPage.notebook.getPaperInstanceById(instanceId);
-    if (!isCalendarBackground(instance.paper.background)) continue; // Skip non-calendar backgrounds
+    //if (!isCalendarBackground(instance.paper.background)) continue; // Skip non-calendar backgrounds
 
     if (instanceId == cardInstance.id) continue; // Skip the card's own instance
     const rect = layout.paperInstances[instanceId];

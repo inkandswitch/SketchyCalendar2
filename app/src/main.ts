@@ -170,7 +170,7 @@ const input = new InputSystem();
 
 const notebookCollection = await initNotebookCollection();
 const view = new View(notebookCollection);
-const selection = new Selection(view);
+const selection = new Selection(view, notebookCollection);
 
 const addPageButtons = new AddPageButtons(view);
 
@@ -202,6 +202,7 @@ tick((dt) => {
   gestures.update(input.buffer);
   view.update(dt);
   input.clear(); // cleanup the input buffer for the next round
+  selection.update();
 
   // Render
   render.clear();
