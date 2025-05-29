@@ -3,6 +3,7 @@ import { Stroke } from "things/ink";
 import { Polygon } from "lib/polygon";
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
+import { Rect } from "lib/rect";
 
 import { TouchEvent } from "gesturesystem";
 
@@ -12,6 +13,7 @@ import { PaperInstance } from "things/paperinstance";
 import { NotebookCollection } from "things/notebook";
 
 import { getMostlyOverlappingInstance } from "tools/eventcard";
+import { PageLayout } from "things/page";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -65,7 +67,6 @@ export class Selection {
   finishHull(point: Point, totalDelta: Vec) {
     if (Vec.len(totalDelta) < 5) {
       const currentPage = this.view.focusedPage!;
-      const layout = currentPage.getLayout();
 
       const foundPaper = currentPage.getPaperInstanceAtPosition(point);
       if (foundPaper) {
@@ -73,27 +74,31 @@ export class Selection {
         this.selectedPaperInstances = new Set([foundPaper.id]);
         PaperInstance.selected.set(foundPaper.id, true);
         // Reparent the card instance to the current page
+        const layout = currentPage.getLayout();
         const rect = layout.paperInstances[foundPaper.id];
-        foundPaper.moveTo(
-          currentPage.paper.id,
-          rect.position.x,
-          rect.position.y
-        );
+        foundPaper.moveTo(currentPage.paper.id, {
+          x: rect.position.x,
+          y: rect.position.y,
+        });
         return;
       }
     }
 
     // Collect the strokes inside of the hull
-    const currentPaper = this.view.focusedPage!.paper;
-    this.selectedStrokes = currentPaper.getStrokesInsideHull(this.hull!);
-
+    const currentPage = this.view.focusedPage!;
+    this.selectedStrokes = currentPage.paper.getStrokesInsideHull(this.hull!);
     if (this.selectedStrokes.size > 0) {
+      const layout = currentPage.getLayout();
+      console.log(layout);
+      console.log(this.selectedStrokes);
       this.mode = "selected";
       for (const strokeId of this.selectedStrokes) {
-        const strokeObj = currentPaper.notebook.getStrokeById(strokeId);
-        if (strokeObj) {
-          Stroke.selected.set(strokeId, true);
-        }
+        const stroke = currentPage.paper.notebook.getStrokeById(strokeId)!;
+        const rect = layout.strokes[strokeId];
+        const originalRect = stroke.getRect({ x: 0, y: 0 });
+        const delta = Vec.sub(rect.position, originalRect.position);
+        stroke.move(delta);
+        Stroke.selected.set(strokeId, true);
       }
     } else {
       this.clear();
@@ -106,34 +111,6 @@ export class Selection {
     if (this.mode == "selected") {
       this.delta = Vec.add(this.delta, delta);
     }
-    //   const currentPage = this.view.focusedPage!;
-
-    //   if (this.selectedStrokes) {
-    //     for (const strokeId of this.selectedStrokes) {
-    //       const stroke =
-    //         this.view.focusedPage!.notebook.getStrokeById(strokeId);
-    //       if (stroke) {
-    //         stroke.props.points = stroke.props.points.map((pt) =>
-    //           Vec.add(pt, delta)
-    //         );
-    //       }
-    //     }
-    //   }
-
-    //   if (this.selectedPaperInstances) {
-    //     for (const paperInstanceId of this.selectedPaperInstances) {
-    //       const paperInstance =
-    //         this.view.focusedPage!.notebook.getPaperInstanceById(
-    //           paperInstanceId
-    //         );
-    //       paperInstance.moveTo(
-    //         currentPage.paper.id,
-    //         paperInstance.x + delta.x,
-    //         paperInstance.y + delta.y
-    //       );
-    //     }
-    //   }
-    // }
   }
 
   update() {
@@ -142,24 +119,38 @@ export class Selection {
     PaperInstance.highlighted.clear();
     const currentPage = this.view.focusedPage!;
 
+    if (this.selectedStrokes) {
+      for (const strokeId of this.selectedStrokes) {
+        const stroke = this.view.focusedPage!.notebook.getStrokeById(strokeId);
+        if (stroke) {
+          if (this.delta.x != 0 || this.delta.y != 0) {
+            stroke.move(this.delta);
+          }
+
+          if (stroke.props.parentId != currentPage.paper.id) {
+            stroke.reparent(currentPage.paper.id);
+          }
+        }
+      }
+    }
+
     if (this.selectedPaperInstances) {
       for (const paperInstanceId of this.selectedPaperInstances) {
         const paperInstance =
           this.notebookCollection.getPaperInstanceById(paperInstanceId);
-        if (paperInstance.paper.id != currentPage.paper.id) {
-          paperInstance.moveTo(
-            currentPage.paper.id,
-            paperInstance.x + this.delta.x,
-            paperInstance.y + this.delta.y
-          );
 
-          const found = getMostlyOverlappingInstance(
-            currentPage,
-            paperInstance
-          );
-          if (found) {
-            PaperInstance.highlighted.set(found.instance.id, true);
-          }
+        if (!paperInstance) continue;
+        if (this.delta.x != 0 || this.delta.y != 0) {
+          paperInstance.move(this.delta);
+        }
+
+        if (paperInstance.paper.id != currentPage.paper.id) {
+          paperInstance.reparent(currentPage.paper.id);
+        }
+
+        const found = getMostlyOverlappingInstance(currentPage, paperInstance);
+        if (found) {
+          PaperInstance.highlighted.set(found.instance.id, true);
         }
       }
     }
@@ -181,19 +172,36 @@ export class Selection {
           );
           if (found == null) continue;
 
-          if (paperInstance.paper.id != currentPage.paper.id) {
-            paperInstance.moveTo(
-              found.instance.paper.id,
-              50,
-              paperInstance.y - found.rect.position.y
-            );
-          }
+          paperInstance.moveTo(found.instance.paper.id, {
+            x: 50,
+            y: paperInstance.y - found.rect.position.y,
+          });
+        }
+      }
+
+      if (this.selectedStrokes) {
+        const layout = currentPage.getLayout();
+        for (const strokeId of this.selectedStrokes) {
+          const stroke = currentPage.notebook.getStrokeById(strokeId);
+          if (!stroke) continue;
+
+          const found = getMostlyOverlappingInstanceWithStroke(layout, stroke);
+          if (found == null) continue;
+          const paperInstance = this.notebookCollection.getPaperInstanceById(
+            found.instanceId
+          );
+          stroke.reparent(paperInstance.paper.id);
+
+          const delta = Vec.sub({ x: 0, y: 0 }, found.rect.position);
+          stroke.move(delta);
         }
       }
 
       // If the total movement is small, we consider it a click
       PaperInstance.highlighted.clear();
       this.clear();
+
+      //
     }
   }
 
@@ -211,4 +219,21 @@ export class Selection {
       r.poly(this.hull!, dashedStroke("green", 2, [10, 10]), false);
     }
   }
+}
+
+export function getMostlyOverlappingInstanceWithStroke(
+  layout: PageLayout,
+  stroke: Stroke
+): { instanceId: Id<PaperInstance>; rect: Rect } | null {
+  const strokeRect = layout.strokes[stroke.props.id];
+
+  // Find paperInstance that partially overlaps
+  for (const id in layout.paperInstances) {
+    const paperRect = layout.paperInstances[id as Id<PaperInstance>];
+    if (Rect.isMostlyInside(paperRect, strokeRect)) {
+      return { instanceId: id as Id<PaperInstance>, rect: paperRect }; // Stop after moving to the first found instance
+    }
+  }
+
+  return null;
 }

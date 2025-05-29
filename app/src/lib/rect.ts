@@ -63,3 +63,23 @@ Rect.isMostlyInside = (
   // Return true if the overlap area is at least the specified percentage of the inner area
   return overlapArea >= innerArea * overlap;
 };
+
+Rect.AABBfromPoints = (points: Point[]): Rect => {
+  // Return an axis-aligned bounding box (AABB) from a set of points
+  if (points.length === 0) {
+    return Rect(Point(0, 0), 0, 0);
+  }
+
+  let minX = points[0].x;
+  let minY = points[0].y;
+  let maxX = points[0].x;
+  let maxY = points[0].y;
+
+  for (const point of points) {
+    if (point.x < minX) minX = point.x;
+    if (point.y < minY) minY = point.y;
+    if (point.x > maxX) maxX = point.x;
+    if (point.y > maxY) maxY = point.y;
+  }
+  return Rect(Point(minX, minY), maxX - minX, maxY - minY);
+};

@@ -68,8 +68,8 @@ export class EventCardHandler implements ToolHandler {
     if (found) {
       PaperInstance.highlighted.set(found.instance.id, true);
     }
-
-    cardInstance.moveTo(currentPage.paper.id, e.current.x, e.current.y);
+    cardInstance.reparent(currentPage.paper.id);
+    cardInstance.move(e.delta);
   }
 
   penUp(e: TouchEvent) {
@@ -82,11 +82,10 @@ export class EventCardHandler implements ToolHandler {
     const cardInstance = currentPage.notebook.getPaperInstanceById(this.card);
     const found = getMostlyOverlappingInstance(currentPage, cardInstance);
     if (found) {
-      cardInstance.moveTo(
-        found.instance.paper.id,
-        50,
-        e.current.y - found.rect.position.y
-      );
+      cardInstance.moveTo(found.instance.paper.id, {
+        x: 50,
+        y: e.current.y - found.rect.position.y,
+      });
       return; // Stop after moving to the first found instance
     }
 

@@ -8,6 +8,7 @@ import { Point } from "lib/point";
 import { PaperInstance } from "./paperinstance";
 import { Rect } from "lib/rect";
 import { Vec } from "lib/vec";
+import { Stroke } from "./ink";
 
 export type Template =
   | { type: "day"; date: string }
@@ -34,6 +35,7 @@ export type NewPageProps = {
 
 export type PageLayout = {
   paperInstances: Record<Id<PaperInstance>, Rect>;
+  strokes: Record<Id<Stroke>, Rect>;
 };
 
 export class Page {
@@ -150,9 +152,15 @@ export class Page {
     return page;
   }
 
+  cachedLayout: PageLayout | null = null;
   // Just walk the graph so we can gather all paper instances
   getLayout(): PageLayout {
+    if (this.cachedLayout) {
+      return this.cachedLayout;
+    }
+
     const paperInstances: Record<Id<PaperInstance>, Rect> = {};
+    const strokes: Record<Id<Stroke>, Rect> = {};
 
     function getRectForInstance(instance: PaperInstance, offset: Point) {
       const rect = instance.getRect(offset);
@@ -161,13 +169,24 @@ export class Page {
       for (const child of instance.paper.children) {
         getRectForInstance(child, Vec.add(instance, offset));
       }
+
+      for (const stroke of instance.paper.strokes) {
+        const strokeRect = stroke.getRect(Vec.add(instance, offset));
+        strokes[stroke.props.id] = strokeRect;
+      }
     }
     // Recursively gather all paper instances in this page and its children
     for (const instance of this.paper.children) {
       getRectForInstance(instance, { x: 0, y: 0 });
     }
 
-    return { paperInstances };
+    for (const stroke of this.paper.strokes) {
+      const strokeRect = stroke.getRect({ x: 0, y: 0 });
+      strokes[stroke.props.id] = strokeRect;
+    }
+
+    this.cachedLayout = { paperInstances, strokes };
+    return this.cachedLayout;
   }
 
   getPaperInstanceAtPosition(position: Point): PaperInstance | null {

@@ -142,11 +142,24 @@ export class PaperInstance {
     return this.#state.notebook;
   }
 
-  moveTo(parentId: Id<Paper>, x: number, y: number) {
+  move(delta: Vec) {
     this.#state.docHandle.change((state) => {
-      state.paperInstances[this.id].parentId = parentId;
-      state.paperInstances[this.id].x = x;
-      state.paperInstances[this.id].y = y;
+      state.paperInstances[this.id].x += delta.x;
+      state.paperInstances[this.id].y += delta.y;
+    });
+  }
+
+  moveTo(newParentId: Id<Paper>, position: Point) {
+    this.#state.docHandle.change((state) => {
+      state.paperInstances[this.id].parentId = newParentId;
+      state.paperInstances[this.id].x = position.x;
+      state.paperInstances[this.id].y = position.y;
+    });
+  }
+
+  reparent(newParentId: Id<Paper>) {
+    this.#state.docHandle.change((state) => {
+      state.paperInstances[this.id].parentId = newParentId;
     });
   }
 
