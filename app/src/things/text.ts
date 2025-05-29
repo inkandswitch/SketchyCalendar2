@@ -12,6 +12,7 @@ import { BACKGROUND_COLOR } from "theme";
 
 export type TextProps = {
   id: Id<Text>;
+  labels: string[];
   parentId: Id<Paper>;
   siblingIndex: number;
   value: string;
@@ -23,6 +24,7 @@ export type TextProps = {
 
 export type NewTextProps = {
   parentId: Id<Paper>;
+  labels?: string[];
   siblingIndex: number;
   value: string;
   x: number;
@@ -42,6 +44,7 @@ export class Text {
   y: number;
   font: string;
   color: string;
+  labels: string[];
 
   constructor(state: State, props: TextProps) {
     this.#state = state;
@@ -53,6 +56,7 @@ export class Text {
     this.y = props.y;
     this.font = props.font;
     this.color = props.color;
+    this.labels = props.labels;
   }
 
   addLinkTo(target: Page) {
@@ -85,10 +89,12 @@ export class Text {
     text,
     font,
     color,
+    labels = [],
   }: {
     gap: number;
     text: string;
     font: string;
+    labels?: string[];
     color?: string;
   }) {
     const { width } = this.getSize();
@@ -101,6 +107,7 @@ export class Text {
       y: this.y,
       font,
       color,
+      labels,
     });
   }
 
@@ -115,6 +122,7 @@ export class Text {
       id: generateId<Text>(),
       font: props.font ?? "16px Arial",
       color: props.color ?? "#444",
+      labels: props.labels ?? [],
     };
 
     state.docHandle.change((state) => {

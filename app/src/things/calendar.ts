@@ -4,6 +4,7 @@ import {
   getWeek,
   getYear,
   isMonday,
+  isToday,
   nextMonday,
   previousMonday,
 } from "date-fns";
@@ -37,17 +38,26 @@ export function generateCalendarPages({
 
   const rootPage = notebook.createPage({
     parentId: null,
+    template: { type: "year", date: new Date(year, 0, 1).toISOString() },
     siblingIndex: 0,
     width: pageWidth,
     height: pageHeight,
     background: null,
   });
 
-  rootPage.paper.addNewText({
+  const rootPageTitle = rootPage.paper.addNewText({
+    labels: ["title"],
     siblingIndex: 0,
     value: `${title} ${year.toString()}`,
     x: 10,
     y: 10,
+    font: FONT_BIG,
+  });
+
+  rootPageTitle.addTextAfter({
+    gap: GAP * 2,
+    text: "Today",
+    labels: ["todayLink"],
     font: FONT_BIG,
   });
 
@@ -67,6 +77,7 @@ export function generateCalendarPages({
     });
 
     monthPage.paper.addNewText({
+      labels: ["monthTitle"],
       siblingIndex: 0,
       value: monthDate.toLocaleString("default", { month: "long" }),
       x: 10,
@@ -78,6 +89,7 @@ export function generateCalendarPages({
       monthPage.paper.addNewText({
         siblingIndex: index,
         value: weekday,
+        labels: ["weekdayName", weekday],
         x: 10 + DAY_WIDTH * index,
         y: 110,
         font: FONT_BIG,
@@ -116,12 +128,14 @@ export function generateCalendarPages({
       value: `Week ${weekNumber}`,
       x: 10,
       y: 10,
+      labels: ["weekNumber"],
       font: FONT_BIG,
     });
 
     const monthNameText = weekNumberText.addTextAfter({
       gap: GAP,
       text: currentDayInWeek.toLocaleString("default", { month: "short" }),
+      labels: ["monthName"],
       font: FONT_BIG,
     });
 
@@ -146,10 +160,11 @@ export function generateCalendarPages({
       secondMonthNameText.addLinkTo(monthPages[getMonth(endOfWeek)]);
     }
 
-    const weekdayTitleTexts = WEEK_DAY_NAMES.map((weekday, index) =>
+    const weekdayNameTexts = WEEK_DAY_NAMES.map((weekday, index) =>
       weekPage.paper.addNewText({
         siblingIndex: index,
         value: weekday,
+        labels: ["weekdayName", weekday],
         x: 10 + DAY_WIDTH * index,
         y: 110,
         font: FONT_BIG,
@@ -160,7 +175,7 @@ export function generateCalendarPages({
 
     for (let dayNumber = 0; dayNumber < 7; dayNumber++) {
       const dayDate = addDays(currentDayInWeek, dayNumber);
-      const weekdayTitleText = weekdayTitleTexts[dayNumber];
+      const weekdayNameText = weekdayNameTexts[dayNumber];
 
       const dayPage = weekPage.addChildPage({
         siblingIndex: dayNumber * 10000,
@@ -170,11 +185,12 @@ export function generateCalendarPages({
         template: { type: "day", date: dayDate.toISOString() },
       });
 
-      weekdayTitleText.addLinkTo(dayPage);
+      weekdayNameText.addLinkTo(dayPage);
 
       const weekDayText = dayPage.paper.addNewText({
         siblingIndex: 0,
         value: dayDate.toLocaleString("default", { weekday: "short" }),
+        labels: ["weekdayName"],
         x: 10,
         y: 10,
         font: FONT_BIG,
@@ -183,6 +199,7 @@ export function generateCalendarPages({
       const weekNumberText = weekDayText.addTextAfter({
         gap: GAP * 2,
         text: `Week ${weekNumber}`,
+        labels: ["weekNumber"],
         font: FONT_BIG,
       });
 
@@ -191,6 +208,7 @@ export function generateCalendarPages({
       const monthNameText = weekNumberText.addTextAfter({
         gap: GAP,
         text: dayDate.toLocaleString("default", { month: "short" }),
+        labels: ["monthName"],
         font: FONT_BIG,
       });
 
@@ -199,6 +217,7 @@ export function generateCalendarPages({
       // monthly section
 
       const dayMonthlySection = dayPage.paper.addNewPaper({
+        labels: ["dayMonthlySection"],
         siblingIndex: 0,
         width: DAY_WIDTH,
         height: DAY_MONTHLY_SECTION_HEIGHT,
@@ -211,6 +230,7 @@ export function generateCalendarPages({
       dayMonthlySectionByDay.set(dayToKey(dayDate), dayMonthlySection.paper);
 
       const dayMonthlySectionText = dayMonthlySection.paper.addNewText({
+        labels: ["date"],
         siblingIndex: 0,
         value: dayDate.toLocaleString("default", {
           day: "numeric",
@@ -226,6 +246,7 @@ export function generateCalendarPages({
       // day timeline
 
       const dayTimeline = dayPage.paper.addNewPaper({
+        labels: ["dayTimeline"],
         siblingIndex: 0,
         width: DAY_WIDTH,
         height: pageHeight - SPACE_TOP - DAY_MONTHLY_SECTION_HEIGHT,
@@ -241,13 +262,16 @@ export function generateCalendarPages({
       // tranclusions to week page
 
       dayMonthlySection.paper.transcludeTo(weekPage.paper, {
-        x: dayNumber * DAY_WIDTH,
-        y: SPACE_TOP,
+        position: { x: dayNumber * DAY_WIDTH, y: SPACE_TOP },
+        labels: ["dayMonthlySection", dayDate.toISOString()],
       });
 
       dayTimeline.paper.transcludeTo(weekPage.paper, {
-        x: dayNumber * DAY_WIDTH,
-        y: SPACE_TOP + DAY_MONTHLY_SECTION_HEIGHT,
+        position: {
+          x: dayNumber * DAY_WIDTH,
+          y: SPACE_TOP + DAY_MONTHLY_SECTION_HEIGHT,
+        },
+        labels: ["dayTimeline", dayDate.toISOString()],
       });
     }
 
@@ -274,14 +298,38 @@ export function generateCalendarPages({
         )!;
 
         dayMonthlySection.transcludeTo(monthPage.paper, {
-          x: dayNumber * DAY_WIDTH,
-          y: SPACE_TOP + row * DAY_MONTHLY_SECTION_HEIGHT,
+          position: {
+            x: dayNumber * DAY_WIDTH,
+            y: SPACE_TOP + row * DAY_MONTHLY_SECTION_HEIGHT,
+          },
+          labels: ["dayMonthlySection", dayDate.toISOString()],
         });
       }
 
       currentDayInWeek = nextMonday(currentDayInWeek);
 
       row++;
+    }
+  }
+}
+
+export function updateCalendarPages(notebook: Notebook) {
+  const yearPage = notebook.pages.find(
+    (page) => page.template?.type === "year"
+  );
+
+  if (yearPage) {
+    let todayLink = yearPage.paper.texts.find((text) =>
+      text.labels.includes("todayLink")
+    );
+
+    const todayDailyPage = notebook.pages.find(
+      (page) =>
+        page.template?.type === "day" && isToday(new Date(page.template.date))
+    );
+
+    if (todayDailyPage && todayLink) {
+      todayLink.addLinkTo(todayDailyPage);
     }
   }
 }

@@ -57,7 +57,8 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
 
   getMatchingPages(page: Page): Array<Page> {
     const template = page.template;
-    if (!template) {
+    // don't match year pages
+    if (!template || template.type === "year") {
       return [];
     }
 
@@ -141,6 +142,10 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   destroy() {
     this.#state.docHandle.removeListener("change", this.#onChange);
+  }
+
+  get state(): State {
+    return this.#state;
   }
 
   rebuild() {

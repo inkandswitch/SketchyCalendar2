@@ -21,7 +21,7 @@ import { InputSystem } from "inputsystem";
 import AddPageButtons from "addpagebuttons";
 import { Selection } from "selection";
 import { Notebook, NotebookCollection, NotebookProps } from "things/notebook";
-import { generateCalendarPages } from "things/calendar";
+import { generateCalendarPages, updateCalendarPages } from "things/calendar";
 import EventCardTool from "tools/eventcard";
 import { View } from "view";
 import { getYear } from "date-fns";
@@ -113,7 +113,7 @@ export async function initNotebookCollection() {
       });
     }
   );
-
+  updateCalendarPages(personalCalendarNotebook);
   notebookCollection.addNotebook(personalCalendarNotebook);
 
   const sharedCalendarNotebook = await loadOrCreateNotebook(
@@ -129,6 +129,8 @@ export async function initNotebookCollection() {
       });
     }
   );
+
+  updateCalendarPages(sharedCalendarNotebook);
   notebookCollection.addNotebook(sharedCalendarNotebook);
 
   return notebookCollection;

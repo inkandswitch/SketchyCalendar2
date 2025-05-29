@@ -12,6 +12,7 @@ import { Vec } from "lib/vec";
 
 export type PaperInstanceProps = {
   id: Id<PaperInstance>;
+  labels: string[];
   paperId: Id<Paper>;
   parentId: Id<Paper>;
   siblingIndex: number;
@@ -23,6 +24,7 @@ export type PaperInstanceProps = {
 export type NewPaperInstanceProps = {
   parentId: Id<Paper>;
   background: Background;
+  labels?: string[];
   siblingIndex: number;
   x: number;
   y: number;
@@ -33,6 +35,7 @@ export type NewPaperInstanceProps = {
 
 export type NewInstanceOfProps = {
   paperId: Id<Paper>;
+  labels?: string[];
   parentId: Id<Paper>;
   siblingIndex: number;
   x: number;
@@ -48,6 +51,7 @@ export class PaperInstance {
   x: number;
   y: number;
   locked: boolean;
+  labels: string[];
 
   paper: Paper;
 
@@ -63,6 +67,7 @@ export class PaperInstance {
     this.y = props.y;
     this.locked = props.locked;
     this.paper = paper;
+    this.labels = props.labels;
   }
 
   static fromId(state: State, id: Id<PaperInstance>): PaperInstance {
@@ -93,6 +98,7 @@ export class PaperInstance {
       x: props.x,
       y: props.y,
       locked: props.locked,
+      labels: props.labels ?? [],
     };
 
     state.docHandle.change((state) => {
@@ -122,6 +128,7 @@ export class PaperInstance {
       x: props.x,
       y: props.y,
       locked: props.locked,
+      labels: props.labels ?? [],
     };
 
     state.docHandle.change((state) => {

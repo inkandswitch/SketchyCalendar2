@@ -150,12 +150,16 @@ export class Paper {
       width: props.width,
       height: props.height,
       locked: props.locked,
+      labels: props.labels,
     });
 
     return paperInstance;
   }
 
-  transcludeTo(paper: Paper, position: Point): PaperInstance {
+  transcludeTo(
+    paper: Paper,
+    { position, labels }: { position: Point; labels?: string[] }
+  ): PaperInstance {
     return PaperInstance.createInstanceOf(this.#state, {
       paperId: this.id,
       parentId: paper.id,
@@ -163,6 +167,7 @@ export class Paper {
       x: position.x,
       y: position.y,
       locked: true,
+      labels,
     });
   }
 

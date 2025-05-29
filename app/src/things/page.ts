@@ -12,7 +12,8 @@ import { Vec } from "lib/vec";
 export type Template =
   | { type: "day"; date: string }
   | { type: "month"; date: string }
-  | { type: "week"; date: string };
+  | { type: "week"; date: string }
+  | { type: "year"; date: string };
 
 export type PageProps = {
   id: Id<Page>;
