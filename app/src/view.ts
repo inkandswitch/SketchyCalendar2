@@ -1,13 +1,14 @@
 // Derived intermediate representation that's useful for rendering & interactions
 
 import { AnimateVariable } from "lib/animate";
-import Render, { stroke } from "lib/render";
+import Render, { stroke, fill } from "lib/render";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
 import { hideSettingsLink, showSettingsLink } from "settings";
+import { Camera } from "camera";
 
 const GAP = 20;
 
@@ -16,17 +17,21 @@ type TransitionConfig = {
 };
 
 export class View {
+  camera: Camera;
   notebookCollection: NotebookCollection;
 
   focusedPage: Page | null = null;
-
   zoom: AnimateVariable = new AnimateVariable(1); // between zero and one
+  overrideZoom: number | null = null; // temporary zoom for pinch gesture
+  center: Point = { x: window.innerWidth / 2, y: window.innerHeight / 2 }; // center of the view
+
   focusedLevel = new AnimateVariable(0); // focus on week
   offsetByLevel: AnimateVariable[] = [];
 
   pagesByLevel: Array<Array<Page>>;
 
-  constructor(notebook: NotebookCollection) {
+  constructor(camera: Camera, notebook: NotebookCollection) {
+    this.camera = camera;
     this.notebookCollection = notebook;
     this.pagesByLevel = [];
 
@@ -263,26 +268,18 @@ export class View {
   }
 
   render(r: Render) {
-    const innerWidth = window.innerWidth;
-    const innerHeight = window.innerHeight;
-
     let zoom = this.zoom.value * 0.7 + 0.3;
-    let offset_y = this.focusedLevel.value * (innerHeight + GAP);
 
-    const center_x = innerWidth / 2;
-    const center_y = offset_y + innerHeight / 2;
-
-    r.beginOffset({
-      position: {
-        x: -center_x + innerWidth / 2 / zoom,
-        y: -center_y + innerHeight / 2 / zoom,
-      },
-      zoom,
+    this.camera.set(this.overrideZoom ?? zoom, {
+      x: this.center.x,
+      y: this.center.y,
     });
+    r.beginOffset(this.camera);
 
     //const currentLevel = this.zoomHierarchyFocus.target;
 
     // Show settings link on root page
+    let offset_y = this.focusedLevel.value * (window.innerHeight + GAP);
 
     if (this.focusedPage?.template?.type === "year" && this.isZoomedIn()) {
       showSettingsLink(this.focusedPage.notebook);
@@ -303,7 +300,7 @@ export class View {
         r,
         {
           x: 0,
-          y: currentLevel * (innerHeight + GAP),
+          y: 0,
         },
         this.notebookCollection
       );
@@ -317,7 +314,7 @@ export class View {
           const page = level[o];
           if (page) {
             const x = o * (innerWidth + GAP) + x_offset * (innerWidth + GAP);
-            const y = i * (innerHeight + GAP);
+            const y = i * (innerHeight + GAP) - offset_y;
 
             page.render(
               r,
@@ -341,6 +338,8 @@ export class View {
         }
       }
     }
+
+    r.circle(this.center.x, this.center.y, 1, fill("red"));
 
     r.endOffset();
   }

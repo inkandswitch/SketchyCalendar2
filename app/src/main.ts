@@ -2,6 +2,7 @@ import { DocumentId, Repo } from "@automerge/automerge-repo";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 
 import Render from "lib/render";
+import { Camera } from "camera";
 import tick from "lib/tick";
 
 // Tools
@@ -11,11 +12,12 @@ import PenTool from "tools/pen";
 import SelectTool from "tools/select";
 
 // Gestures
+import { GestureSystem } from "gesturesystem";
+import { InputSystem } from "inputsystem";
 import Draw from "gestures/draw";
 import Navigate from "gestures/navigate";
 import PinchIn from "gestures/pinchin";
-import { GestureSystem } from "gesturesystem";
-import { InputSystem } from "inputsystem";
+import Zoom from "gestures/zoom";
 
 // Notebook
 import AddPageButtons from "addpagebuttons";
@@ -29,7 +31,7 @@ import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network
 import OverlaySwitcher from "overlayswitcher";
 
 const ADD_DEV_NOTEBOOK = true;
-const PERSIST_DEV_NOTEBOOK = true;
+const PERSIST_DEV_NOTEBOOK = false;
 
 async function loadOrCreateNotebook(
   repo: Repo,
@@ -168,9 +170,10 @@ export async function initNotebookCollection() {
 
 const render = new Render();
 const input = new InputSystem();
+const camera = new Camera();
 
 const notebookCollection = await initNotebookCollection();
-const view = new View(notebookCollection);
+const view = new View(camera, notebookCollection);
 const selection = new Selection(view, notebookCollection);
 
 const addPageButtons = new AddPageButtons(view);
@@ -192,6 +195,7 @@ const gestures = new GestureSystem([
   new Draw(view, notebookCollection, toolbar),
   new PinchIn(view),
   new Navigate(view, addPageButtons, overlaySwitcher),
+  new Zoom(view),
 ]);
 
 console.log(notebookCollection.rootPages);

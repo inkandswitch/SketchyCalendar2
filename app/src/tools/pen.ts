@@ -43,10 +43,11 @@ export class PenHandler implements ToolHandler {
 
   // Tool-specific methods
   penDown(e: TouchEvent) {
+    const position = this.view.camera.screenToWorld(e.current);
     // Get the current paper
     const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
-    const found = currentPage.paper.getPaperAtPosition(e.current);
+    const found = currentPage.paper.getPaperAtPosition(position);
     if (!found) return;
 
     this.paperId = found.paper.id;
@@ -60,14 +61,15 @@ export class PenHandler implements ToolHandler {
 
     // Compute the offset, so we can add points relative to the paper
     this.offset = found.offset;
-    newStroke.addPoint(Vec.sub(e.current, this.offset));
+    newStroke.addPoint(Vec.sub(position, this.offset));
   }
 
   penMove(e: TouchEvent) {
     if (this.strokeId != null) {
+      const position = this.view.camera.screenToWorld(e.current);
       const currentPage = this.view.focusedPage!;
       if (!currentPage) return;
-      const found = currentPage.paper.getPaperAtPosition(e.current);
+      const found = currentPage.paper.getPaperAtPosition(position);
       if (!found) return;
 
       // Check if the paper has changed
@@ -83,7 +85,7 @@ export class PenHandler implements ToolHandler {
       }
 
       const stroke = currentPage.notebook.getStrokeById(this.strokeId);
-      stroke.addPoint(Vec.sub(e.current, this.offset!));
+      stroke.addPoint(Vec.sub(position, this.offset!));
     }
   }
 
