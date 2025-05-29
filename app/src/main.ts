@@ -27,7 +27,8 @@ import { View } from "view";
 import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 
-const PERSIST_NOTEBOOK = true;
+const ADD_DEV_NOTEBOOK = true;
+const PERSIST_DEV_NOTEBOOK = true;
 
 async function loadOrCreateNotebook(
   repo: Repo,
@@ -36,7 +37,7 @@ async function loadOrCreateNotebook(
 ) {
   const notebookDocId = localStorage.getItem(`${key}:docId`) as DocumentId;
 
-  if (notebookDocId && PERSIST_NOTEBOOK) {
+  if (notebookDocId) {
     const docHandle = await repo.find<NotebookProps>(notebookDocId);
     const notebook = new Notebook(docHandle);
 
@@ -44,11 +45,7 @@ async function loadOrCreateNotebook(
   } else {
     const notebook = Notebook.create(repo);
     onInit(notebook);
-
-    if (PERSIST_NOTEBOOK) {
-      localStorage.setItem(`${key}:docId`, notebook.documentId);
-    }
-
+    localStorage.setItem(`${key}:docId`, notebook.documentId);
     return notebook;
   }
 }
@@ -99,6 +96,38 @@ export async function initNotebookCollection() {
   // });
 
   // notebookCollection.addNotebook(testNotebook);
+
+  if (ADD_DEV_NOTEBOOK) {
+    let devNotebook: Notebook;
+    if (PERSIST_DEV_NOTEBOOK) {
+      devNotebook = await loadOrCreateNotebook(
+        repo,
+        "devCalendar",
+        (notebook) => {
+          generateCalendarPages({
+            notebook,
+            title: "Test Calendar",
+            year: getYear(new Date()),
+            pageWidth: window.innerWidth,
+            pageHeight: window.innerHeight,
+          });
+        }
+      );
+    } else {
+      devNotebook = Notebook.create(repo);
+
+      generateCalendarPages({
+        notebook: devNotebook,
+        title: "Test Calendar",
+        year: getYear(new Date()),
+        pageWidth: window.innerWidth,
+        pageHeight: window.innerHeight,
+      });
+    }
+
+    updateCalendarPages(devNotebook);
+    notebookCollection.addNotebook(devNotebook);
+  }
 
   const personalCalendarNotebook = await loadOrCreateNotebook(
     repo,
