@@ -25,6 +25,7 @@ export default class Render {
 
     // Default to round joins (also set in handleResize)
     this.ctx.lineJoin = "round";
+    this.ctx.lineCap = "round";
   }
 
   // Changed to arrow function to automatically bind 'this'
@@ -308,6 +309,7 @@ function resizeCanvasToFitScreen(
 
   // Re-apply default context settings that might be lost on resize
   ctx.lineJoin = "round";
+  ctx.lineCap = "round";
 }
 
 const measureCanvas = document.createElement("canvas");
