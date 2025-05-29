@@ -200,8 +200,6 @@ export class Selection {
       // If the total movement is small, we consider it a click
       PaperInstance.highlighted.clear();
       this.clear();
-
-      //
     }
   }
 

@@ -252,12 +252,21 @@ export class Paper {
     }
 
     for (const stroke of this.strokes) {
-      stroke.render(r, position, isBackground);
+      if (!Stroke.selected.has(stroke.props.id)) {
+        stroke.render(r, position, isBackground);
+      }
     }
 
     // Render last so they appear on top
     for (const child of this.children) {
       child.render(r, position, isBackground);
+    }
+
+    // Render selected strokes on top again
+    for (const stroke of this.strokes) {
+      if (Stroke.selected.has(stroke.props.id)) {
+        stroke.render(r, position, isBackground);
+      }
     }
   }
 
