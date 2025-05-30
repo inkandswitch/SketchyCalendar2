@@ -10,7 +10,12 @@ import { Stroke } from "./ink";
 import { Vec } from "lib/vec";
 import { Polygon } from "lib/polygon";
 import { Link } from "./link";
-import { BACKGROUND_COLOR, SELECTION_COLOR, SHADOW_COLOR } from "../constants";
+import {
+  UNDERLAY_INK_COLOR,
+  SELECTION_COLOR,
+  SHADOW_COLOR,
+  UNDERLAY_BACKGROUND_COLOR,
+} from "../constants";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -200,7 +205,7 @@ export class Paper {
     let backgroundColor = stroke("#999", 1);
     if (typeof this.background == "string") {
       backgroundColor = isBackground
-        ? fillAndStroke(BACKGROUND_COLOR, "#999", 1)
+        ? fillAndStroke(UNDERLAY_BACKGROUND_COLOR, UNDERLAY_INK_COLOR, 1)
         : fillAndStroke(this.background, "#00000022", 1);
     }
 

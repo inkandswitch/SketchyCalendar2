@@ -7,7 +7,7 @@ import { State } from "./notebook";
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { Rect } from "lib/rect";
-import { BACKGROUND_COLOR, SELECTION_COLOR } from "constants";
+import { UNDERLAY_INK_COLOR, SELECTION_COLOR } from "constants";
 
 export type StrokeProps = {
   id: Id<Stroke>;
@@ -91,9 +91,9 @@ export class Stroke {
       if (this.props.color.length === 9) {
         // Check if color has alpha value (#RRGGBBAA)
         const alpha = this.props.color.slice(-2);
-        color = BACKGROUND_COLOR + alpha;
+        color = UNDERLAY_INK_COLOR + alpha;
       } else {
-        color = BACKGROUND_COLOR;
+        color = UNDERLAY_INK_COLOR;
       }
     }
 
