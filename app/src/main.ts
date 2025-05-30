@@ -22,14 +22,18 @@ import Zoom from "gestures/zoom";
 // Notebook
 import AddPageButtons from "addpagebuttons";
 import { Selection } from "selection";
-import { Notebook, NotebookCollection, NotebookProps } from "things/notebook";
+import {
+  Notebook,
+  NotebookCollection,
+  NotebookColor,
+  NotebookProps,
+} from "things/notebook";
 import { generateCalendarPages, updateCalendarPages } from "things/calendar";
 import EventCardTool from "tools/eventcard";
 import { View } from "view";
 import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import OverlaySwitcher from "overlayswitcher";
-import { PAPER_HEIGHT, PAPER_WIDTH } from "constants";
 
 const ADD_DEV_NOTEBOOK = true;
 const PERSIST_DEV_NOTEBOOK = true;
@@ -45,6 +49,7 @@ const PERSIST_DEV_NOTEBOOK = true;
 async function loadOrCreateNotebook(
   repo: Repo,
   key: string,
+  color: NotebookColor,
   onInit: (notebook: Notebook) => void
 ) {
   const notebookDocId = localStorage.getItem(`${key}:docId`) as DocumentId;
@@ -55,7 +60,7 @@ async function loadOrCreateNotebook(
 
     return notebook;
   } else {
-    const notebook = Notebook.create(repo);
+    const notebook = Notebook.create(repo, color);
     onInit(notebook);
     localStorage.setItem(`${key}:docId`, notebook.documentId);
     return notebook;
@@ -116,6 +121,7 @@ export async function initNotebookCollection() {
       devNotebook = await loadOrCreateNotebook(
         repo,
         "devCalendar",
+        "orange",
         (notebook) => {
           generateCalendarPages({
             notebook,
@@ -125,7 +131,7 @@ export async function initNotebookCollection() {
         }
       );
     } else {
-      devNotebook = Notebook.create(repo);
+      devNotebook = Notebook.create(repo, "orange");
 
       generateCalendarPages({
         notebook: devNotebook,
@@ -141,6 +147,7 @@ export async function initNotebookCollection() {
   const personalCalendarNotebook = await loadOrCreateNotebook(
     repo,
     "personalCalendar",
+    "blue",
     (notebook) => {
       generateCalendarPages({
         notebook,
@@ -155,6 +162,7 @@ export async function initNotebookCollection() {
   const sharedCalendarNotebook = await loadOrCreateNotebook(
     repo,
     "sharedCalendar",
+    "green",
     (notebook) => {
       generateCalendarPages({
         notebook,

@@ -1,7 +1,7 @@
 import { Point } from "lib/point";
 import { Rect } from "lib/rect";
 import Render, { font, measureText, RenderStyle } from "lib/render";
-import { FONT_BIG } from "constants";
+import { FONT_BIG, LINK_COLORS } from "constants";
 import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
 import { View } from "view";
@@ -48,7 +48,9 @@ export default class OverlaySwitcher {
       const title = getTitle(page).split(" ")[0];
       const style = font(
         FONT_BIG,
-        this.view.focusedPage === page ? "#000" : "#888"
+        this.view.focusedPage === page
+          ? LINK_COLORS[page.notebook.color]
+          : "#888"
       );
 
       const { width, height } = measureText(title, style);

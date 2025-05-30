@@ -3,7 +3,7 @@ import { Id } from "id";
 import { GoogleCalendar } from "lib/googlecalendar";
 import { Point } from "lib/point";
 import Render, { fill, fillAndStroke, font, stroke } from "lib/render";
-import { State } from "./notebook";
+import { Notebook, State } from "./notebook";
 import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
 import { Stroke } from "./ink";
@@ -15,6 +15,7 @@ import {
   SELECTION_COLOR,
   SHADOW_COLOR,
   UNDERLAY_BACKGROUND_COLOR,
+  LINK_COLORS,
 } from "../constants";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
@@ -247,7 +248,7 @@ export class Paper {
         this,
         position,
         this.background.date,
-        this.#state.googleCalendar
+        this.notebook
       );
     }
 
@@ -339,7 +340,7 @@ function renderCalendarBackground(
   paper: Paper,
   position: Point,
   date: Date,
-  googleCalendar: GoogleCalendar
+  notebook: Notebook
 ) {
   // Draw calendar grid
   const calendarHeight = paper.height;
@@ -361,11 +362,11 @@ function renderCalendarBackground(
       position.y + offset,
       position.x + paper.width,
       position.y + offset,
-      stroke("#cc7474", 1)
+      stroke(LINK_COLORS[notebook.color], 1)
     );
   }
 
-  const events = googleCalendar.getEventsOnDay(date);
+  const events = notebook.googleCalendar.getEventsOnDay(date);
 
   for (const event of events) {
     const start = new Date(event.start!.dateTime!);

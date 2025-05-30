@@ -8,7 +8,7 @@ import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { Link } from "./link";
 import { Page } from "./page";
-import { UNDERLAY_INK_COLOR, LINK_COLOR } from "../constants";
+import { UNDERLAY_INK_COLOR, LINK_COLOR, LINK_COLORS } from "../constants";
 
 export type TextProps = {
   id: Id<Text>;
@@ -145,7 +145,9 @@ export class Text {
     if (isBackground) {
       color = UNDERLAY_INK_COLOR;
     } else if (isLink) {
-      color = LINK_COLOR;
+      color = LINK_COLORS[this.notebook.color];
+    } else {
+      color = this.color;
     }
 
     r.text(this.value, position.x, position.y, font(this.font, color));

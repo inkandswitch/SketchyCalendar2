@@ -22,7 +22,10 @@ import { Paper, PaperProps } from "things/paper";
 import { Text, TextProps } from "things/text";
 import { LinkableId, LinkProps } from "./link";
 
+export type NotebookColor = "blue" | "green" | "red" | "orange" | "purple";
+
 export type NotebookProps = {
+  color: NotebookColor;
   pages: Record<Id<Page>, PageProps>;
   papers: Record<Id<Paper>, PaperProps>;
   paperInstances: Record<Id<PaperInstance>, PaperInstanceProps>;
@@ -140,7 +143,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     this.rebuild();
   }
 
-  static create(repo: Repo) {
+  static create(repo: Repo, color: NotebookColor) {
     const docHandle = repo.create<NotebookProps>({
       pages: {},
       papers: {},
@@ -148,6 +151,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       strokes: {},
       texts: {},
       links: {},
+      color,
     });
 
     return new Notebook(repo, docHandle);
@@ -166,6 +170,14 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   destroy() {
     this.#state.docHandle.removeListener("change", this.#onChange);
+  }
+
+  get color(): NotebookColor {
+    return this.#state.props.color;
+  }
+
+  get googleCalendar(): GoogleCalendar {
+    return this.#state.googleCalendar;
   }
 
   get state(): State {
