@@ -14,6 +14,7 @@ import { NotebookCollection } from "things/notebook";
 
 import { getMostlyOverlappingInstance } from "tools/eventcard";
 import { PageLayout } from "things/page";
+import { ActionBar, Action } from "actionbar";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -26,6 +27,8 @@ export class Selection {
   notebookCollection: NotebookCollection;
 
   delta: Vec = { x: 0, y: 0 };
+
+  actionBar: ActionBar | null = null;
 
   constructor(view: View, notebookCollection: NotebookCollection) {
     this.view = view;
@@ -47,6 +50,12 @@ export class Selection {
   }
 
   penUp(e: TouchEvent) {
+    if (this.actionBar) {
+      if (this.actionBar.tap(e.current)) {
+        return;
+      }
+    }
+
     if (this.mode == "selecting") {
       this.finishHull(e.current, e.totalDelta);
     } else if (this.mode == "selected") {
@@ -81,6 +90,8 @@ export class Selection {
           x: rect.position.x,
           y: rect.position.y,
         });
+
+        this.openActionBar();
         return;
       }
     }
@@ -204,6 +215,40 @@ export class Selection {
     }
   }
 
+  openActionBar() {
+    this.actionBar = new ActionBar([
+      new Action("copy", () => this.copySelection()),
+      new Action("delete", () => this.deleteSelection()),
+    ]);
+  }
+
+  // Actions
+  copySelection() {
+    if (this.selectedPaperInstances) {
+      const newSelection: Id<PaperInstance>[] = [];
+      for (const instance of this.selectedPaperInstances) {
+        const paperInstance =
+          this.notebookCollection.getPaperInstanceById(instance);
+        if (paperInstance) {
+          const newInstance = paperInstance.copy();
+          newSelection.push(newInstance.id);
+        }
+      }
+      //this.selectedPaperInstances = new Set(newSelection);
+    }
+  }
+
+  deleteSelection() {
+    if (this.selectedPaperInstances) {
+      for (const instance of this.selectedPaperInstances) {
+        const paperInstance =
+          this.notebookCollection.getPaperInstanceById(instance);
+        paperInstance.remove();
+      }
+      this.clear();
+    }
+  }
+
   clear() {
     this.mode = "off";
     this.hull = null;
@@ -211,11 +256,16 @@ export class Selection {
     this.selectedPaperInstances = null;
     Stroke.selected.clear();
     PaperInstance.selected.clear();
+    this.actionBar = null;
   }
 
   render(r: Render) {
     if (this.mode == "selecting") {
       r.poly(this.hull!, dashedStroke("green", 2, [10, 10]), false);
+    }
+
+    if (this.actionBar) {
+      this.actionBar.render(r);
     }
   }
 }

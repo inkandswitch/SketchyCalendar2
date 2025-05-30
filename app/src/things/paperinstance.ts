@@ -140,6 +140,24 @@ export class PaperInstance {
     return new PaperInstance(state, paperInstanceProps, paper);
   }
 
+  copy(): PaperInstance {
+    return PaperInstance.createInstanceOf(this.#state, {
+      paperId: this.paper.id,
+      labels: this.labels,
+      parentId: this.parentId,
+      siblingIndex: this.siblingIndex + 1, // Increment sibling index to avoid conflicts
+      x: this.x + 10, // Offset the position slightly to avoid overlap
+      y: this.y + 10,
+      locked: this.locked,
+    });
+  }
+
+  remove() {
+    this.#state.docHandle.change((state) => {
+      delete state.paperInstances[this.id];
+    });
+  }
+
   get notebook() {
     return this.#state.notebook;
   }
