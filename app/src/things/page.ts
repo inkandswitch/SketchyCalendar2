@@ -96,15 +96,16 @@ export class Page {
   ) {
     let matchingPages: Array<Page> = [];
 
-    r.rect(
-      offset.x,
-      offset.y,
-      this.paper.width,
-      this.paper.height,
-      fillAndStroke("white", "#999", 1)
-    );
+    if (!isBackground) {
+      r.rect(
+        offset.x,
+        offset.y,
+        this.paper.width,
+        this.paper.height,
+        fillAndStroke("white", "#999", 1)
+      );
+    }
 
-    // EXPERIMENT
     // render matching pages as background
     if (this.template && !isBackground) {
       matchingPages = notebookCollection.getMatchingPages(this);
