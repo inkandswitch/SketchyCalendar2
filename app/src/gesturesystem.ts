@@ -52,10 +52,12 @@ export class GestureSystem {
         case "moved": {
           if (!this.touches[e.id]) continue;
           const touch = this.touches[e.id];
-          touch.current = e.position;
-          touch.delta = Vec.sub(touch.current, touch.previous);
-          touch.totalDelta = Vec.sub(touch.current, touch.start);
+          touch.delta = Vec.sub(e.position, touch.previous);
+          touch.totalDelta = Vec.sub(e.position, touch.start);
+
           touch.previous = touch.current;
+          touch.current = e.position;
+
           touchEvents.push({
             ...this.touches[e.id],
             ...e,
@@ -66,10 +68,11 @@ export class GestureSystem {
         case "ended": {
           if (!this.touches[e.id]) continue;
           const touch = this.touches[e.id];
-          touch.current = e.position;
-          touch.delta = Vec.sub(touch.current, touch.previous);
-          touch.totalDelta = Vec.sub(touch.current, touch.start);
+          touch.delta = Vec.sub(e.position, touch.previous);
+          touch.totalDelta = Vec.sub(e.position, touch.start);
+
           touch.previous = touch.current;
+          touch.current = e.position;
           touchEvents.push({
             ...this.touches[e.id],
             ...e,

@@ -37,15 +37,19 @@ export class Selection {
 
   penDown(e: TouchEvent) {
     if (this.mode == "off") {
-      this.startHull(e.current);
+      const worldPos = this.view.camera.screenToWorld(e.current);
+      this.startHull(worldPos);
     }
   }
 
   penMove(e: TouchEvent) {
+    const worldPos = this.view.camera.screenToWorld(e.current);
     if (this.mode == "selecting") {
-      this.extendHull(e.current);
+      this.extendHull(worldPos);
     } else if (this.mode == "selected") {
-      this.moveSelection(e.delta);
+      const worldPrev = this.view.camera.screenToWorld(e.previous);
+      const worldDelta = Vec.sub(worldPos, worldPrev);
+      this.moveSelection(worldDelta);
     }
   }
 
@@ -55,11 +59,13 @@ export class Selection {
         return;
       }
     }
-
+    const worldPos = this.view.camera.screenToWorld(e.current);
+    const worldStart = this.view.camera.screenToWorld(e.start);
+    const worldTotalDelta = Vec.sub(worldPos, worldStart);
     if (this.mode == "selecting") {
-      this.finishHull(e.current, e.totalDelta);
+      this.finishHull(worldPos, worldTotalDelta);
     } else if (this.mode == "selected") {
-      this.finishMoveSelection(e.totalDelta);
+      this.finishMoveSelection(worldTotalDelta);
     }
   }
 
@@ -309,9 +315,11 @@ export class Selection {
   }
 
   render(r: Render) {
+    r.beginOffset(this.view.camera);
     if (this.mode == "selecting") {
       r.poly(this.hull!, dashedStroke("green", 2, [10, 10]), false);
     }
+    r.endOffset();
 
     if (this.actionBar) {
       this.actionBar.render(r);
