@@ -47,6 +47,7 @@ export class PenHandler implements ToolHandler {
     // Get the current paper
     const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
+
     const found = currentPage.paper.getPaperAtPosition(position);
     if (!found) return;
 

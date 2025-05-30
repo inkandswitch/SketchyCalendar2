@@ -219,8 +219,12 @@ export class PaperInstance {
   getPaperInstanceAtPosition(position: Point): PaperInstance | null {
     const rect = Rect(this, this.paper.width, this.paper.height);
     if (Rect.isPointInside(rect, position)) {
+      const sortedChildren = this.paper.children.sort(
+        (a: PaperInstance, b: PaperInstance) => b.siblingIndex - a.siblingIndex
+      );
+
       // If the position is inside this paper instance, check it's children first
-      for (const instance of this.paper.children) {
+      for (const instance of sortedChildren) {
         // Calculate the position of the child instance relative to this instance
         const found = instance.getPaperInstanceAtPosition(
           Vec.sub(position, this)

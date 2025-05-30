@@ -191,7 +191,13 @@ export class Page {
   }
 
   getPaperInstanceAtPosition(position: Point): PaperInstance | null {
-    for (const instance of this.paper.children) {
+    const sortedChildren = this.paper.children.sort(
+      (a: PaperInstance, b: PaperInstance) => {
+        return b.siblingIndex - a.siblingIndex;
+      }
+    );
+
+    for (const instance of sortedChildren) {
       const found = instance.getPaperInstanceAtPosition(position);
       if (found) {
         return found;

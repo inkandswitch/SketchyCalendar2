@@ -313,8 +313,13 @@ export class Paper {
     const x = position.x - offset.x;
     const y = position.y - offset.y;
 
+    // Sort so we start with the topmost paper instance
+    const sortedChildren = this.children.sort(
+      (a: PaperInstance, b: PaperInstance) => b.siblingIndex - a.siblingIndex
+    );
+
     if (x >= 0 && y >= 0 && x <= this.width && y <= this.height) {
-      for (const paperInstance of this.children) {
+      for (const paperInstance of sortedChildren) {
         const childOffset = Vec.add(paperInstance, offset);
         const childPaper = paperInstance.paper.getPaperAtPosition(
           position,
