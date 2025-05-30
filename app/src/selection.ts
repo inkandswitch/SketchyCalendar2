@@ -173,7 +173,7 @@ export class Selection {
           if (found == null) continue;
 
           paperInstance.moveTo(found.instance.paper.id, {
-            x: 50,
+            x: paperInstance.x - found.rect.position.x,
             y: paperInstance.y - found.rect.position.y,
           });
         }

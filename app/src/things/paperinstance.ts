@@ -48,6 +48,7 @@ export class PaperInstance {
 
   id: Id<PaperInstance>;
   parentId: Id<Paper>;
+  siblingIndex: number;
   x: number;
   y: number;
   locked: boolean;
@@ -63,6 +64,7 @@ export class PaperInstance {
 
     this.id = props.id;
     this.parentId = props.parentId;
+    this.siblingIndex = props.siblingIndex;
     this.x = props.x;
     this.y = props.y;
     this.locked = props.locked;
@@ -150,16 +152,29 @@ export class PaperInstance {
   }
 
   moveTo(newParentId: Id<Paper>, position: Point) {
+    const parent = Paper.fromId(this.#state, this.parentId);
+    const highest_siblingIndex = parent.children.reduce(
+      (max, child) => Math.max(max, child.siblingIndex),
+      -1
+    );
+
     this.#state.docHandle.change((state) => {
       state.paperInstances[this.id].parentId = newParentId;
+      state.paperInstances[this.id].siblingIndex = highest_siblingIndex + 1;
       state.paperInstances[this.id].x = position.x;
       state.paperInstances[this.id].y = position.y;
     });
   }
 
   reparent(newParentId: Id<Paper>) {
+    const parent = Paper.fromId(this.#state, this.parentId);
+    const highest_siblingIndex = parent.children.reduce(
+      (max, child) => Math.max(max, child.siblingIndex),
+      -1
+    );
     this.#state.docHandle.change((state) => {
       state.paperInstances[this.id].parentId = newParentId;
+      state.paperInstances[this.id].siblingIndex = highest_siblingIndex + 1;
     });
   }
 

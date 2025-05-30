@@ -80,7 +80,7 @@ export class EventCardHandler implements ToolHandler {
     const found = getMostlyOverlappingInstance(currentPage, cardInstance);
     if (found) {
       cardInstance.moveTo(found.instance.paper.id, {
-        x: 50,
+        x: e.current.x - found.rect.position.x,
         y: e.current.y - found.rect.position.y,
       });
       return; // Stop after moving to the first found instance
