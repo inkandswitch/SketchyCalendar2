@@ -99,10 +99,8 @@ export default class Navigate implements GestureHandler {
             if (this.view.isZoomedIn()) {
               if (this.view.focusedPage) {
                 const link = this.view.focusedPage.paper.getLinkAtPosition(
-                  this.touch.current
+                  this.view.camera.screenToWorld(this.touch.current)
                 );
-
-                console.log("tap", this.touch.current, link);
 
                 if (link) {
                   this.view.focusPage(link.getTargetPage(), {
@@ -112,8 +110,15 @@ export default class Navigate implements GestureHandler {
               }
             } else {
               const tappedPage = this.view.getPageAtPosition(
-                this.touch.current
+                this.view.camera.screenToWorld(this.touch.current)
               );
+
+              console.log(
+                "tap",
+                this.view.camera.screenToWorld(this.touch.current),
+                tappedPage
+              );
+
               if (tappedPage) {
                 this.view.focusPage(tappedPage);
                 this.view.zoomIn();

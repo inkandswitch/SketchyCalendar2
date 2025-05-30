@@ -40,9 +40,12 @@ export class EventCardHandler implements ToolHandler {
 
     //    const paper = found.paper;
     //const local_pos = Vec.sub(e.current, found.offset);
+
+    const screenPos = this.view.camera.screenToWorld(e.current);
+
     const newCard = paper.addNewPaper({
-      x: e.current.x,
-      y: e.current.y,
+      x: screenPos.x,
+      y: screenPos.y,
       width: 140,
       height: 100,
       background: "#feff9c", // Postitnote yellow

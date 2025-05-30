@@ -1,5 +1,4 @@
 import { Point } from "lib/point";
-import { Vec } from "lib/vec";
 
 export class Camera {
   position = { x: 0, y: 0 };

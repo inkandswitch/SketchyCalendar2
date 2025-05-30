@@ -37,13 +37,16 @@ export class EraseHandler implements ToolHandler {
     // Get the current paper
     const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
-    const found = currentPage.paper.getPaperAtPosition(e.current);
+    const screenPos = this.view.camera.screenToWorld(e.current);
+    const found = currentPage.paper.getPaperAtPosition(screenPos);
     if (!found) return;
 
-    const local_pos = Vec.sub(e.current, found.offset);
+    const scaledRadius = this.radius / (this.view.camera.zoom * 2);
+
+    const local_pos = Vec.sub(screenPos, found.offset);
     for (const stroke of found.paper.strokes) {
       for (const point of stroke.props.points) {
-        if (Vec.dist(point, local_pos) < this.radius) {
+        if (Vec.dist(point, local_pos) < scaledRadius) {
           found.paper.removeStroke(stroke.props.id);
           break;
         }

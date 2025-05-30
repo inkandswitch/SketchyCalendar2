@@ -1,6 +1,4 @@
-import { FONT_BIG } from "theme";
-
-import { LINK_COLOR } from "theme";
+import { LINK_COLOR } from "./constants";
 import { Notebook } from "things/notebook";
 
 const container = document.createElement("div");

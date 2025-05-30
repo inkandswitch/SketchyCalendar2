@@ -10,7 +10,7 @@ import { Stroke } from "./ink";
 import { Vec } from "lib/vec";
 import { Polygon } from "lib/polygon";
 import { Link } from "./link";
-import { BACKGROUND_COLOR, SELECTION_COLOR, SHADOW_COLOR } from "theme";
+import { BACKGROUND_COLOR, SELECTION_COLOR, SHADOW_COLOR } from "../constants";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 

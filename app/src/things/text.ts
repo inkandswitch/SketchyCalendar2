@@ -8,7 +8,7 @@ import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { Link } from "./link";
 import { Page } from "./page";
-import { BACKGROUND_COLOR, LINK_COLOR } from "theme";
+import { BACKGROUND_COLOR, LINK_COLOR } from "../constants";
 
 export type TextProps = {
   id: Id<Text>;

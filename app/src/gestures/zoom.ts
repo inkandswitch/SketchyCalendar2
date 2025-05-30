@@ -1,7 +1,8 @@
+import { PAPER_HEIGHT, PAPER_WIDTH } from "constants";
 import { GestureHandler, TouchEvent } from "gesturesystem";
-import { View } from "view";
+import { Point } from "lib/point";
 import { Vec } from "lib/vec";
-import Render, { fill } from "lib/render";
+import { View } from "view";
 
 export default class Zoom implements GestureHandler {
   a: TouchEvent | null = null;
@@ -98,8 +99,8 @@ export default class Zoom implements GestureHandler {
     if (this.view.overrideZoom && this.view.overrideZoom < 1.1) {
       this.view.overrideZoom = null;
       this.view.center = {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
+        x: PAPER_WIDTH / 2,
+        y: PAPER_HEIGHT / 2,
       };
     }
     this.a = null;

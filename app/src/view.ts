@@ -1,14 +1,14 @@
 // Derived intermediate representation that's useful for rendering & interactions
 
 import { AnimateVariable } from "lib/animate";
-import Render, { stroke, fill } from "lib/render";
+import Render, { stroke } from "lib/render";
 
+import { Camera } from "camera";
+import { PAPER_HEIGHT, PAPER_WIDTH } from "constants";
 import { Point } from "lib/point";
-import { Vec } from "lib/vec";
+import { hideSettingsLink, showSettingsLink } from "settings";
 import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
-import { hideSettingsLink, showSettingsLink } from "settings";
-import { Camera } from "camera";
 
 const GAP = 20;
 
@@ -23,7 +23,7 @@ export class View {
   focusedPage: Page | null = null;
   zoom: AnimateVariable = new AnimateVariable(1); // between zero and one
   overrideZoom: number | null = null; // temporary zoom for pinch gesture
-  center: Point = { x: window.innerWidth / 2, y: window.innerHeight / 2 }; // center of the view
+  center: Point = { x: PAPER_WIDTH / 2, y: PAPER_HEIGHT / 2 }; // center of the view
 
   focusedLevel = new AnimateVariable(0); // focus on week
   offsetByLevel: AnimateVariable[] = [];
@@ -137,20 +137,14 @@ export class View {
   }
 
   getPageAtPosition(point: Point) {
-    const zoom = this.zoom.value * 0.7 + 0.3;
-    const scaledPoint = Vec.div(point, zoom);
-
-    const relativeLevel =
-      Math.floor(scaledPoint.y / (window.innerHeight + GAP)) - 1;
+    const relativeLevel = Math.floor(point.y / (PAPER_HEIGHT + GAP));
     const level = relativeLevel + this.focusedLevel.target;
 
     if (level < 0 || level >= this.pagesByLevel.length) {
       return null;
     }
 
-    const relativeOffset =
-      Math.floor(scaledPoint.x / (window.innerWidth + GAP)) - 1;
-
+    const relativeOffset = Math.floor(point.x / (PAPER_WIDTH + GAP));
     const offset = relativeOffset + this.offsetByLevel[level].target;
 
     return this.pagesByLevel[level][offset];
@@ -268,7 +262,9 @@ export class View {
   }
 
   render(r: Render) {
-    let zoom = this.overrideZoom ?? this.zoom.value * 0.7 + 0.3;
+    const scale = window.innerWidth / PAPER_WIDTH;
+
+    let zoom = (this.overrideZoom ?? this.zoom.value * 0.7 + 0.3) * scale;
 
     this.camera.set(zoom, {
       x: this.center.x,
@@ -276,13 +272,14 @@ export class View {
     });
     r.beginOffset(this.camera);
     const img = document.querySelector("img")!;
-    img.style.transform = `scale(${zoom}) translate(${window.innerWidth / 2 - this.center.x}px, ${window.innerHeight / 2 - this.center.y}px)`;
+    img.style.transform = `scale(${zoom}) translate(${
+      PAPER_WIDTH / 2 - this.center.x
+    }px, ${PAPER_HEIGHT / 2 - this.center.y}px)`;
     img.style.opacity = `${(zoom - 1) / 16}`;
-    console.log();
     //const currentLevel = this.zoomHierarchyFocus.target;
 
     // Show settings link on root page
-    let offset_y = this.focusedLevel.value * (window.innerHeight + GAP);
+    let offset_y = this.focusedLevel.value * (PAPER_HEIGHT + GAP);
 
     if (this.focusedPage?.template?.type === "year" && this.isZoomedIn()) {
       showSettingsLink(this.focusedPage.notebook);
@@ -316,8 +313,8 @@ export class View {
           const o = page_offset + j;
           const page = level[o];
           if (page) {
-            const x = o * (innerWidth + GAP) + x_offset * (innerWidth + GAP);
-            const y = i * (innerHeight + GAP) - offset_y;
+            const x = o * (PAPER_WIDTH + GAP) + x_offset * (PAPER_WIDTH + GAP);
+            const y = i * (PAPER_HEIGHT + GAP) - offset_y;
 
             page.render(
               r,

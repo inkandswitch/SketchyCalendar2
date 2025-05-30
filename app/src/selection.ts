@@ -68,7 +68,8 @@ export class Selection {
     if (Vec.len(totalDelta) < 5) {
       const currentPage = this.view.focusedPage!;
 
-      const foundPaper = currentPage.getPaperInstanceAtPosition(point);
+      const screenPos = this.view.camera.screenToWorld(point);
+      const foundPaper = currentPage.getPaperInstanceAtPosition(screenPos);
       if (foundPaper) {
         this.mode = "selected";
         this.selectedPaperInstances = new Set([foundPaper.id]);

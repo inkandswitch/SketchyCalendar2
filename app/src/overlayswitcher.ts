@@ -1,7 +1,7 @@
 import { Point } from "lib/point";
 import { Rect } from "lib/rect";
 import Render, { font, measureText, RenderStyle } from "lib/render";
-import { FONT_BIG } from "theme";
+import { FONT_BIG } from "constants";
 import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
 import { View } from "view";

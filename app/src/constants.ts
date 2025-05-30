@@ -6,3 +6,6 @@ export const SELECTION_COLOR = "#00FF0033";
 
 export const SHADOW_COLOR = "#00000011";
 export const LINK_COLOR = "#0074D9";
+
+export const PAPER_WIDTH = 1600;
+export const PAPER_HEIGHT = 1200;

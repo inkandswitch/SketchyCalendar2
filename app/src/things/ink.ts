@@ -7,7 +7,7 @@ import { State } from "./notebook";
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { Rect } from "lib/rect";
-import { BACKGROUND_COLOR, SELECTION_COLOR } from "theme";
+import { BACKGROUND_COLOR, SELECTION_COLOR } from "constants";
 
 export type StrokeProps = {
   id: Id<Stroke>;

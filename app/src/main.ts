@@ -29,9 +29,10 @@ import { View } from "view";
 import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import OverlaySwitcher from "overlayswitcher";
+import { PAPER_HEIGHT, PAPER_WIDTH } from "constants";
 
 const ADD_DEV_NOTEBOOK = true;
-const PERSIST_DEV_NOTEBOOK = false;
+const PERSIST_DEV_NOTEBOOK = true;
 
 (window as any).loadShareCalendar = (notebookDocId: string) => {
   localStorage.setItem("shareCalendar:docId", notebookDocId);
@@ -69,42 +70,43 @@ export async function initNotebookCollection() {
 
   const notebookCollection = new NotebookCollection();
 
-  // const testNotebook = await loadOrCreateNotebook(repo, "test", (notebook) => {
-  //   const rootPage = notebook.createPage({
-  //     parentId: null,
-  //     siblingIndex: 0,
-  //     width: window.innerWidth,
-  //     height: window.innerHeight,
-  //     background: null,
-  //   });
+  // const testNotebook = Notebook.create(repo);
+  // notebookCollection.addNotebook(testNotebook);
 
-  //   const childPage = rootPage.addChildPage({
-  //     siblingIndex: 0,
-  //     width: window.innerWidth,
-  //     height: window.innerHeight,
-  //     background: null,
-  //   });
-
-  //   const text = rootPage.paper.addNewText({
-  //     siblingIndex: 0,
-  //     value: "Down",
-  //     x: 50,
-  //     y: 50,
-  //     font: "100px Arial",
-  //   });
-
-  //   text.addLinkTo(childPage);
-
-  //   const text2 = childPage.paper.addNewText({
-  //     siblingIndex: 0,
-  //     value: "UP",
-  //     x: 50,
-  //     y: 50,
-  //     font: "100px Arial",
-  //   });
-
-  //   text2.addLinkTo(rootPage);
+  // const rootPage = testNotebook.createPage({
+  //   parentId: null,
+  //   siblingIndex: 0,
+  //   width: PAPER_WIDTH,
+  //   height: PAPER_HEIGHT,
+  //   background: null,
   // });
+
+  // const childPage = rootPage.addChildPage({
+  //   siblingIndex: 0,
+  //   width: PAPER_WIDTH,
+  //   height: PAPER_HEIGHT,
+  //   background: null,
+  // });
+
+  // const text = rootPage.paper.addNewText({
+  //   siblingIndex: 0,
+  //   value: "Down",
+  //   x: 50,
+  //   y: 50,
+  //   font: "100px Arial",
+  // });
+
+  // text.addLinkTo(childPage);
+
+  // const text2 = childPage.paper.addNewText({
+  //   siblingIndex: 0,
+  //   value: "UP",
+  //   x: 50,
+  //   y: 50,
+  //   font: "100px Arial",
+  // });
+
+  // text2.addLinkTo(rootPage);
 
   // notebookCollection.addNotebook(testNotebook);
 
@@ -119,8 +121,6 @@ export async function initNotebookCollection() {
             notebook,
             title: "Test Calendar",
             year: getYear(new Date()),
-            pageWidth: window.innerWidth,
-            pageHeight: window.innerHeight,
           });
         }
       );
@@ -131,8 +131,6 @@ export async function initNotebookCollection() {
         notebook: devNotebook,
         title: "Test Calendar",
         year: getYear(new Date()),
-        pageWidth: window.innerWidth,
-        pageHeight: window.innerHeight,
       });
     }
 
@@ -148,8 +146,6 @@ export async function initNotebookCollection() {
         notebook,
         title: "Personal Calendar",
         year: getYear(new Date()),
-        pageWidth: window.innerWidth,
-        pageHeight: window.innerHeight,
       });
     }
   );
@@ -164,8 +160,6 @@ export async function initNotebookCollection() {
         notebook,
         title: "Lab Calendar",
         year: getYear(new Date()),
-        pageWidth: window.innerWidth,
-        pageHeight: window.innerHeight,
       });
     }
   );

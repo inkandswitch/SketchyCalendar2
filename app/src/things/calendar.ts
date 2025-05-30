@@ -10,7 +10,7 @@ import {
 } from "date-fns";
 import { Notebook } from "./notebook";
 import { Paper } from "./paper";
-import { FONT_BIG, FONT_SMALL } from "theme";
+import { FONT_BIG, FONT_SMALL, PAPER_HEIGHT, PAPER_WIDTH } from "constants";
 
 const GAP = 30;
 
@@ -20,18 +20,14 @@ export function generateCalendarPages({
   notebook,
   title,
   year,
-  pageWidth,
-  pageHeight,
 }: {
   title: string;
   notebook: Notebook;
   year: number;
-  pageWidth: number;
-  pageHeight: number;
 }) {
   const SPACE_TOP = 150;
-  const DAY_MONTHLY_SECTION_HEIGHT = (pageHeight - SPACE_TOP) / 6;
-  const DAY_WIDTH = pageWidth / 7;
+  const DAY_MONTHLY_SECTION_HEIGHT = (PAPER_HEIGHT - SPACE_TOP) / 6;
+  const DAY_WIDTH = PAPER_WIDTH / 7;
 
   // year overview page
 
@@ -39,8 +35,8 @@ export function generateCalendarPages({
     parentId: null,
     template: { type: "year", date: new Date(year, 0, 1).toISOString() },
     siblingIndex: 0,
-    width: pageWidth,
-    height: pageHeight,
+    width: PAPER_WIDTH,
+    height: PAPER_HEIGHT,
     background: null,
   });
 
@@ -69,8 +65,8 @@ export function generateCalendarPages({
     const monthDate = new Date(year, monthNumber, 1);
     const monthPage = rootPage.addChildPage({
       siblingIndex: monthNumber * 10000,
-      width: pageWidth,
-      height: pageHeight,
+      width: PAPER_WIDTH,
+      height: PAPER_HEIGHT,
       background: null,
       template: { type: "month", date: monthDate.toISOString() },
     });
@@ -116,8 +112,8 @@ export function generateCalendarPages({
 
     const weekPage = monthPage.addChildPage({
       siblingIndex: weekNumber * 10000,
-      width: pageWidth,
-      height: pageHeight,
+      width: PAPER_WIDTH,
+      height: PAPER_HEIGHT,
       background: null,
       template: { type: "week", date: currentDayInWeek.toISOString() },
     });
@@ -178,8 +174,8 @@ export function generateCalendarPages({
 
       const dayPage = weekPage.addChildPage({
         siblingIndex: dayNumber * 10000,
-        width: pageWidth,
-        height: pageHeight,
+        width: PAPER_WIDTH,
+        height: PAPER_HEIGHT,
         background: null,
         template: { type: "day", date: dayDate.toISOString() },
       });
@@ -248,7 +244,7 @@ export function generateCalendarPages({
         labels: ["dayTimeline"],
         siblingIndex: 0,
         width: DAY_WIDTH,
-        height: pageHeight - SPACE_TOP - DAY_MONTHLY_SECTION_HEIGHT,
+        height: PAPER_HEIGHT - SPACE_TOP - DAY_MONTHLY_SECTION_HEIGHT,
         background: {
           type: "Calendar",
           date: dayDate,
