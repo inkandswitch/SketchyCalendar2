@@ -5,6 +5,8 @@ import { View } from "view";
 import { NotebookCollection } from "things/notebook";
 import { TouchEvent } from "gesturesystem";
 
+import { Selection } from "selection";
+
 export abstract class Tool {
   position: Point = Point(0, 0);
   width: number = 40;
@@ -35,6 +37,7 @@ export interface ToolHandler {
 
 export default class Toolbar {
   tools: Tool[] = [];
+  selection: Selection;
 
   position: Point;
   width: number;
@@ -44,7 +47,8 @@ export default class Toolbar {
 
   isActive: boolean = true;
 
-  constructor(position: Point, tools: Tool[]) {
+  constructor(position: Point, tools: Tool[], selection: Selection) {
+    this.selection = selection;
     this.position = position;
     this.tools = tools;
     this.height = 0;
@@ -69,6 +73,7 @@ export default class Toolbar {
     for (const tool of this.tools) {
       if (tool.tap(point)) {
         this.activeTool = tool;
+        this.selection.clear();
         return true;
       }
     }

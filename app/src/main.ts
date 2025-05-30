@@ -189,17 +189,21 @@ const selection = new Selection(view, notebookCollection);
 const addPageButtons = new AddPageButtons(view);
 const overlaySwitcher = new OverlaySwitcher(view, notebookCollection);
 
-const toolbar = new Toolbar({ x: window.innerWidth - 60, y: 20 }, [
-  new PenTool("pen_black", "black", 1),
-  new PenTool("pen_blue", "blue", 1),
-  new PenTool("pen_red", "red", 1),
-  new PenTool("highlight_yellow", "#FFFF0044", 20),
-  new PenTool("highlight_green", "#00FF0033", 20),
-  new PenTool("whiteout", "#FFFFFF", 30),
-  new EraseTool(20),
-  new SelectTool(selection),
-  new EventCardTool(),
-]);
+const toolbar = new Toolbar(
+  { x: window.innerWidth - 60, y: 20 },
+  [
+    new PenTool("pen_black", "black", 1),
+    new PenTool("pen_blue", "blue", 1),
+    new PenTool("pen_red", "red", 1),
+    new PenTool("highlight_yellow", "#FFFF0044", 20),
+    new PenTool("highlight_green", "#00FF0033", 20),
+    new PenTool("whiteout", "#FFFFFF", 30),
+    new EraseTool(20),
+    new SelectTool(selection),
+    new EventCardTool(),
+  ],
+  selection
+);
 
 const gestures = new GestureSystem([
   new Draw(view, notebookCollection, toolbar),
