@@ -290,8 +290,13 @@ export class Paper {
       }
     }
 
+    // Render children back to front
+    const sortedChildren = this.children.sort(
+      (a: PaperInstance, b: PaperInstance) => a.siblingIndex - b.siblingIndex
+    );
+
     // Render last so they appear on top
-    for (const child of this.children) {
+    for (const child of sortedChildren) {
       child.render(r, position, isBackground);
     }
 
