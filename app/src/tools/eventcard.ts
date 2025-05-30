@@ -7,6 +7,8 @@ import { Page } from "things/page";
 import { PaperInstance } from "things/paperinstance";
 import { Tool, ToolHandler } from "toolbar";
 
+import { Vec } from "lib/vec";
+
 export default class EventCardTool extends Tool {
   icon: string;
 
@@ -35,17 +37,12 @@ export class EventCardHandler implements ToolHandler {
     if (!currentPage) return;
 
     const paper = currentPage.paper;
-    // const found = currentPage.paper.getPaperAtPosition(e.current);
-    // if (!found) return;
 
-    //    const paper = found.paper;
-    //const local_pos = Vec.sub(e.current, found.offset);
-
-    const screenPos = this.view.camera.screenToWorld(e.current);
+    const worldPos = this.view.camera.screenToWorld(e.current);
 
     const newCard = paper.addNewPaper({
-      x: screenPos.x,
-      y: screenPos.y,
+      x: worldPos.x,
+      y: worldPos.y,
       width: 140,
       height: 100,
       background: "#feff9c", // Postitnote yellow
@@ -69,12 +66,18 @@ export class EventCardHandler implements ToolHandler {
       PaperInstance.highlighted.set(found.instance.id, true);
     }
     cardInstance.reparent(currentPage.paper.id);
-    cardInstance.move(e.delta);
+
+    const worldPos = this.view.camera.screenToWorld(e.current);
+    const worldPrev = this.view.camera.screenToWorld(e.previous);
+    const worldDelta = Vec.sub(worldPos, worldPrev);
+    cardInstance.move(worldDelta);
   }
 
   penUp(e: TouchEvent) {
     PaperInstance.highlighted.clear();
     if (!this.card) return;
+
+    const worldPos = this.view.camera.screenToWorld(e.current);
 
     const currentPage = this.view.focusedPage!;
     if (!currentPage) return;
@@ -83,8 +86,8 @@ export class EventCardHandler implements ToolHandler {
     const found = getMostlyOverlappingInstance(currentPage, cardInstance);
     if (found) {
       cardInstance.moveTo(found.instance.paper.id, {
-        x: e.current.x - found.rect.position.x,
-        y: e.current.y - found.rect.position.y,
+        x: worldPos.x - found.rect.position.x,
+        y: worldPos.y - found.rect.position.y,
       });
       return; // Stop after moving to the first found instance
     }
