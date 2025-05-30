@@ -14,7 +14,12 @@ import { NotebookCollection } from "things/notebook";
 
 import { getMostlyOverlappingInstance } from "tools/eventcard";
 import { PageLayout } from "things/page";
-import { ActionBar, Action } from "actionbar";
+import {
+  ActionBar,
+  Action,
+  ColorDropDownAction,
+  ActionInterface,
+} from "actionbar";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -225,7 +230,7 @@ export class Selection {
   }
 
   openActionBar() {
-    const actions = [
+    const actions: Array<ActionInterface> = [
       new Action("copy", () => this.copySelection()),
       new Action("delete", () => this.deleteSelection()),
     ];
@@ -234,6 +239,22 @@ export class Selection {
         new Action("transclude", () => {
           this.transcludeSelection();
         })
+      );
+
+      actions.push(
+        new ColorDropDownAction(
+          [
+            "#feff9c", // Postitnote yellow
+            "#ffb3b3", // Light red
+            "#b3d9ff", // Light blue
+            "#b3ffb3", // Light green
+            "#ffb3ff", // Light purple
+            "#ffcc99", // Light orange
+          ],
+          (color) => {
+            this.colorSelection(color);
+          }
+        )
       );
     }
     this.actionBar = new ActionBar(actions);
@@ -300,6 +321,18 @@ export class Selection {
         }
       }
       this.selectedPaperInstances = new Set(newSelection);
+    }
+  }
+
+  colorSelection(color: string) {
+    if (this.selectedPaperInstances) {
+      for (const instance of this.selectedPaperInstances) {
+        const paperInstance =
+          this.notebookCollection.getPaperInstanceById(instance);
+        if (paperInstance) {
+          paperInstance.setColor(color);
+        }
+      }
     }
   }
 

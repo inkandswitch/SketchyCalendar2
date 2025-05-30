@@ -211,6 +211,10 @@ export class PaperInstance {
     });
   }
 
+  setColor(color: string) {
+    this.paper.setColor(color);
+  }
+
   // Return this top-level paper instance if the position is inside it, otherwise return null.
   getPaperInstanceAtPosition(position: Point): PaperInstance | null {
     const rect = Rect(this, this.paper.width, this.paper.height);

@@ -214,6 +214,13 @@ export class Paper {
     });
   }
 
+  setColor(color: string) {
+    this.#state.docHandle.change((state) => {
+      const paper = state.papers[this.id];
+      paper.background = color;
+    });
+  }
+
   render(r: Render, position: Point, options: PaperRenderOptions = {}) {
     const {
       hasShadow = false,
