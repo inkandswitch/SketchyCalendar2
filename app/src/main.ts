@@ -205,7 +205,7 @@ console.log(notebookCollection.rootPages);
 tick((dt) => {
   toolbar.isActive = view.isZoomedIn();
   overlaySwitcher.isActive = view.isZoomedIn();
-  addPageButtons.isActive = !view.isZoomedIn();
+  addPageButtons.isActive = view.zoom.target == 0 && view.zoom.isCloseEnough();
 
   // Update
   gestures.update(input.buffer);
