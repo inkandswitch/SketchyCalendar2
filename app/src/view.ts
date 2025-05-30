@@ -23,7 +23,10 @@ export class View {
   focusedPage: Page | null = null;
   zoom: AnimateVariable = new AnimateVariable(1); // between zero and one
   overrideZoom: number | null = null; // temporary zoom for pinch gesture
-  center: Point = { x: PAPER_WIDTH / 2, y: PAPER_HEIGHT / 2 }; // center of the view
+  center = {
+    x: new AnimateVariable(PAPER_WIDTH / 2),
+    y: new AnimateVariable(PAPER_HEIGHT / 2),
+  }; // center of the view
 
   focusedLevel = new AnimateVariable(0); // focus on week
   offsetByLevel: AnimateVariable[] = [];
@@ -259,6 +262,8 @@ export class View {
     for (const a of this.offsetByLevel) {
       a.update(dt);
     }
+    this.center.x.update(dt);
+    this.center.y.update(dt);
   }
 
   render(r: Render) {
@@ -267,14 +272,14 @@ export class View {
     let zoom = (this.overrideZoom ?? this.zoom.value * 0.7 + 0.3) * scale;
 
     this.camera.set(zoom, {
-      x: this.center.x,
-      y: this.center.y,
+      x: this.center.x.value,
+      y: this.center.y.value,
     });
     r.beginOffset(this.camera);
     const img = document.querySelector("img")!;
     img.style.transform = `scale(${zoom}) translate(${
-      PAPER_WIDTH / 2 - this.center.x
-    }px, ${PAPER_HEIGHT / 2 - this.center.y}px)`;
+      PAPER_WIDTH / 2 - this.center.x.value
+    }px, ${PAPER_HEIGHT / 2 - this.center.y.value}px)`;
     img.style.opacity = `${(zoom - 1) / 16}`;
     //const currentLevel = this.zoomHierarchyFocus.target;
 

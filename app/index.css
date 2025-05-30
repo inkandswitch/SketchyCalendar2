@@ -44,5 +44,5 @@ img {
   position: absolute;
   mix-blend-mode: darken;
   z-index: 99999999;
-  opacity: 0.5;
+  opacity: 0;
 }
