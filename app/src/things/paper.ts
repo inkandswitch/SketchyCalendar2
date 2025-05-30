@@ -17,6 +17,7 @@ import {
   UNDERLAY_BACKGROUND_COLOR,
   LINK_COLORS,
 } from "../constants";
+import { generateId } from "id";
 
 export type Background = null | string | Id<PaperProps> | CalendarBackground;
 
@@ -115,6 +116,25 @@ export class Paper {
 
     state.objMap.set(props.id, paper);
     return paper;
+  }
+
+  copy(): Paper {
+    const newPaper = Paper.create(this.#state, {
+      id: generateId<Paper>(),
+      width: this.width,
+      height: this.height,
+      background: this.background,
+    });
+
+    for (const text of this.texts) {
+      text.copy(newPaper.id);
+    }
+
+    for (const stroke of this.strokes) {
+      stroke.copy(newPaper.id);
+    }
+
+    return newPaper;
   }
 
   getLinkAtPosition(position: Point): Link | null {

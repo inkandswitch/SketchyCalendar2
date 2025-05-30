@@ -112,6 +112,8 @@ export class Selection {
         stroke.move(delta);
         Stroke.selected.set(strokeId, true);
       }
+
+      this.openActionBar();
     } else {
       this.clear();
     }
@@ -129,6 +131,7 @@ export class Selection {
     if (this.mode !== "selected") return;
 
     PaperInstance.highlighted.clear();
+    PaperInstance.selected.clear();
     const currentPage = this.view.focusedPage!;
 
     if (this.selectedStrokes) {
@@ -151,6 +154,7 @@ export class Selection {
         const paperInstance =
           this.notebookCollection.getPaperInstanceById(paperInstanceId);
 
+        PaperInstance.selected.set(paperInstance.id, true);
         if (!paperInstance) continue;
         if (this.delta.x != 0 || this.delta.y != 0) {
           paperInstance.move(this.delta);
@@ -216,10 +220,18 @@ export class Selection {
   }
 
   openActionBar() {
-    this.actionBar = new ActionBar([
+    const actions = [
       new Action("copy", () => this.copySelection()),
       new Action("delete", () => this.deleteSelection()),
-    ]);
+    ];
+    if (this.selectedPaperInstances) {
+      actions.push(
+        new Action("transclude", () => {
+          this.transcludeSelection();
+        })
+      );
+    }
+    this.actionBar = new ActionBar(actions);
   }
 
   // Actions
@@ -234,7 +246,19 @@ export class Selection {
           newSelection.push(newInstance.id);
         }
       }
-      //this.selectedPaperInstances = new Set(newSelection);
+      this.selectedPaperInstances = new Set(newSelection);
+    }
+
+    if (this.selectedStrokes) {
+      const newSelection: Id<Stroke>[] = [];
+      for (const strokeId of this.selectedStrokes) {
+        const stroke = this.view.focusedPage!.notebook.getStrokeById(strokeId);
+        const newStroke = stroke.copy();
+        if (newStroke) {
+          newSelection.push(newStroke.props.id);
+        }
+      }
+      this.selectedStrokes = new Set(newSelection);
     }
   }
 
@@ -246,6 +270,31 @@ export class Selection {
         paperInstance.remove();
       }
       this.clear();
+    }
+
+    if (this.selectedStrokes) {
+      for (const strokeId of this.selectedStrokes) {
+        const stroke = this.view.focusedPage!.notebook.getStrokeById(strokeId);
+        if (stroke) {
+          stroke.remove();
+        }
+      }
+      this.clear();
+    }
+  }
+
+  transcludeSelection() {
+    if (this.selectedPaperInstances) {
+      const newSelection: Id<PaperInstance>[] = [];
+      for (const instance of this.selectedPaperInstances) {
+        const paperInstance =
+          this.notebookCollection.getPaperInstanceById(instance);
+        if (paperInstance) {
+          const newInstance = paperInstance.transclude();
+          newSelection.push(newInstance.id);
+        }
+      }
+      this.selectedPaperInstances = new Set(newSelection);
     }
   }
 

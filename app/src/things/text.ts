@@ -132,6 +132,22 @@ export class Text {
     return new Text(state, textProps);
   }
 
+  copy(newParent?: Id<Paper>): Text {
+    const newId = generateId<Text>();
+
+    const newProps = JSON.parse(
+      JSON.stringify(this.#state.props.texts[this.id])
+    );
+    newProps.id = newId;
+    if (newParent) newProps.parentId = newParent;
+
+    this.#state.docHandle.change((state) => {
+      state.texts[newId] = newProps;
+    });
+
+    return new Text(this.#state, newProps);
+  }
+
   get notebook() {
     return this.#state.notebook;
   }

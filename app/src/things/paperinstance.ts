@@ -100,7 +100,7 @@ export class PaperInstance {
       x: props.x,
       y: props.y,
       locked: props.locked,
-      labels: props.labels ?? [],
+      labels: props.labels ? [...props.labels] : [],
     };
 
     state.docHandle.change((state) => {
@@ -141,6 +141,21 @@ export class PaperInstance {
   }
 
   copy(): PaperInstance {
+    const newPaper = this.paper.copy();
+
+    return PaperInstance.createInstanceOf(this.#state, {
+      paperId: newPaper.id,
+      labels: this.labels,
+      parentId: this.parentId,
+      siblingIndex: this.siblingIndex + 1, // Increment sibling index to avoid conflicts
+      x: this.x + 10, // Offset the position slightly to avoid overlap
+      y: this.y + 10,
+      locked: this.locked,
+    });
+  }
+
+  transclude(): PaperInstance {
+    // Create a new paper instance that references the same paper
     return PaperInstance.createInstanceOf(this.#state, {
       paperId: this.paper.id,
       labels: this.labels,

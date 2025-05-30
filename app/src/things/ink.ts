@@ -53,6 +53,25 @@ export class Stroke {
     return new Stroke(state, props);
   }
 
+  copy(newParent?: Id<Paper>): Stroke {
+    const newId = generateId<Stroke>();
+
+    const newProps = JSON.parse(JSON.stringify(this.props));
+    newProps.id = newId;
+    newProps.parentId = newParent ?? this.props.parentId;
+
+    this.#state.docHandle.change((state) => {
+      state.strokes[newId] = newProps;
+    });
+    return new Stroke(this.#state, newProps);
+  }
+
+  remove() {
+    this.#state.docHandle.change((state) => {
+      delete state.strokes[this.props.id];
+    });
+  }
+
   addPoint(point: Point) {
     this.#state.docHandle.change((state) => {
       state.strokes[this.props.id].points.push(point);
