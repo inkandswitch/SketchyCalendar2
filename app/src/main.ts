@@ -33,6 +33,14 @@ import OverlaySwitcher from "overlayswitcher";
 const ADD_DEV_NOTEBOOK = true;
 const PERSIST_DEV_NOTEBOOK = false;
 
+(window as any).loadShareCalendar = (notebookDocId: string) => {
+  localStorage.setItem("shareCalendar:docId", notebookDocId);
+};
+
+(window as any).loadPersonalCalendar = (notebookDocId: string) => {
+  localStorage.setItem("personalCalendar:docId", notebookDocId);
+};
+
 async function loadOrCreateNotebook(
   repo: Repo,
   key: string,
@@ -55,7 +63,7 @@ async function loadOrCreateNotebook(
 
 export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+    network: [new BrowserWebSocketClientAdapter("wss://sync3.automerge.org")],
     storage: new IndexedDBStorageAdapter(),
   });
 

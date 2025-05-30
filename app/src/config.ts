@@ -4,7 +4,7 @@ import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-index
 import { Notebook, NotebookProps } from "things/notebook";
 
 const repo = new Repo({
-  network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+  network: [new BrowserWebSocketClientAdapter("wss://sync3.automerge.org")],
   storage: new IndexedDBStorageAdapter(),
 });
 
