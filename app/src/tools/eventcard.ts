@@ -103,6 +103,7 @@ export function getMostlyOverlappingInstance(
 ): { instance: PaperInstance; rect: Rect } | null {
   const layout = currentPage.getLayout();
   const cardRect = cardInstance.getRect();
+  const cardArea = Rect.area(cardRect);
 
   // Find paperInstance that partially overlaps
   for (const id in layout.paperInstances) {
@@ -112,6 +113,10 @@ export function getMostlyOverlappingInstance(
 
     if (instanceId == cardInstance.id) continue; // Skip the card's own instance
     const rect = layout.paperInstances[instanceId];
+
+    if (Rect.area(rect) <= cardArea) {
+      continue; // Skip instances that are smaller than the card
+    }
 
     if (Rect.isMostlyInside(rect, cardRect)) {
       return { instance, rect }; // Stop after moving to the first found instance

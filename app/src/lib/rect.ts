@@ -83,3 +83,7 @@ Rect.AABBfromPoints = (points: Point[]): Rect => {
   }
   return Rect(Point(minX, minY), maxX - minX, maxY - minY);
 };
+
+Rect.area = (rect: Rect): number => {
+  return rect.width * rect.height;
+};
