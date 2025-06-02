@@ -5,11 +5,13 @@ import { Point } from "lib/point";
 import AddPageButtons from "addpagebuttons";
 import { Page } from "things/page";
 import OverlaySwitcher from "overlayswitcher";
+import HighlightSettings from "highlightsettings";
 
 export default class Navigate implements GestureHandler {
   view: View;
   addPageButtons: AddPageButtons;
   overlaySwitcher: OverlaySwitcher;
+  highlightSettings: HighlightSettings;
   touch: TouchEvent | null = null;
   swipedLaneOffset: number | null = null;
 
@@ -21,11 +23,13 @@ export default class Navigate implements GestureHandler {
   constructor(
     view: View,
     addPageButtons: AddPageButtons,
-    overlaySwitcher: OverlaySwitcher
+    overlaySwitcher: OverlaySwitcher,
+    highlightSettings: HighlightSettings
   ) {
     this.view = view;
     this.addPageButtons = addPageButtons;
     this.overlaySwitcher = overlaySwitcher;
+    this.highlightSettings = highlightSettings;
   }
 
   onEvent(e: TouchEvent) {
@@ -92,6 +96,11 @@ export default class Navigate implements GestureHandler {
             }
 
             if (this.overlaySwitcher.tap(this.touch.current)) {
+              this.touch = null;
+              return;
+            }
+
+            if (this.highlightSettings.tap(this.touch.current)) {
               this.touch = null;
               return;
             }

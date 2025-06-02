@@ -18,3 +18,12 @@ export const LINK_COLORS: Record<NotebookColor, string> = {
 
 export const PAPER_WIDTH = 1600;
 export const PAPER_HEIGHT = 1200;
+
+export const STICKY_NOTE_COLORS = [
+  "#feff9c", // Postitnote yellow
+  "#ffb3b3", // Light red
+  "#b3d9ff", // Light blue
+  "#b3ffb3", // Light green
+  "#ffb3ff", // Light purple
+  "#ffcc99", // Light orange
+];

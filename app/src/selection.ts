@@ -20,6 +20,7 @@ import {
   ColorDropDownAction,
   ActionInterface,
 } from "actionbar";
+import { STICKY_NOTE_COLORS as STICKY_NOTE_COLORS } from "constants";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -242,19 +243,9 @@ export class Selection {
       );
 
       actions.push(
-        new ColorDropDownAction(
-          [
-            "#feff9c", // Postitnote yellow
-            "#ffb3b3", // Light red
-            "#b3d9ff", // Light blue
-            "#b3ffb3", // Light green
-            "#ffb3ff", // Light purple
-            "#ffcc99", // Light orange
-          ],
-          (color) => {
-            this.colorSelection(color);
-          }
-        )
+        new ColorDropDownAction(STICKY_NOTE_COLORS, (color) => {
+          this.colorSelection(color);
+        })
       );
     }
     this.actionBar = new ActionBar(actions);

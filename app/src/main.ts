@@ -236,7 +236,7 @@ const toolbar = new Toolbar(
 const gestures = new GestureSystem([
   new Draw(view, notebookCollection, toolbar),
   new PinchIn(view),
-  new Navigate(view, addPageButtons, overlaySwitcher),
+  new Navigate(view, addPageButtons, overlaySwitcher, highlightSettings),
   new Zoom(view),
 ]);
 

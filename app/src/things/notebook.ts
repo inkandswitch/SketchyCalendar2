@@ -231,8 +231,6 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   // only return papers that have a tag background and are instanced at leas one
   get activeTagPapers(): Array<Paper> {
-    debugger;
-
     return this.papers.filter(
       (paper) =>
         paper.strokes.length > 0 &&

@@ -47,39 +47,50 @@ export class ColorDropDownAction implements ActionInterface {
   width: number = 40;
   height: number = 40;
   callback: (val: string) => void;
+  direction: "horizontal" | "vertical" = "vertical";
 
   options: Array<string> = [];
-
   active: boolean = false;
 
-  constructor(options: Array<string>, callback: (val: string) => void) {
+  constructor(
+    options: Array<string>,
+    callback: (val: string) => void,
+    direction: "horizontal" | "vertical" = "vertical"
+  ) {
     this.callback = callback;
     this.options = options;
+    this.direction = direction;
   }
 
   tap(point: Point): boolean {
     if (this.active) {
-      // If the dropdown is active, check if the tap is on one of the options
-      const optionHeight = 40;
+      const optionSize = 40;
       for (let i = 0; i < this.options.length; i++) {
-        const optionY = this.position.y + i * optionHeight;
+        const optionX =
+          this.direction === "horizontal"
+            ? this.position.x + i * optionSize
+            : this.position.x;
+        const optionY =
+          this.direction === "vertical"
+            ? this.position.y + i * optionSize
+            : this.position.y;
+
         if (
-          point.x >= this.position.x &&
-          point.x <= this.position.x + this.width &&
+          point.x >= optionX &&
+          point.x <= optionX + this.width &&
           point.y >= optionY &&
-          point.y <= optionY + optionHeight
+          point.y <= optionY + this.height
         ) {
           this.callback(this.options[i]);
-          this.active = false; // Close the dropdown after selection
+          this.active = false;
           return true;
         }
       }
-      this.active = false; // Close the dropdown if tap is outside options
+      this.active = false;
       return true;
     }
 
     if (Rect.isPointInside(this, point)) {
-      //this.callback();
       this.active = !this.active;
       return true;
     }
@@ -93,25 +104,38 @@ export class ColorDropDownAction implements ActionInterface {
       15,
       fillAndStroke("yellow", "grey", 0.5)
     );
+
     if (this.active) {
-      const optionHeight = 40;
+      const optionSize = 40;
+      const dropdownWidth =
+        this.direction === "horizontal"
+          ? optionSize * this.options.length
+          : this.width;
+      const dropdownHeight =
+        this.direction === "vertical"
+          ? optionSize * this.options.length
+          : this.height;
+
       cardWithShadow(
         r,
         this.position.x,
         this.position.y,
-        this.width,
-        optionHeight * this.options.length
+        dropdownWidth,
+        dropdownHeight
       );
 
       for (let i = 0; i < this.options.length; i++) {
         const option = this.options[i];
-        r;
-        r.circle(
-          this.position.x + 20,
-          this.position.y + 20 + i * optionHeight,
-          15,
-          fillAndStroke(option, "grey", 0.5)
-        );
+        const optionX =
+          this.direction === "horizontal"
+            ? this.position.x + 20 + i * optionSize
+            : this.position.x + 20;
+        const optionY =
+          this.direction === "vertical"
+            ? this.position.y + 20 + i * optionSize
+            : this.position.y + 20;
+
+        r.circle(optionX, optionY, 15, fillAndStroke(option, "grey", 0.5));
       }
     }
   }
