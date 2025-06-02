@@ -29,7 +29,7 @@ import {
   NotebookProps,
 } from "things/notebook";
 import { generateCalendarPages, updateCalendarPages } from "things/calendar";
-import EventCardTool from "tools/eventcard";
+import CardTool from "tools/card";
 import { View } from "view";
 import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
@@ -200,7 +200,17 @@ const toolbar = new Toolbar(
     new PenTool("whiteout", "#FFFFFF", 30),
     new EraseTool(20),
     new SelectTool(selection),
-    new EventCardTool(),
+    new CardTool("calendar", (paper, position) => {
+      return paper.addNewPaper({
+        x: position.x,
+        y: position.y,
+        width: 140,
+        height: 100,
+        background: "#feff9c", // Postitnote yellow
+        locked: false,
+        siblingIndex: paper.children.length,
+      });
+    }),
   ],
   selection
 );

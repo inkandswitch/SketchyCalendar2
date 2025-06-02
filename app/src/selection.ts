@@ -12,7 +12,7 @@ import { View } from "view";
 import { PaperInstance } from "things/paperinstance";
 import { NotebookCollection } from "things/notebook";
 
-import { getMostlyOverlappingInstance } from "tools/eventcard";
+import { getMostlyOverlappingInstance } from "tools/card";
 import { PageLayout } from "things/page";
 import {
   ActionBar,

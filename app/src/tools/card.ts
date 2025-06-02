@@ -8,27 +8,39 @@ import { PaperInstance } from "things/paperinstance";
 import { Tool, ToolHandler } from "toolbar";
 
 import { Vec } from "lib/vec";
+import { Point } from "lib/point";
+import { Paper } from "things/paper";
 
-export default class EventCardTool extends Tool {
+export default class CardTool extends Tool {
   icon: string;
+  createCard: (paper: Paper, position: Point) => PaperInstance;
 
-  constructor() {
+  constructor(
+    icon: string,
+    createCard: (paper: Paper, position: Point) => PaperInstance
+  ) {
     super();
 
-    this.icon = "card";
+    this.icon = icon;
+    this.createCard = createCard;
   }
 
   getHandler(view: View): ToolHandler {
-    return new EventCardHandler(view);
+    return new CardHandler(view, this.createCard);
   }
 }
 
-export class EventCardHandler implements ToolHandler {
+export class CardHandler implements ToolHandler {
   view: View;
   card: Id<PaperInstance> | null = null;
+  createCard: (paper: Paper, position: Point) => PaperInstance;
 
-  constructor(view: View) {
+  constructor(
+    view: View,
+    createCard: (paper: Paper, position: Point) => PaperInstance
+  ) {
     this.view = view;
+    this.createCard = createCard;
   }
 
   // Tool-specific methods
@@ -40,15 +52,7 @@ export class EventCardHandler implements ToolHandler {
 
     const worldPos = this.view.camera.screenToWorld(e.current);
 
-    const newCard = paper.addNewPaper({
-      x: worldPos.x,
-      y: worldPos.y,
-      width: 140,
-      height: 100,
-      background: "#feff9c", // Postitnote yellow
-      locked: false,
-      siblingIndex: paper.children.length,
-    });
+    const newCard = this.createCard(paper, worldPos);
     this.card = newCard.id;
   }
 
