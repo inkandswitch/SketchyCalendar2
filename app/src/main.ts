@@ -35,7 +35,7 @@ import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import OverlaySwitcher from "overlayswitcher";
 
-const ADD_DEV_NOTEBOOK = true;
+const ADD_DEV_NOTEBOOK = false;
 const PERSIST_DEV_NOTEBOOK = true;
 
 (window as any).loadShareCalendar = (notebookDocId: string) => {
@@ -69,7 +69,7 @@ async function loadOrCreateNotebook(
 
 export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [new BrowserWebSocketClientAdapter("wss://sync3.automerge.org")],
+    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
     storage: new IndexedDBStorageAdapter(),
   });
 
