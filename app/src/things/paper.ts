@@ -12,6 +12,7 @@ import Render, {
 import { Vec } from "lib/vec";
 import {
   LINK_COLORS,
+  NO_STICKY_NOTE_COLOR,
   SELECTION_COLOR,
   SHADOW_COLOR,
   UNDERLAY_BACKGROUND_COLOR,
@@ -113,6 +114,8 @@ export class Paper {
     this.texts = texts;
     this.strokes = strokes;
   }
+
+  static colorsByTagPaperId: Map<Id<Paper>, string> = new Map();
 
   static fromId(state: State, id: Id<Paper>) {
     const cached = state.objMap.get(id) as Paper | undefined;
@@ -252,6 +255,18 @@ export class Paper {
     });
   }
 
+  getTagIds(): Id<Paper>[] {
+    return this.notebook
+      .notebookCollection!.activeTagPapers()
+      .flatMap((paper) => {
+        if (this.children.some((child) => child.paper.id === paper.id)) {
+          return paper.id;
+        }
+
+        return [];
+      });
+  }
+
   render(r: Render, position: Point, options: PaperRenderOptions = {}) {
     const {
       hasShadow = false,
@@ -280,6 +295,17 @@ export class Paper {
         this.height,
         fill(SHADOW_COLOR)
       );
+
+      // check it should be rendered in a different color based on the assigned colors to a tag paper
+      if (!isBackground) {
+        const tagIds = this.getTagIds();
+        for (const tagId of tagIds) {
+          const color = Paper.colorsByTagPaperId.get(tagId);
+          if (color && color !== NO_STICKY_NOTE_COLOR) {
+            backgroundStyle = fill(color);
+          }
+        }
+      }
     }
 
     if (isSelected) {

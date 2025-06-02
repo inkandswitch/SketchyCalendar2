@@ -57,10 +57,12 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
   }
 
   notebooks: Set<Notebook> = new Set();
+  #activeTagPapers: Paper[] | undefined;
 
   addNotebook(notebook: Notebook) {
     this.notebooks.add(notebook);
     notebook.addListener("changed", this.#onChange);
+    notebook.notebookCollection = this;
     this.#onChange();
   }
 
@@ -86,6 +88,7 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
   }
 
   #onChange = () => {
+    this.#activeTagPapers = undefined;
     this.emit("changed");
   };
 
@@ -108,9 +111,15 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
   }
 
   activeTagPapers(): Array<Paper> {
-    return Array.from(this.notebooks.values()).flatMap(
+    if (this.#activeTagPapers) {
+      return this.#activeTagPapers;
+    }
+
+    this.#activeTagPapers = Array.from(this.notebooks.values()).flatMap(
       (notebook) => notebook.activeTagPapers
     );
+
+    return this.#activeTagPapers;
   }
 }
 
@@ -120,6 +129,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>> = new Map();
   paperInstances: Map<Id<PaperInstance>, PaperInstance> = new Map();
   paperIdsWithInstances: Set<Id<Paper>> = new Set();
+  notebookCollection?: NotebookCollection;
 
   constructor(repo: Repo, docHandle: DocHandle<NotebookProps>) {
     super();

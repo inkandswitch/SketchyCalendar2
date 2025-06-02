@@ -19,11 +19,19 @@ export const LINK_COLORS: Record<NotebookColor, string> = {
 export const PAPER_WIDTH = 1600;
 export const PAPER_HEIGHT = 1200;
 
+export const STICKY_NOTE_YELLOW = "#feff9c"; // Postitnote yellow
+export const STICKY_NOTE_RED = "#ffb3b3"; // Light red
+export const STICKY_NOTE_BLUE = "#b3d9ff"; // Light blue
+export const STICKY_NOTE_GREEN = "#b3ffb3"; // Light green
+export const STICKY_NOTE_PURPLE = "#ffb3ff"; // Light purple
+export const STICKY_NOTE_ORANGE = "#ffcc99"; // Light orange
+export const NO_STICKY_NOTE_COLOR = "#ffffff";
+
 export const STICKY_NOTE_COLORS = [
-  "#feff9c", // Postitnote yellow
-  "#ffb3b3", // Light red
-  "#b3d9ff", // Light blue
-  "#b3ffb3", // Light green
-  "#ffb3ff", // Light purple
-  "#ffcc99", // Light orange
+  STICKY_NOTE_YELLOW,
+  STICKY_NOTE_RED,
+  STICKY_NOTE_BLUE,
+  STICKY_NOTE_GREEN,
+  STICKY_NOTE_PURPLE,
+  STICKY_NOTE_ORANGE,
 ];

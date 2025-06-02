@@ -2,6 +2,7 @@ import { Rect } from "lib/rect";
 import Render, { fill, fillAndStroke } from "lib/render";
 
 import { Point } from "lib/point";
+import { STICKY_NOTE_BLUE, STICKY_NOTE_YELLOW } from "constants";
 
 export interface ActionInterface {
   position: Point;
@@ -43,6 +44,7 @@ export class Action implements ActionInterface {
 // };
 
 export class ColorDropDownAction implements ActionInterface {
+  value: string = "#fff";
   position: Point = Point(0, 0);
   width: number = 40;
   height: number = 40;
@@ -102,7 +104,7 @@ export class ColorDropDownAction implements ActionInterface {
       this.position.x + 20,
       this.position.y + 20,
       15,
-      fillAndStroke("yellow", "grey", 0.5)
+      fillAndStroke(this.value, "grey", 0.5)
     );
 
     if (this.active) {

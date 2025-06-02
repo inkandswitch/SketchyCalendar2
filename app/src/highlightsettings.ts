@@ -1,11 +1,13 @@
 import { ColorDropDownAction } from "actionbar";
-import { PAPER_HEIGHT, STICKY_NOTE_COLORS } from "constants";
+import {
+  NO_STICKY_NOTE_COLOR,
+  PAPER_HEIGHT,
+  STICKY_NOTE_COLORS,
+} from "constants";
 import { Id } from "id";
 import { Point } from "lib/point";
-import { Rect } from "lib/rect";
 import Render from "lib/render";
 import { NotebookCollection } from "things/notebook";
-import { Page } from "things/page";
 import { Paper } from "things/paper";
 import { View } from "view";
 
@@ -37,28 +39,34 @@ export default class HighlightSettings {
       let colorPicker = this.colorPickersByPaperId.get(paper.id);
 
       if (!colorPicker) {
+        const onChangeColor = (c: string) => {
+          colorPicker!.value = c;
+          Paper.colorsByTagPaperId.set(paper.id, c);
+        };
+
         colorPicker = new ColorDropDownAction(
-          STICKY_NOTE_COLORS,
-          (color) => {
-            console.log("selected color", color);
-          },
+          STICKY_NOTE_COLORS.concat(NO_STICKY_NOTE_COLOR),
+          onChangeColor,
           "horizontal"
         );
         this.colorPickersByPaperId.set(paper.id, colorPicker);
       }
 
-      const x = 20;
-      const y = offset - paper.height;
-
-      colorPicker.position = { x: 20 + paper.width, y: offset - paper.height };
+      colorPicker.position = {
+        x: 20 + paper.width + 5,
+        y: offset - colorPicker.height,
+      };
 
       options.push({
         paper,
-        position: { x, y },
+        position: {
+          x: 20,
+          y: offset - paper.height - (colorPicker.height - paper.height) / 2,
+        },
         colorPicker,
       });
 
-      offset -= paper.height;
+      offset -= colorPicker.height;
     }
 
     if (!this.isActive || !this.view.focusedPage) return [];
