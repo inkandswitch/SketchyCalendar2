@@ -6,9 +6,9 @@ import { Paper } from "./paper";
 
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
+import { LINK_COLORS, UNDERLAY_INK_COLOR } from "../constants";
 import { Link } from "./link";
 import { Page } from "./page";
-import { UNDERLAY_INK_COLOR, LINK_COLOR, LINK_COLORS } from "../constants";
 
 export type TextProps = {
   id: Id<Text>;

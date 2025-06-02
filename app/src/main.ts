@@ -200,7 +200,7 @@ const toolbar = new Toolbar(
     new PenTool("whiteout", "#FFFFFF", 30),
     new EraseTool(20),
     new SelectTool(selection),
-    new CardTool("calendar", (paper, position) => {
+    new CardTool("card", (paper, position) => {
       return paper.addNewPaper({
         x: position.x,
         y: position.y,
@@ -209,6 +209,18 @@ const toolbar = new Toolbar(
         background: "#feff9c", // Postitnote yellow
         locked: false,
         siblingIndex: paper.children.length,
+      });
+    }),
+
+    new CardTool("tag", (paper, position) => {
+      return paper.addNewPaper({
+        x: position.x,
+        y: position.y,
+        width: 80,
+        height: 25,
+        locked: false,
+        siblingIndex: paper.children.length,
+        background: { type: "Tag" },
       });
     }),
   ],

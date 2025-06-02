@@ -1,25 +1,34 @@
 import { isToday } from "date-fns";
-import { Id } from "id";
-import { GoogleCalendar } from "lib/googlecalendar";
+import { generateId, Id } from "id";
 import { Point } from "lib/point";
-import Render, { fill, fillAndStroke, font, stroke } from "lib/render";
-import { Notebook, State } from "./notebook";
-import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
-import { NewTextProps, Text } from "./text";
-import { Stroke } from "./ink";
-import { Vec } from "lib/vec";
 import { Polygon } from "lib/polygon";
-import { Link } from "./link";
+import Render, {
+  fill,
+  fillAndStroke,
+  font,
+  measureText,
+  stroke,
+} from "lib/render";
+import { Vec } from "lib/vec";
 import {
-  UNDERLAY_INK_COLOR,
+  LINK_COLORS,
   SELECTION_COLOR,
   SHADOW_COLOR,
   UNDERLAY_BACKGROUND_COLOR,
-  LINK_COLORS,
+  UNDERLAY_INK_COLOR,
 } from "../constants";
-import { generateId } from "id";
+import { Stroke } from "./ink";
+import { Link } from "./link";
+import { Notebook, State } from "./notebook";
+import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
+import { NewTextProps, Text } from "./text";
 
-export type Background = null | string | Id<PaperProps> | CalendarBackground;
+export type Background =
+  | null
+  | string
+  | Id<PaperProps>
+  | CalendarBackground
+  | TagPaper;
 
 export type PaperRenderOptions = {
   isBackground?: boolean;
@@ -42,6 +51,22 @@ export function isCalendarBackground(
   return false;
 }
 
+export function isTagPaper(background: Background): background is TagPaper {
+  if (
+    background &&
+    typeof background === "object" &&
+    background.type === "Tag"
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+export function isSolidColor(background: Background): background is string {
+  return typeof background == "string";
+}
+
 export type PaperProps = {
   id: Id<Paper>;
   width: number;
@@ -52,6 +77,10 @@ export type PaperProps = {
 export type CalendarBackground = {
   type: "Calendar";
   date: Date;
+};
+
+export type TagPaper = {
+  type: "Tag";
 };
 
 export class Paper {
@@ -229,12 +258,16 @@ export class Paper {
       highlighted = false,
     } = options;
 
-    // Render background color if specified
-    let backgroundColor = stroke("#999", 1);
-    if (typeof this.background == "string") {
-      backgroundColor = isBackground
+    // Render background color if color is specified or if it has shadow
+    let backgroundStyle = stroke("#999", 1);
+    if (isSolidColor(this.background) || hasShadow) {
+      const backgroundColor = isSolidColor(this.background)
+        ? this.background
+        : "#fff";
+
+      backgroundStyle = isBackground
         ? fillAndStroke(UNDERLAY_BACKGROUND_COLOR, UNDERLAY_INK_COLOR, 1)
-        : fillAndStroke(this.background, "#00000022", 1);
+        : fillAndStroke(backgroundColor, "#00000022", 1);
     }
 
     if (hasShadow) {
@@ -247,17 +280,19 @@ export class Paper {
       );
     }
 
-    if (isSelected) {
-      r.rect(
-        position.x - 2,
-        position.y - 2,
-        this.width + 4,
-        this.height + 4,
-        fill(SELECTION_COLOR)
+    r.rect(position.x, position.y, this.width, this.height, backgroundStyle);
+
+    if (isTagPaper(this.background)) {
+      const style = font("12px Arial", "#DDDDDD");
+      const textSize = measureText("#", style);
+
+      r.text(
+        "#",
+        position.x + 10,
+        position.y + (this.height - textSize.height) / 2,
+        style
       );
     }
-
-    r.rect(position.x, position.y, this.width, this.height, backgroundColor);
 
     if (highlighted) {
       r.rect(
