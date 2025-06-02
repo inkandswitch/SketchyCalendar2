@@ -13,7 +13,7 @@ export default class Render {
   height!: number;
 
   constructor() {
-    this.canvas = document.createElement("canvas");
+    this.canvas = document.querySelector("canvas")!;
     document.body.appendChild(this.canvas);
     this.ctx = this.canvas.getContext("2d")!;
 
