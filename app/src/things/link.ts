@@ -32,6 +32,13 @@ export class Link {
     return Page.fromId(this.#state, this.props.targetPage.id);
   }
 
+  setTargetPage(targetPage: TargetPage): void {
+    this.#state.docHandle.change((state) => {
+      state.links[this.props.id].targetPage = targetPage;
+    });
+    this.props.targetPage = targetPage;
+  }
+
   getSource(): Text | PaperInstance | Stroke {
     const source = this.#state.props.links[this.props.id];
     if (!source) {
@@ -57,7 +64,18 @@ export class Link {
     return new Link(state, props);
   }
 
+  static deleteWithId(state: State, id: LinkableId): void {
+    state.docHandle.change((state) => {
+      delete state.links[id];
+    });
+  }
+
   static create(state: State, props: LinkProps): Link {
+    // Make sure this link does not already exist
+    if (state.props.links[props.id]) {
+      Link.deleteWithId(state, props.id);
+    }
+
     state.docHandle.change((state) => {
       state.links[props.id] = props;
     });

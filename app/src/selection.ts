@@ -7,7 +7,7 @@ import { Rect } from "lib/rect";
 
 import { TouchEvent } from "gesturesystem";
 
-import Render, { dashedStroke } from "lib/render";
+import Render, { dashedStroke, fill } from "lib/render";
 import { View } from "view";
 import { PaperInstance } from "things/paperinstance";
 import { NotebookCollection } from "things/notebook";
@@ -21,7 +21,7 @@ import {
   ActionInterface,
 } from "actionbar";
 import { STICKY_NOTE_COLORS as STICKY_NOTE_COLORS } from "constants";
-import { Link } from "things/link";
+import { LinkableId } from "things/link";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -29,7 +29,7 @@ export class Selection {
   hull: Polygon | null = null;
   selectedStrokes: Set<Id<Stroke>> | null = null;
   selectedPaperInstances: Set<Id<PaperInstance>> | null = null;
-  selectedLinks: Set<Id<Link>> | null = null;
+  selectedLinks: Set<LinkableId> | null = null;
 
   view: View;
   notebookCollection: NotebookCollection;
@@ -184,52 +184,69 @@ export class Selection {
       }
     }
 
+    // Wait for the page to be zoomed in, and then set the links to the current page
+    if (this.selectedLinks) {
+      if (this.view.isZoomedIn()) {
+        for (const linkId of this.selectedLinks) {
+          const link = this.notebookCollection.getLinkById(linkId);
+          if (link) {
+            link.setTargetPage({
+              id: currentPage.id,
+              notebookDocId: currentPage.notebook.documentId,
+            });
+          }
+        }
+
+        this.selectedLinks = null; // Clear links after applying
+      }
+    }
+
     this.delta = { x: 0, y: 0 }; // Reset delta after applying
   }
 
   finishMoveSelection(totalDelta: Vec) {
     if (Vec.len(totalDelta) < 5) {
-      const currentPage = this.view.focusedPage!;
-
-      if (this.selectedPaperInstances) {
-        for (const paperInstanceId of this.selectedPaperInstances) {
-          const paperInstance =
-            this.notebookCollection.getPaperInstanceById(paperInstanceId);
-          const found = getMostlyOverlappingInstance(
-            currentPage,
-            paperInstance
-          );
-          if (found == null) continue;
-
-          paperInstance.moveTo(found.instance.paper.id, {
-            x: paperInstance.x - found.rect.position.x,
-            y: paperInstance.y - found.rect.position.y,
-          });
-        }
-      }
-
-      if (this.selectedStrokes) {
-        const layout = currentPage.getLayout();
-        for (const strokeId of this.selectedStrokes) {
-          const stroke = currentPage.notebook.getStrokeById(strokeId);
-          if (!stroke) continue;
-
-          const found = getMostlyOverlappingInstanceWithStroke(layout, stroke);
-          if (found == null) continue;
-          const paperInstance = this.notebookCollection.getPaperInstanceById(
-            found.instanceId
-          );
-          stroke.reparent(paperInstance.paper.id);
-
-          const delta = Vec.sub({ x: 0, y: 0 }, found.rect.position);
-          stroke.move(delta);
-        }
-      }
-
-      // If the total movement is small, we consider it a click
-      PaperInstance.highlighted.clear();
-      this.clear();
+      this.dropSelection();
     }
+  }
+
+  dropSelection() {
+    const currentPage = this.view.focusedPage!;
+    if (this.selectedPaperInstances) {
+      for (const paperInstanceId of this.selectedPaperInstances) {
+        const paperInstance =
+          this.notebookCollection.getPaperInstanceById(paperInstanceId);
+        const found = getMostlyOverlappingInstance(currentPage, paperInstance);
+        if (found == null) continue;
+
+        paperInstance.moveTo(found.instance.paper.id, {
+          x: paperInstance.x - found.rect.position.x,
+          y: paperInstance.y - found.rect.position.y,
+        });
+      }
+    }
+
+    if (this.selectedStrokes) {
+      const layout = currentPage.getLayout();
+      for (const strokeId of this.selectedStrokes) {
+        const stroke = currentPage.notebook.getStrokeById(strokeId);
+        if (!stroke) continue;
+
+        const found = getMostlyOverlappingInstanceWithStroke(layout, stroke);
+        if (found == null) continue;
+        const paperInstance = this.notebookCollection.getPaperInstanceById(
+          found.instanceId
+        );
+        stroke.reparent(paperInstance.paper.id);
+
+        const delta = Vec.sub({ x: 0, y: 0 }, found.rect.position);
+        stroke.move(delta);
+      }
+    }
+
+    // If the total movement is small, we consider it a click
+    PaperInstance.highlighted.clear();
+    this.clear();
   }
 
   openActionBar() {
@@ -332,7 +349,7 @@ export class Selection {
 
   attachLinkToSelection() {
     if (this.selectedStrokes) {
-      this.selectedLinks = new Set();
+      const selectedLinks: Set<LinkableId> = new Set();
       const rootPage = this.view.focusedPage!.notebook.rootPages[0];
 
       for (const strokeId of this.selectedStrokes) {
@@ -340,13 +357,17 @@ export class Selection {
         if (stroke) {
           const link = stroke.addLinkTo(rootPage);
           if (link) {
-            // this.selectedLinks.add(link.id);
+            selectedLinks.add(link.props.id);
             // Link.selected.set(link.id, true);
           }
         }
       }
+
+      this.dropSelection();
+      this.selectedLinks = selectedLinks;
+      this.mode = "selected";
+      this.view.zoomOut();
     }
-    this.clear();
   }
 
   clear() {
@@ -368,6 +389,16 @@ export class Selection {
 
     if (this.actionBar) {
       this.actionBar.render(r);
+    }
+
+    if (this.selectedLinks) {
+      r.circle(window.innerWidth / 2, window.innerHeight / 2, 5, fill("red"));
+      r.text(
+        "pick a page to link to",
+        window.innerWidth / 2 + 10,
+        window.innerHeight / 2 - 7,
+        fill("red")
+      );
     }
   }
 }

@@ -110,6 +110,15 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
     throw new Error(`PaperInstance with id ${id} not found in any notebook.`);
   }
 
+  getLinkById(id: LinkableId): Link {
+    for (const notebook of this.notebooks.values()) {
+      if (notebook.state.props.links.hasOwnProperty(id)) {
+        return Link.fromId(notebook.state, id);
+      }
+    }
+    throw new Error(`Link with id ${id} not found in any notebook.`);
+  }
+
   getAllLinks(): Array<Link> {
     const found = [];
 
