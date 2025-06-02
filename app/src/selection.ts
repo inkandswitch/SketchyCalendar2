@@ -21,6 +21,7 @@ import {
   ActionInterface,
 } from "actionbar";
 import { STICKY_NOTE_COLORS as STICKY_NOTE_COLORS } from "constants";
+import { Link } from "things/link";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -28,6 +29,7 @@ export class Selection {
   hull: Polygon | null = null;
   selectedStrokes: Set<Id<Stroke>> | null = null;
   selectedPaperInstances: Set<Id<PaperInstance>> | null = null;
+  selectedLinks: Set<Id<Link>> | null = null;
 
   view: View;
   notebookCollection: NotebookCollection;
@@ -234,6 +236,7 @@ export class Selection {
     const actions: Array<ActionInterface> = [
       new Action("copy", () => this.copySelection()),
       new Action("delete", () => this.deleteSelection()),
+      new Action("link", () => this.attachLinkToSelection()),
     ];
     if (this.selectedPaperInstances) {
       actions.push(
@@ -325,6 +328,25 @@ export class Selection {
         }
       }
     }
+  }
+
+  attachLinkToSelection() {
+    if (this.selectedStrokes) {
+      this.selectedLinks = new Set();
+      const rootPage = this.view.focusedPage!.notebook.rootPages[0];
+
+      for (const strokeId of this.selectedStrokes) {
+        const stroke = this.view.focusedPage!.notebook.getStrokeById(strokeId);
+        if (stroke) {
+          const link = stroke.addLinkTo(rootPage);
+          if (link) {
+            // this.selectedLinks.add(link.id);
+            // Link.selected.set(link.id, true);
+          }
+        }
+      }
+    }
+    this.clear();
   }
 
   clear() {

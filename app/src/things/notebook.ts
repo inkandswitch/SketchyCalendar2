@@ -20,7 +20,7 @@ import { Calendar, GoogleCalendar } from "lib/googlecalendar";
 import { Stroke, StrokeProps } from "things/ink";
 import { isTagBackground, Paper, PaperProps } from "things/paper";
 import { Text, TextProps } from "things/text";
-import { LinkableId, LinkProps } from "./link";
+import { Link, LinkableId, LinkProps } from "./link";
 
 export type NotebookColor = "blue" | "green" | "red" | "orange" | "purple";
 
@@ -108,6 +108,18 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
       }
     }
     throw new Error(`PaperInstance with id ${id} not found in any notebook.`);
+  }
+
+  getAllLinks(): Array<Link> {
+    const found = [];
+
+    for (const notebook of this.notebooks.values()) {
+      for (const linkprops of Object.values(notebook.state.props.links)) {
+        found.push(Link.fromId(notebook.state, linkprops.id));
+      }
+    }
+
+    return found;
   }
 
   activeTagPapers(): Array<Paper> {
@@ -201,6 +213,14 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   get calendarDocUrl(): AutomergeUrl | undefined {
     return this.#state.props.calendarDocUrl;
+  }
+
+  get rootPages(): Array<Page> {
+    return this.pages
+      .filter((page) => {
+        return page.parent == null;
+      })
+      .sort((a, b) => a.siblingIndex - b.siblingIndex);
   }
 
   rebuild() {

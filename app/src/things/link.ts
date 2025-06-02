@@ -32,6 +32,26 @@ export class Link {
     return Page.fromId(this.#state, this.props.targetPage.id);
   }
 
+  getSource(): Text | PaperInstance | Stroke {
+    const source = this.#state.props.links[this.props.id];
+    if (!source) {
+      throw new Error(`Link with id ${this.props.id} not found`);
+    }
+
+    const sourceId = source.id;
+    if (this.#state.props.texts[sourceId as Id<Text>]) {
+      return Text.fromId(this.#state, sourceId as Id<Text>);
+    } else if (
+      this.#state.props.paperInstances[sourceId as Id<PaperInstance>]
+    ) {
+      return PaperInstance.fromId(this.#state, sourceId as Id<PaperInstance>);
+    } else if (this.#state.props.strokes[sourceId as Id<Stroke>]) {
+      return Stroke.fromId(this.#state, sourceId as Id<Stroke>);
+    } else {
+      throw new Error(`Source with id ${sourceId} not found`);
+    }
+  }
+
   static fromId(state: State, id: LinkableId): Link {
     const props = state.props.links[id];
     return new Link(state, props);

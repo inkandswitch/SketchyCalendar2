@@ -9,6 +9,9 @@ import { Vec } from "lib/vec";
 import { Rect } from "lib/rect";
 import { UNDERLAY_INK_COLOR, SELECTION_COLOR } from "constants";
 
+import { Link } from "things/link";
+import { Page } from "things/page";
+
 export type StrokeProps = {
   id: Id<Stroke>;
   parentId: Id<Paper>;
@@ -97,6 +100,34 @@ export class Stroke {
   getRect(offset: Point): Rect {
     const points = this.props.points.map((point) => Vec.add(offset, point));
     return Rect.AABBfromPoints(points);
+  }
+
+  isPointNear(point: Point): boolean {
+    const threshold = this.props.weight / 2 + 10; // Adjust threshold based on weight
+    for (const p of this.props.points) {
+      if (Vec.dist(p, point) <= threshold) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  setColor(color: string) {
+    this.#state.docHandle.change((state) => {
+      state.strokes[this.props.id].color = color;
+    });
+  }
+
+  addLinkTo(target: Page) {
+    this.setColor("#8844FF");
+
+    return Link.create(this.#state, {
+      id: this.props.id,
+      targetPage: {
+        id: target.id,
+        notebookDocId: target.notebook.documentId,
+      },
+    });
   }
 
   render(r: Render, offset: Point, isBackground: boolean) {

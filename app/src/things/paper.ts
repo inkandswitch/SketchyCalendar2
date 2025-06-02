@@ -184,6 +184,19 @@ export class Paper {
       }
     }
 
+    // apply to strokes as well
+    for (const stroke of this.strokes) {
+      const link = this.#state.props.links[stroke.props.id];
+
+      if (!link) {
+        continue;
+      }
+
+      if (stroke.isPointNear(position)) {
+        return Link.fromId(this.#state, link.id);
+      }
+    }
+
     for (const paperInstance of this.children) {
       const localPosition = Vec.sub(position, paperInstance);
 
