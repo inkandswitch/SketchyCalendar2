@@ -18,7 +18,7 @@ import {
 
 import { Calendar, GoogleCalendar } from "lib/googlecalendar";
 import { Stroke, StrokeProps } from "things/ink";
-import { Paper, PaperProps } from "things/paper";
+import { isTagBackground, Paper, PaperProps } from "things/paper";
 import { Text, TextProps } from "things/text";
 import { LinkableId, LinkProps } from "./link";
 
@@ -106,6 +106,12 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
     }
     throw new Error(`PaperInstance with id ${id} not found in any notebook.`);
   }
+
+  activeTagPapers(): Array<Paper> {
+    return Array.from(this.notebooks.values()).flatMap(
+      (notebook) => notebook.activeTagPapers
+    );
+  }
 }
 
 export class Notebook extends EventEmitter<NotebookEvents> {
@@ -113,8 +119,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   paperChildrenMap: Map<Id<Paper>, Array<PaperInstanceProps>> = new Map();
   paperInstances: Map<Id<PaperInstance>, PaperInstance> = new Map();
-
-  papers: Map<Id<PaperProps>, Paper> = new Map();
+  paperIdsWithInstances: Set<Id<Paper>> = new Set();
 
   constructor(repo: Repo, docHandle: DocHandle<NotebookProps>) {
     super();
@@ -199,6 +204,9 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     this.#state.pageChildrenMap = buildThingChildrenMap(props.pages);
     this.#state.textChildrenMap = buildThingChildrenMap(props.texts);
     this.#state.strokeChildrenMap = buildThingChildrenMap(props.strokes, false);
+    this.paperIdsWithInstances = new Set(
+      Array.from(Object.values(props.paperInstances).map((p) => p.paperId))
+    );
   }
 
   createPaper(props: NewPaperInstanceProps): PaperInstance {
@@ -212,6 +220,24 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   get pages() {
     return Object.keys(this.#state.props.pages).map((pageId) =>
       Page.fromId(this.#state, pageId as Id<Page>)
+    );
+  }
+
+  get papers() {
+    return Object.keys(this.#state.props.papers).map((paperId) =>
+      Paper.fromId(this.#state, paperId as Id<Paper>)
+    );
+  }
+
+  // only return papers that have a tag background and are instanced at leas one
+  get activeTagPapers(): Array<Paper> {
+    debugger;
+
+    return this.papers.filter(
+      (paper) =>
+        paper.strokes.length > 0 &&
+        this.paperIdsWithInstances.has(paper.id) &&
+        isTagBackground(paper.background)
     );
   }
 

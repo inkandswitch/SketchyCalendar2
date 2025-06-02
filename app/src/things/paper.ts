@@ -28,7 +28,7 @@ export type Background =
   | string
   | Id<PaperProps>
   | CalendarBackground
-  | TagPaper;
+  | TagBackground;
 
 export type PaperRenderOptions = {
   isBackground?: boolean;
@@ -51,7 +51,9 @@ export function isCalendarBackground(
   return false;
 }
 
-export function isTagPaper(background: Background): background is TagPaper {
+export function isTagBackground(
+  background: Background
+): background is TagBackground {
   if (
     background &&
     typeof background === "object" &&
@@ -79,7 +81,7 @@ export type CalendarBackground = {
   date: Date;
 };
 
-export type TagPaper = {
+export type TagBackground = {
   type: "Tag";
 };
 
@@ -280,9 +282,19 @@ export class Paper {
       );
     }
 
+    if (isSelected) {
+      r.rect(
+        position.x - 2,
+        position.y - 2,
+        this.width + 4,
+        this.height + 4,
+        fill(SELECTION_COLOR)
+      );
+    }
+
     r.rect(position.x, position.y, this.width, this.height, backgroundStyle);
 
-    if (isTagPaper(this.background)) {
+    if (isTagBackground(this.background)) {
       const style = font("12px Arial", "#DDDDDD");
       const textSize = measureText("#", style);
 

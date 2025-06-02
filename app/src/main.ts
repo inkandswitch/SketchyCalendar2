@@ -34,6 +34,7 @@ import { View } from "view";
 import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import OverlaySwitcher from "overlayswitcher";
+import HighlightSettings from "highlightsettings";
 
 const ADD_DEV_NOTEBOOK = false;
 const PERSIST_DEV_NOTEBOOK = true;
@@ -188,6 +189,11 @@ const selection = new Selection(view, notebookCollection);
 
 const addPageButtons = new AddPageButtons(view);
 const overlaySwitcher = new OverlaySwitcher(view, notebookCollection);
+const highlightSettings = new HighlightSettings(view, notebookCollection);
+
+console.log("foobar!!!  ");
+
+console.log(notebookCollection.activeTagPapers());
 
 const toolbar = new Toolbar(
   { x: window.innerWidth - 60, y: 20 },
@@ -239,6 +245,7 @@ console.log(notebookCollection.rootPages);
 tick((dt) => {
   toolbar.isActive = view.isZoomedIn();
   overlaySwitcher.isActive = view.isZoomedIn();
+  highlightSettings.isActive = view.isZoomedIn();
   addPageButtons.isActive = view.zoom.target == 0 && view.zoom.isCloseEnough();
 
   // Update
@@ -254,4 +261,5 @@ tick((dt) => {
   selection.render(render);
   addPageButtons.render(render);
   overlaySwitcher.render(render);
+  highlightSettings.render(render);
 });
