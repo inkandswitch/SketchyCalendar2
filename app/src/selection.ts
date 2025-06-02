@@ -88,7 +88,7 @@ export class Selection {
   }
 
   finishHull(point: Point, totalDelta: Vec) {
-    if (Vec.len(totalDelta) < 5) {
+    if (Vec.len(totalDelta) < 10) {
       const currentPage = this.view.focusedPage!;
 
       const foundPaper = currentPage.getPaperInstanceAtPosition(point);
@@ -253,7 +253,6 @@ export class Selection {
     const actions: Array<ActionInterface> = [
       new Action("copy", () => this.copySelection()),
       new Action("delete", () => this.deleteSelection()),
-      new Action("link", () => this.attachLinkToSelection()),
     ];
     if (this.selectedPaperInstances) {
       actions.push(
@@ -267,6 +266,10 @@ export class Selection {
           this.colorSelection(color);
         })
       );
+    }
+
+    if (this.selectedStrokes) {
+      actions.push(new Action("link", () => this.attachLinkToSelection()));
     }
     this.actionBar = new ActionBar(actions);
   }
