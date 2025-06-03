@@ -271,9 +271,11 @@ export class View {
 
   render(r: Render) {
     // Since not all devices have the same aspect ratio,
-    // But we know that we're always in landscape mode
-    // So use height to calculate the zoom level
-    const scale = window.innerHeight / PAPER_HEIGHT;
+    // Use the smallest of the two dimensions to scale the view, depending on the device
+    const scale = Math.min(
+      window.innerHeight / PAPER_HEIGHT,
+      window.innerWidth / PAPER_WIDTH
+    );
 
     let zoom = (this.overrideZoom ?? this.zoom.value * 0.7 + 0.3) * scale;
 
