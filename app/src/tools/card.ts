@@ -35,6 +35,9 @@ export class CardHandler implements ToolHandler {
   card: Id<PaperInstance> | null = null;
   createCard: (paper: Paper, position: Point) => PaperInstance;
 
+  lastMoveTime: number = 0;
+  accumulatedDelta: Vec = { x: 0, y: 0 };
+
   constructor(
     view: View,
     createCard: (paper: Paper, position: Point) => PaperInstance
@@ -74,7 +77,22 @@ export class CardHandler implements ToolHandler {
     const worldPos = this.view.camera.screenToWorld(e.current);
     const worldPrev = this.view.camera.screenToWorld(e.previous);
     const worldDelta = Vec.sub(worldPos, worldPrev);
-    cardInstance.move(worldDelta);
+    this.throttleMoveInstance(cardInstance, worldDelta);
+  }
+
+  // We do this because automerge is slow asf, so we want to limit how often we update the position of the card
+  throttleMoveInstance(instance: PaperInstance, delta: Vec) {
+    this.accumulatedDelta = Vec.add(this.accumulatedDelta, delta);
+    const now = Date.now();
+    if (now - this.lastMoveTime < 1000 / 30) {
+      // Throttle to 60 FPS
+
+      return;
+    }
+
+    instance.move(this.accumulatedDelta);
+    this.lastMoveTime = now;
+    this.accumulatedDelta = { x: 0, y: 0 }; // Reset accumulated delta after moving
   }
 
   penUp(e: TouchEvent) {
