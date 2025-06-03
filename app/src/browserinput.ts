@@ -1,7 +1,13 @@
 import { View } from "view";
+import { AddPageButtons } from "addpagebuttons";
+import { OverlaySwitcher } from "overlayswitcher";
 
 export default class BrowserInput {
-  constructor(view: View) {
+  constructor(
+    view: View,
+    addPageButtons: AddPageButtons,
+    overlaySwitcher: OverlaySwitcher
+  ) {
     window.addEventListener("keydown", (e) => {
       console.log(e.key);
       switch (e.key) {
@@ -35,6 +41,34 @@ export default class BrowserInput {
         }
         default: {
           break;
+        }
+      }
+    });
+
+    window.addEventListener("click", (e) => {
+      const pos = {
+        x: e.clientX,
+        y: e.clientY,
+      };
+      if (e.shiftKey) {
+        if (addPageButtons.tap(pos)) {
+          return;
+        }
+
+        if (overlaySwitcher.tap(pos)) {
+          return;
+        }
+
+        if (view.focusedPage) {
+          const link = view.focusedPage.paper.getLinkAtPosition(
+            view.camera.screenToWorld(pos)
+          );
+
+          if (link) {
+            view.focusPage(link.getTargetPage(), {
+              noAnimation: true,
+            });
+          }
         }
       }
     });

@@ -240,7 +240,7 @@ const gestures = new GestureSystem([
   new Zoom(view),
 ]);
 
-const browserInput = new BrowserInput(view);
+const browserInput = new BrowserInput(view, addPageButtons, overlaySwitcher);
 
 console.log(notebookCollection.rootPages);
 
