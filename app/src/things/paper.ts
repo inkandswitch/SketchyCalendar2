@@ -231,7 +231,11 @@ export class Paper {
 
   transcludeTo(
     paper: Paper,
-    { position, labels }: { position: Point; labels?: string[] }
+    {
+      position,
+      labels,
+      locked = true,
+    }: { position: Point; labels?: string[]; locked?: boolean }
   ): PaperInstance {
     return PaperInstance.createInstanceOf(this.#state, {
       paperId: this.id,
@@ -239,7 +243,7 @@ export class Paper {
       siblingIndex: 0,
       x: position.x,
       y: position.y,
-      locked: true,
+      locked,
       labels,
     });
   }

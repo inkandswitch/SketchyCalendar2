@@ -34,7 +34,7 @@ import { View } from "view";
 import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import OverlaySwitcher from "overlayswitcher";
-import HighlightSettings from "highlightsettings";
+import TagMenu from "tagmenu";
 
 const ADD_DEV_NOTEBOOK = false;
 const PERSIST_DEV_NOTEBOOK = true;
@@ -189,9 +189,6 @@ const selection = new Selection(view, notebookCollection);
 
 const addPageButtons = new AddPageButtons(view);
 const overlaySwitcher = new OverlaySwitcher(view, notebookCollection);
-const highlightSettings = new HighlightSettings(view, notebookCollection);
-
-console.log("foobar!!!  ");
 
 console.log(notebookCollection.activeTagPapers());
 
@@ -233,10 +230,12 @@ const toolbar = new Toolbar(
   selection
 );
 
+const tagMenu = new TagMenu(view, notebookCollection, toolbar);
+
 const gestures = new GestureSystem([
-  new Draw(view, notebookCollection, toolbar),
+  new Draw(view, notebookCollection, toolbar, tagMenu),
   new PinchIn(view),
-  new Navigate(view, addPageButtons, overlaySwitcher, highlightSettings),
+  new Navigate(view, addPageButtons, overlaySwitcher),
   new Zoom(view),
 ]);
 
@@ -245,7 +244,7 @@ console.log(notebookCollection.rootPages);
 tick((dt) => {
   toolbar.isActive = view.isZoomedIn();
   overlaySwitcher.isActive = view.isZoomedIn();
-  highlightSettings.isActive = view.isZoomedIn();
+  tagMenu.isActive = view.isZoomedIn();
   addPageButtons.isActive = view.zoom.target == 0 && view.zoom.isCloseEnough();
 
   // Update
@@ -261,5 +260,5 @@ tick((dt) => {
   selection.render(render);
   addPageButtons.render(render);
   overlaySwitcher.render(render);
-  highlightSettings.render(render);
+  tagMenu.render(render);
 });

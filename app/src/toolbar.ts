@@ -1,9 +1,9 @@
+import { TouchEvent } from "gesturesystem";
 import { Point } from "lib/point";
 import { Rect } from "lib/rect";
 import Render, { fill, fillAndStroke } from "lib/render";
-import { View } from "view";
 import { NotebookCollection } from "things/notebook";
-import { TouchEvent } from "gesturesystem";
+import { View } from "view";
 
 import { Selection } from "selection";
 
@@ -24,7 +24,7 @@ export abstract class Tool {
     r.image("./img/" + this.icon + ".png", this.position.x, this.position.y);
   }
 
-  getHandler(view: View, notebook: NotebookCollection): ToolHandler {
+  getHandler(_view: View, _notebook: NotebookCollection): ToolHandler {
     throw new Error("Method not implemented.");
   }
 }

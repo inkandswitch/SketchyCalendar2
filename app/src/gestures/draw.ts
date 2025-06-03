@@ -3,16 +3,24 @@ import { NotebookCollection } from "things/notebook";
 import { View } from "view";
 
 import Toolbar, { ToolHandler } from "toolbar";
+import TagMenu from "tagmenu";
 
 export default class Draw implements GestureHandler {
   notebook: NotebookCollection;
   view: View;
   toolbar: Toolbar;
+  tagMenu: TagMenu;
 
   drawHandler: ToolHandler | null = null;
 
-  constructor(view: View, notebook: NotebookCollection, toolbar: Toolbar) {
+  constructor(
+    view: View,
+    notebook: NotebookCollection,
+    toolbar: Toolbar,
+    tagMenu: TagMenu
+  ) {
     this.toolbar = toolbar;
+    this.tagMenu = tagMenu;
     this.notebook = notebook;
     this.view = view;
 
@@ -28,6 +36,18 @@ export default class Draw implements GestureHandler {
       );
       return true;
     }
+
+    if (this.tagMenu.tap(e.current)) {
+      if (this.tagMenu.activeTool) {
+        this.drawHandler = this.tagMenu.activeTool.getHandler(
+          this.view,
+          this.notebook
+        );
+        this.toolbar.activeTool = null;
+      }
+      return true;
+    }
+
     return false;
   }
 

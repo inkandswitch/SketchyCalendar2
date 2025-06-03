@@ -9,7 +9,7 @@ import {
 import { Id } from "id";
 import { buildThingChildrenMap } from "things/thingmap";
 
-import { NewPageProps, Page, PageProps, Template } from "things/page";
+import { NewPageProps, Page, PageProps } from "things/page";
 import {
   NewPaperInstanceProps,
   PaperInstance,

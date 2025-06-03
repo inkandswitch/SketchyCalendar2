@@ -336,8 +336,6 @@ export class View {
       this.offsetByLevel.every((a) => a.isCloseEnough());
 
     if (renderStablePage) {
-      const currentLevel = this.focusedLevel.target;
-
       this.focusedPage?.render(
         r,
         {

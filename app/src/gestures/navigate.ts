@@ -1,17 +1,15 @@
-import { GestureHandler, TouchEvent } from "gesturesystem";
-import { View } from "view";
-import { Vec } from "lib/vec";
-import { Point } from "lib/point";
 import AddPageButtons from "addpagebuttons";
-import { Page } from "things/page";
+import { GestureHandler, TouchEvent } from "gesturesystem";
+import { Point } from "lib/point";
+import { Vec } from "lib/vec";
 import OverlaySwitcher from "overlayswitcher";
-import HighlightSettings from "highlightsettings";
+import { Page } from "things/page";
+import { View } from "view";
 
 export default class Navigate implements GestureHandler {
   view: View;
   addPageButtons: AddPageButtons;
   overlaySwitcher: OverlaySwitcher;
-  highlightSettings: HighlightSettings;
   touch: TouchEvent | null = null;
   swipedLaneOffset: number | null = null;
 
@@ -23,13 +21,11 @@ export default class Navigate implements GestureHandler {
   constructor(
     view: View,
     addPageButtons: AddPageButtons,
-    overlaySwitcher: OverlaySwitcher,
-    highlightSettings: HighlightSettings
+    overlaySwitcher: OverlaySwitcher
   ) {
     this.view = view;
     this.addPageButtons = addPageButtons;
     this.overlaySwitcher = overlaySwitcher;
-    this.highlightSettings = highlightSettings;
   }
 
   onEvent(e: TouchEvent) {
@@ -96,11 +92,6 @@ export default class Navigate implements GestureHandler {
             }
 
             if (this.overlaySwitcher.tap(this.touch.current)) {
-              this.touch = null;
-              return;
-            }
-
-            if (this.highlightSettings.tap(this.touch.current)) {
               this.touch = null;
               return;
             }
