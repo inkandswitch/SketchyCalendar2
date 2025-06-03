@@ -52,17 +52,18 @@ async function loadOrCreateNotebook(
   repo: Repo,
   key: string,
   color: NotebookColor,
+  collection: NotebookCollection,
   onInit: (notebook: Notebook) => void
 ) {
   const notebookDocId = localStorage.getItem(`${key}:docId`) as DocumentId;
 
   if (notebookDocId) {
     const docHandle = await repo.find<NotebookProps>(notebookDocId);
-    const notebook = new Notebook(repo, docHandle);
+    const notebook = new Notebook(repo, docHandle, collection);
 
     return notebook;
   } else {
-    const notebook = Notebook.create(repo, color);
+    const notebook = Notebook.create(repo, color, collection);
     onInit(notebook);
     localStorage.setItem(`${key}:docId`, notebook.documentId);
     return notebook;
@@ -124,6 +125,7 @@ export async function initNotebookCollection() {
         repo,
         "devCalendar",
         "orange",
+        notebookCollection,
         (notebook) => {
           generateCalendarPages({
             notebook,
@@ -133,7 +135,7 @@ export async function initNotebookCollection() {
         }
       );
     } else {
-      devNotebook = Notebook.create(repo, "orange");
+      devNotebook = Notebook.create(repo, "orange", notebookCollection);
 
       generateCalendarPages({
         notebook: devNotebook,
@@ -150,6 +152,7 @@ export async function initNotebookCollection() {
     repo,
     "personalCalendar",
     "blue",
+    notebookCollection,
     (notebook) => {
       generateCalendarPages({
         notebook,
@@ -165,6 +168,7 @@ export async function initNotebookCollection() {
     repo,
     "sharedCalendar",
     "green",
+    notebookCollection,
     (notebook) => {
       generateCalendarPages({
         notebook,

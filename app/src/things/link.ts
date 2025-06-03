@@ -38,7 +38,7 @@ export class Link {
 
   getTarget(): Page | string {
     if (this.props.target.type === "page") {
-      return Page.fromId(this.#state, this.props.target.id);
+      return this.#state.collection.getPageById(this.props.target.id)!;
     } else {
       return this.props.target.url;
     }
@@ -58,17 +58,7 @@ export class Link {
     }
 
     const sourceId = source.id;
-    if (this.#state.props.texts[sourceId as Id<Text>]) {
-      return Text.fromId(this.#state, sourceId as Id<Text>);
-    } else if (
-      this.#state.props.paperInstances[sourceId as Id<PaperInstance>]
-    ) {
-      return PaperInstance.fromId(this.#state, sourceId as Id<PaperInstance>);
-    } else if (this.#state.props.strokes[sourceId as Id<Stroke>]) {
-      return Stroke.fromId(this.#state, sourceId as Id<Stroke>);
-    } else {
-      throw new Error(`Source with id ${sourceId} not found`);
-    }
+    return this.#state.collection.getLinkableById(sourceId);
   }
 
   static fromId(state: State, id: LinkableId): Link {

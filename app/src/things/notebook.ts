@@ -37,6 +37,7 @@ export type NotebookProps = {
 
 export type State = {
   notebook: Notebook;
+  collection: NotebookCollection;
   docHandle: DocHandle<NotebookProps>;
   props: NotebookProps;
   objMap: Map<string, any>;
@@ -152,6 +153,16 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
     }
     return undefined;
   }
+
+  getLinkableById(id: LinkableId): Text | PaperInstance | Stroke {
+    for (const notebook of this.notebooks.values()) {
+      const found = notebook.getLinkableById(id);
+      if (found) {
+        return found;
+      }
+    }
+    throw new Error(`Source with id ${id} not found in any notebook.`);
+  }
 }
 
 export class Notebook extends EventEmitter<NotebookEvents> {
@@ -162,7 +173,11 @@ export class Notebook extends EventEmitter<NotebookEvents> {
   paperIdsWithInstances: Set<Id<Paper>> = new Set();
   notebookCollection?: NotebookCollection;
 
-  constructor(repo: Repo, docHandle: DocHandle<NotebookProps>) {
+  constructor(
+    repo: Repo,
+    docHandle: DocHandle<NotebookProps>,
+    collection: NotebookCollection
+  ) {
     super();
 
     const props = docHandle.doc();
@@ -175,6 +190,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
     this.#state = {
       notebook: this,
+      collection,
       docHandle,
       props,
       objMap: new Map(),
@@ -189,7 +205,11 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     this.rebuild();
   }
 
-  static create(repo: Repo, color: NotebookColor) {
+  static create(
+    repo: Repo,
+    color: NotebookColor,
+    collection: NotebookCollection
+  ) {
     const docHandle = repo.create<NotebookProps>({
       pages: {},
       papers: {},
@@ -200,7 +220,7 @@ export class Notebook extends EventEmitter<NotebookEvents> {
       color,
     });
 
-    return new Notebook(repo, docHandle);
+    return new Notebook(repo, docHandle, collection);
   }
 
   setCalendarUrl(url: AutomergeUrl) {
@@ -310,5 +330,17 @@ export class Notebook extends EventEmitter<NotebookEvents> {
 
   getPaperInstanceById(id: Id<PaperInstance>): PaperInstance {
     return PaperInstance.fromId(this.#state, id);
+  }
+
+  getLinkableById(id: LinkableId): Text | PaperInstance | Stroke {
+    if (this.#state.props.texts[id as Id<Text>]) {
+      return Text.fromId(this.#state, id as Id<Text>);
+    } else if (this.#state.props.paperInstances[id as Id<PaperInstance>]) {
+      return PaperInstance.fromId(this.#state, id as Id<PaperInstance>);
+    } else if (this.#state.props.strokes[id as Id<Stroke>]) {
+      return Stroke.fromId(this.#state, id as Id<Stroke>);
+    } else {
+      throw new Error(`Source with id ${id} not found`);
+    }
   }
 }
