@@ -21,7 +21,7 @@ svg,
 canvas {
   position: absolute;
   inset: 0;
-  height: 100svh;
+  height: 100lvh;
   overflow: hidden;
 }
 
