@@ -65,6 +65,9 @@ export default class PinchIn implements GestureHandler {
           if (percentage > 1) percentage = 1;
           if (percentage < 0) percentage = 0;
           this.view.zoom.target = percentage;
+          this.view.overrideZoom = null;
+          this.view.center.x.target = window.innerWidth / 2;
+          this.view.center.y.target = window.innerHeight / 2;
         } else if (this.state == "init") {
           if (this.a) {
             const factor = window.innerWidth * 0.1;
