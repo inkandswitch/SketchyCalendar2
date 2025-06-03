@@ -127,23 +127,32 @@ export function getMostlyOverlappingInstance(
   const cardRect = cardInstance.getRect();
   const cardArea = Rect.area(cardRect);
 
+  let smallestOverlappingInstance: {
+    instance: PaperInstance;
+    rect: Rect;
+  } | null = null;
+  let smallestArea = Infinity;
+
   // Find paperInstance that partially overlaps
   for (const id in layout.paperInstances) {
     const instanceId = id as Id<PaperInstance>;
     const instance = currentPage.notebook.getPaperInstanceById(instanceId);
-    //if (!isCalendarBackground(instance.paper.background)) continue; // Skip non-calendar backgrounds
 
     if (instanceId == cardInstance.id) continue; // Skip the card's own instance
     const rect = layout.paperInstances[instanceId];
+    const instanceArea = Rect.area(rect);
 
-    if (Rect.area(rect) <= cardArea) {
+    if (instanceArea <= cardArea) {
       continue; // Skip instances that are smaller than the card
     }
 
     if (Rect.isMostlyInside(rect, cardRect)) {
-      return { instance, rect }; // Stop after moving to the first found instance
+      if (instanceArea < smallestArea) {
+        smallestArea = instanceArea;
+        smallestOverlappingInstance = { instance, rect };
+      }
     }
   }
 
-  return null;
+  return smallestOverlappingInstance;
 }

@@ -191,6 +191,7 @@ export class Selection {
           const link = this.notebookCollection.getLinkById(linkId);
           if (link) {
             link.setTargetPage({
+              type: "page",
               id: currentPage.id,
               notebookDocId: currentPage.notebook.documentId,
             });
