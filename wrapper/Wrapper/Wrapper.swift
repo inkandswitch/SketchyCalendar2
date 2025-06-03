@@ -61,7 +61,11 @@ struct WrapperWebView: UIViewRepresentable {
   
   func makeUIView(context: Context) -> WKWebView {
     webView.isInspectable = true
-    webView.navigationDelegate = context.coordinator
+  webView.navigationDelegate = context.coordinator
+    
+    // Add message handler for opening URLs
+    webView.configuration.userContentController.add(context.coordinator, name: "openURL")
+    
     webView.addGestureRecognizer(TouchesToJS(webView))
     webView.load(URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData))
     return webView
@@ -72,7 +76,7 @@ struct WrapperWebView: UIViewRepresentable {
   
   // To make use of various WKWebView delegates, we need a real class
   func makeCoordinator() -> WebViewCoordinator { WebViewCoordinator(self) }
-  class WebViewCoordinator: NSObject, WKNavigationDelegate {
+  class WebViewCoordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
     let parent: WrapperWebView
     
     init(_ webView: WrapperWebView) { self.parent = webView }
@@ -85,6 +89,17 @@ struct WrapperWebView: UIViewRepresentable {
     // This makes the webview ignore certificate errors, so you can use a self-signed cert for https, so that the browser context is trusted, which enables additional APIs
     func webView(_ wv: WKWebView, respondTo challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
       (.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!))
+    }
+
+    // Handle URL opening requests from JavaScript
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "openURL", let urlString = message.body as? String {
+            if let url = URL(string: urlString) {
+                DispatchQueue.main.async {
+                    UIApplication.shared.open(url)
+                }
+            }
+        }
     }
   }
 }

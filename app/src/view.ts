@@ -6,7 +6,6 @@ import Render, { stroke } from "lib/render";
 import { Camera } from "camera";
 import { PAPER_HEIGHT, PAPER_WIDTH } from "constants";
 import { Point } from "lib/point";
-import { hideSettingsLink, showSettingsLink } from "settings";
 import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
 import { Id } from "id";
@@ -318,16 +317,8 @@ export class View {
       PAPER_WIDTH / 2 - this.center.x.value
     }px, ${PAPER_HEIGHT / 2 - this.center.y.value}px)`;
     img.style.opacity = `${(zoom - 1) / 16}`;
-    //const currentLevel = this.zoomHierarchyFocus.target;
 
-    // Show settings link on root page
     let offset_y = this.focusedLevel.value * (PAPER_HEIGHT + GAP);
-
-    if (this.focusedPage?.template?.type === "year" && this.isZoomedIn()) {
-      showSettingsLink(this.focusedPage.notebook);
-    } else {
-      hideSettingsLink();
-    }
 
     // Render the zoom view
     const renderStablePage =

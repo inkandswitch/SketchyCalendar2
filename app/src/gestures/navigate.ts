@@ -2,6 +2,7 @@ import AddPageButtons from "addpagebuttons";
 import { GestureHandler, TouchEvent } from "gesturesystem";
 import { Point } from "lib/point";
 import { Vec } from "lib/vec";
+import { openUrl } from "openurl";
 import OverlaySwitcher from "overlayswitcher";
 import { Page } from "things/page";
 import { View } from "view";
@@ -102,10 +103,18 @@ export default class Navigate implements GestureHandler {
                   this.view.camera.screenToWorld(this.touch.current)
                 );
 
+                console.log("tapped link", link);
+
                 if (link) {
-                  this.view.focusPage(link.getTargetPage(), {
-                    noAnimation: true,
-                  });
+                  const target = link.getTarget();
+
+                  if (target instanceof Page) {
+                    this.view.focusPage(target, {
+                      noAnimation: true,
+                    });
+                  } else {
+                    openUrl(target);
+                  }
                 }
               }
             } else {

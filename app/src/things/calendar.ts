@@ -11,6 +11,7 @@ import {
 import { Notebook } from "./notebook";
 import { Paper } from "./paper";
 import { FONT_BIG, FONT_SMALL, PAPER_HEIGHT, PAPER_WIDTH } from "constants";
+import { font, measureText } from "lib/render";
 
 const GAP = 30;
 
@@ -55,6 +56,20 @@ export function generateCalendarPages({
     labels: ["todayLink"],
     font: FONT_BIG,
   });
+
+  const settingsLabel = "Settings";
+  const settingsLinkSize = measureText(settingsLabel, font(FONT_BIG));
+
+  const settingsLink = rootPage.paper.addNewText({
+    labels: ["settingsLink"],
+    siblingIndex: 0,
+    value: settingsLabel,
+    x: PAPER_WIDTH - settingsLinkSize.width - 100,
+    y: PAPER_HEIGHT - settingsLinkSize.height - 100,
+    font: FONT_BIG,
+  });
+
+  settingsLink.addLinkTo(`/config.html?notebookDocUrl=${notebook.documentId}`);
 
   const monthDates = [];
   const monthPages = [];

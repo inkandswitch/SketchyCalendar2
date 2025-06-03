@@ -118,15 +118,19 @@ export class Stroke {
     });
   }
 
-  addLinkTo(target: Page) {
+  addLinkTo(target: Page | string) {
     this.setColor("#8844FF");
 
     return Link.create(this.#state, {
       id: this.props.id,
-      targetPage: {
-        id: target.id,
-        notebookDocId: target.notebook.documentId,
-      },
+      target:
+        typeof target === "string"
+          ? { type: "url", url: target }
+          : {
+              type: "page",
+              id: target.id,
+              notebookDocId: target.notebook.documentId,
+            },
     });
   }
 

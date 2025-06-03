@@ -59,13 +59,17 @@ export class Text {
     this.labels = props.labels;
   }
 
-  addLinkTo(target: Page) {
+  addLinkTo(target: Page | string) {
     return Link.create(this.#state, {
       id: this.id,
-      targetPage: {
-        id: target.id,
-        notebookDocId: target.notebook.documentId,
-      },
+      target:
+        typeof target === "string"
+          ? { type: "url", url: target }
+          : {
+              type: "page",
+              id: target.id,
+              notebookDocId: target.notebook.documentId,
+            },
     });
   }
 

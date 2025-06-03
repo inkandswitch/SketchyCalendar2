@@ -2,6 +2,7 @@ import { isToday } from "date-fns";
 import { generateId, Id } from "id";
 import { Point } from "lib/point";
 import { Polygon } from "lib/polygon";
+import { Rect } from "lib/rect";
 import Render, {
   fill,
   fillAndStroke,
@@ -15,7 +16,6 @@ import {
   NO_STICKY_NOTE_COLOR,
   SELECTION_COLOR,
   SHADOW_COLOR,
-  STICKY_NOTE_BLUE,
   UNDERLAY_BACKGROUND_COLOR,
   UNDERLAY_INK_COLOR,
 } from "../constants";
@@ -24,7 +24,6 @@ import { Link } from "./link";
 import { Notebook, State } from "./notebook";
 import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
-import { Rect } from "lib/rect";
 
 export type Background =
   | null

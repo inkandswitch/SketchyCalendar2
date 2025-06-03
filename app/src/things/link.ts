@@ -10,13 +10,21 @@ import { Text } from "./text";
 export type LinkableId = Id<Text | PaperInstance | Stroke | Page>;
 
 export type TargetPage = {
+  type: "page";
   id: Id<Page>;
   notebookDocId: DocumentId;
 };
 
+export type TargetUrl = {
+  type: "url";
+  url: string;
+};
+
+export type LinkTarget = TargetPage | TargetUrl;
+
 export type LinkProps = {
   id: LinkableId;
-  targetPage: TargetPage;
+  target: LinkTarget;
 };
 
 export class Link {
@@ -28,15 +36,19 @@ export class Link {
     this.props = props;
   }
 
-  getTargetPage(): Page {
-    return Page.fromId(this.#state, this.props.targetPage.id);
+  getTarget(): Page | string {
+    if (this.props.target.type === "page") {
+      return Page.fromId(this.#state, this.props.target.id);
+    } else {
+      return this.props.target.url;
+    }
   }
 
   setTargetPage(targetPage: TargetPage): void {
     this.#state.docHandle.change((state) => {
-      state.links[this.props.id].targetPage = targetPage;
+      state.links[this.props.id].target = targetPage;
     });
-    this.props.targetPage = targetPage;
+    this.props.target = targetPage;
   }
 
   getSource(): Text | PaperInstance | Stroke {
