@@ -259,7 +259,7 @@ export class View {
     let targetParentPage = focusedPage.parent!;
 
     if (targetParentPage) {
-      for (let i = focusedLevel - 1; i > 0; i--) {
+      for (let i = focusedLevel - 1; i >= 0; i--) {
         const offsetAtLevelVariable = this.offsetByLevel[i];
         const offsetAtLevel = offsetAtLevelVariable.target;
         const pagesAtLevel = this.pagesByLevel[i];
