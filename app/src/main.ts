@@ -18,6 +18,7 @@ import Draw from "gestures/draw";
 import Navigate from "gestures/navigate";
 import PinchIn from "gestures/pinchin";
 import Zoom from "gestures/zoom";
+import BrowserInput from "browserinput";
 
 // Notebook
 import AddPageButtons from "addpagebuttons";
@@ -238,6 +239,8 @@ const gestures = new GestureSystem([
   new Navigate(view, addPageButtons, overlaySwitcher),
   new Zoom(view),
 ]);
+
+const browserInput = new BrowserInput(view);
 
 console.log(notebookCollection.rootPages);
 
