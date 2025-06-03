@@ -15,6 +15,7 @@ import {
   NO_STICKY_NOTE_COLOR,
   SELECTION_COLOR,
   SHADOW_COLOR,
+  STICKY_NOTE_BLUE,
   UNDERLAY_BACKGROUND_COLOR,
   UNDERLAY_INK_COLOR,
 } from "../constants";
@@ -23,6 +24,7 @@ import { Link } from "./link";
 import { Notebook, State } from "./notebook";
 import { NewPaperInstanceProps, PaperInstance } from "./paperinstance";
 import { NewTextProps, Text } from "./text";
+import { Rect } from "lib/rect";
 
 export type Background =
   | null
@@ -116,6 +118,8 @@ export class Paper {
   }
 
   static colorsByTagPaperId: Map<Id<Paper>, string> = new Map();
+
+  static noBackgroundColors: boolean = false;
 
   static fromId(state: State, id: Id<Paper>) {
     const cached = state.objMap.get(id) as Paper | undefined;
@@ -284,6 +288,22 @@ export class Paper {
       });
   }
 
+  getTaggedColors(): string[] {
+    const tagIds = this.getTagIds();
+    return Array.from(
+      new Set(
+        tagIds.flatMap((tagId) => {
+          const color = Paper.colorsByTagPaperId.get(tagId);
+          if (!color || color === NO_STICKY_NOTE_COLOR) {
+            return [];
+          }
+
+          return color;
+        })
+      )
+    );
+  }
+
   render(r: Render, position: Point, options: PaperRenderOptions = {}) {
     const {
       hasShadow = false,
@@ -295,9 +315,10 @@ export class Paper {
     // Render background color if color is specified or if it has shadow
     let backgroundStyle = stroke("#999", 1);
     if (isSolidColor(this.background) || hasShadow) {
-      const backgroundColor = isSolidColor(this.background)
-        ? this.background
-        : "#fff";
+      const backgroundColor =
+        isSolidColor(this.background) && !Paper.noBackgroundColors
+          ? this.background
+          : "#fff";
 
       backgroundStyle = isBackground
         ? fillAndStroke(UNDERLAY_BACKGROUND_COLOR, UNDERLAY_INK_COLOR, 1)
@@ -314,15 +335,15 @@ export class Paper {
       );
 
       // check it should be rendered in a different color based on the assigned colors to a tag paper
-      if (!isBackground) {
-        const tagIds = this.getTagIds();
-        for (const tagId of tagIds) {
-          const color = Paper.colorsByTagPaperId.get(tagId);
-          if (color && color !== NO_STICKY_NOTE_COLOR) {
-            backgroundStyle = fill(color);
-          }
-        }
-      }
+      // if (!isBackground) {
+      //   const tagIds = this.getTagIds();
+      //   for (const tagId of tagIds) {
+      //     const color = Paper.colorsByTagPaperId.get(tagId);
+      //     if (color && color !== NO_STICKY_NOTE_COLOR) {
+      //       backgroundStyle = fill(color);
+      //     }
+      //   }
+      // }
     }
 
     if (isSelected) {
@@ -471,14 +492,50 @@ function renderCalendarBackground(
 ) {
   // Draw calendar grid
   const calendarHeight = paper.height;
+  const hourHeight = calendarHeight / 13;
 
   for (let i = 0; i < 13; i++) {
     const hour = i + 8;
-    const offset = (calendarHeight / 13) * i;
+    const offset = hourHeight * i;
     const y = position.y + offset;
-    r.text(`${hour}:00`, position.x + 10, y + 10, font("12px Arial", "#CCC"));
+
+    const hourRect = Rect({ x: 0, y: offset }, paper.width, hourHeight);
+
+    const overlappingChild = paper.children.filter((child) => {
+      const childRect: Rect = {
+        position: child,
+        width: child.paper.width,
+        height: child.paper.height,
+      };
+
+      return Rect.overlapArea(hourRect, childRect) > 0;
+    });
+
+    const colors = overlappingChild.flatMap((child) =>
+      child.paper.getTaggedColors()
+    );
+
+    if (colors.length > 0) {
+      if (colors.length === 1) {
+        r.rect(position.x, y, paper.width, hourHeight, fill(colors[0] + "44"));
+      } else {
+        // Create striped pattern with multiple colors
+        const stripeHeight = hourHeight / colors.length;
+        colors.forEach((color, index) => {
+          r.rect(
+            position.x,
+            y + index * stripeHeight,
+            paper.width,
+            stripeHeight,
+            fill(color + "44")
+          );
+        });
+      }
+    }
 
     r.line(position.x, y, position.x + paper.width, y, stroke("#CCC", 1));
+
+    r.text(`${hour}:00`, position.x + 10, y + 10, font("12px Arial", "#CCC"));
   }
 
   if (isToday(date)) {

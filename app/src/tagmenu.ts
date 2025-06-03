@@ -48,8 +48,6 @@ export default class TagMenu {
     let offset = PAPER_HEIGHT - 20;
 
     for (const paper of allTags) {
-      let colorPicker = this.colorPickersByPaperId.get(paper.id);
-
       let tool = this.toolsByPaperId.get(paper.id);
 
       if (!tool) {
@@ -58,6 +56,8 @@ export default class TagMenu {
         );
         this.toolsByPaperId.set(paper.id, tool);
       }
+
+      let colorPicker = this.colorPickersByPaperId.get(paper.id);
 
       if (!colorPicker) {
         const onChangeColor = (c: string) => {
@@ -103,6 +103,14 @@ export default class TagMenu {
 
     for (const option of options) {
       if (option.colorPicker.tap(point)) {
+        const highlightIsActive = options.some(
+          (option) => option.colorPicker.value !== NO_STICKY_NOTE_COLOR
+        );
+
+        console.log(options.map((o) => o.colorPicker.value));
+
+        Paper.noBackgroundColors = highlightIsActive;
+
         return true;
       }
 

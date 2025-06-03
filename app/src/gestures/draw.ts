@@ -34,6 +34,7 @@ export default class Draw implements GestureHandler {
         this.view,
         this.notebook
       );
+      this.tagMenu.activeTool = null;
       return true;
     }
 
