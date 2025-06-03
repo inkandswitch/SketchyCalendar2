@@ -142,6 +142,16 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
 
     return this.#activeTagPapers;
   }
+
+  getPageById(id: Id<Page>): Page | undefined {
+    for (const notebook of this.notebooks.values()) {
+      const page = notebook.getPageById(id);
+      if (page) {
+        return page;
+      }
+    }
+    return undefined;
+  }
 }
 
 export class Notebook extends EventEmitter<NotebookEvents> {
@@ -282,7 +292,11 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     return this.#state.docHandle.documentId;
   }
 
-  getPageById(id: Id<Page>): Page {
+  getPageById(id: Id<Page>): Page | undefined {
+    if (!this.#state.props.pages.hasOwnProperty(id)) {
+      return undefined;
+    }
+
     return Page.fromId(this.#state, id);
   }
 

@@ -9,6 +9,7 @@ import { Point } from "lib/point";
 import { hideSettingsLink, showSettingsLink } from "settings";
 import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
+import { Id } from "id";
 
 const GAP = 20;
 
@@ -21,7 +22,7 @@ export class View {
   notebookCollection: NotebookCollection;
 
   focusedPage: Page | null = null;
-  zoom: AnimateVariable = new AnimateVariable(1); // between zero and one
+  zoom: AnimateVariable;
   overrideZoom: number | null = null; // temporary zoom for pinch gesture
   center = {
     x: new AnimateVariable(PAPER_WIDTH / 2),
@@ -34,12 +35,38 @@ export class View {
   pagesByLevel: Array<Array<Page>>;
 
   constructor(camera: Camera, notebook: NotebookCollection) {
+    const storedZoomString = localStorage.getItem("zoom");
+    const storedZoomParsed = storedZoomString
+      ? parseFloat(storedZoomString)
+      : undefined;
+
+    this.zoom = new AnimateVariable(
+      storedZoomParsed !== undefined && !isNaN(storedZoomParsed)
+        ? storedZoomParsed
+        : 1,
+      (value) => {
+        localStorage.setItem("zoom", value.toString());
+      }
+    );
+
     this.camera = camera;
     this.notebookCollection = notebook;
     this.pagesByLevel = [];
 
     this.notebookCollection.on("changed", this.#onNotebookChanged);
     this.rebuild();
+
+    const focusedPageId = localStorage.getItem("focusedPageId");
+    if (focusedPageId) {
+      console.log("focusing page", focusedPageId);
+      const page = this.notebookCollection.getPageById(
+        focusedPageId as Id<Page>
+      );
+      console.log("page", page);
+      if (page) {
+        this.focusPage(page, { noAnimation: true });
+      }
+    }
   }
 
   destroy() {
@@ -66,6 +93,8 @@ export class View {
   }
 
   focusPage(page: Page, config: TransitionConfig = {}) {
+    localStorage.setItem("focusedPageId", page.id);
+
     const location = this.getPageLocation(page);
     if (!location) {
       console.error("page not found in hierarchy", page);

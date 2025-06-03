@@ -1,14 +1,35 @@
 export class AnimateVariable {
-  value: number;
-  target: number;
+  #value: number;
+  #target: number;
+  onChange?: (value: number) => void;
 
-  constructor(value: number) {
-    this.value = value;
-    this.target = value;
+  constructor(value: number, onChange?: (value: number) => void) {
+    this.#value = value;
+    this.#target = value;
+    this.onChange = onChange;
+  }
+
+  set value(value: number) {
+    this.#value = value;
+  }
+
+  get value() {
+    return this.#value;
+  }
+
+  set target(target: number) {
+    if (this.onChange) {
+      this.onChange(target);
+    }
+    this.#target = target;
+  }
+
+  get target() {
+    return this.#target;
   }
 
   update(dx: number) {
-    this.value = this.value + (this.target - this.value) * dx * 20;
+    this.#value = this.#value + (this.#target - this.#value) * dx * 20;
   }
 
   isCloseEnough(): boolean {
