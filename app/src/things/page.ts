@@ -1,14 +1,14 @@
 import { Background } from "./paper";
 
 import { generateId, Id } from "id";
-import { Paper } from "./paper";
-import { NotebookCollection, State } from "./notebook";
-import Render, { fillAndStroke, font } from "lib/render";
 import { Point } from "lib/point";
-import { PaperInstance } from "./paperinstance";
 import { Rect } from "lib/rect";
+import Render, { fillAndStroke } from "lib/render";
 import { Vec } from "lib/vec";
 import { Stroke } from "./ink";
+import { NotebookCollection, State } from "./notebook";
+import { Paper } from "./paper";
+import { PaperInstance } from "./paperinstance";
 
 export type Template =
   | { type: "day"; date: string }

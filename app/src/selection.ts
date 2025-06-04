@@ -1,29 +1,27 @@
 import { Id } from "id";
-import { Stroke } from "things/ink";
-import { Polygon } from "lib/polygon";
 import { Point } from "lib/point";
-import { Vec } from "lib/vec";
+import { Polygon } from "lib/polygon";
 import { Rect } from "lib/rect";
+import { Vec } from "lib/vec";
+import { Stroke } from "things/ink";
 
 import { TouchEvent } from "gesturesystem";
 
 import Render, { dashedStroke, fill } from "lib/render";
-import { View } from "view";
-import { PaperInstance } from "things/paperinstance";
 import { NotebookCollection } from "things/notebook";
-
-import { getMostlyOverlappingInstance } from "tools/card";
-import { PageLayout, Page } from "things/page";
+import { PaperInstance } from "things/paperinstance";
+import { View } from "view";
 
 import {
-  ActionBar,
   Action,
-  ColorDropDownAction,
+  ActionBar,
   ActionInterface,
+  ColorDropDownAction,
 } from "actionbar";
-import { STICKY_NOTE_COLORS as STICKY_NOTE_COLORS } from "constants";
+import { STICKY_NOTE_COLORS } from "constants";
 import { LinkableId } from "things/link";
-import { isTagBackground } from "things/paper";
+import { Page } from "things/page";
+import { getMostlyOverlappingInstance } from "tools/card";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -202,11 +200,7 @@ export class Selection {
           paperInstance.reparent(currentPage.paper.id);
         }
 
-        const found = getMostlyOverlappingInstance(
-          currentPage,
-          paperInstance,
-          !isTagBackground(paperInstance.paper.background)
-        );
+        const found = getMostlyOverlappingInstance(currentPage, paperInstance);
         if (found) {
           PaperInstance.highlighted.set(found.instance.id, true);
         }
@@ -247,61 +241,7 @@ export class Selection {
         const paperInstance =
           this.notebookCollection.getPaperInstanceById(paperInstanceId);
 
-        const isTag = isTagBackground(paperInstance.paper.background);
         const found = getMostlyOverlappingInstance(currentPage, paperInstance);
-
-        // special handling for tags
-        if (isTag) {
-          const parentPaper = this.notebookCollection.getPaperById(
-            found?.instance.paper.id ?? currentPage.paper.id
-          )!;
-          let pos: Point = paperInstance;
-
-          if (found) {
-            pos = {
-              x: paperInstance.x - found.rect.position.x,
-              y: paperInstance.y - found.rect.position.y,
-            };
-          }
-
-          const otherTag = getMostlyOverlappingInstance(
-            currentPage,
-            paperInstance,
-            false
-          );
-
-          if (otherTag) {
-            paperInstance.moveTo(parentPaper.id, {
-              x: pos.x,
-              y: otherTag.instance.y,
-            });
-
-            const tags: PaperInstance[] = [otherTag.instance];
-
-            for (const tag of parentPaper.children) {
-              if (
-                isTagBackground(tag.paper.background) &&
-                tag.id !== otherTag.instance.id &&
-                tags.some(
-                  (t) => Rect.overlapArea(t.getRect(), tag.getRect()) > 0
-                )
-              ) {
-                tags.push(tag);
-              }
-            }
-
-            tags.sort((a, b) => a.x - b.x);
-
-            let nextSiblingIndex = 1;
-
-            for (const tag of tags) {
-              tag.update({
-                siblingIndex: nextSiblingIndex,
-              });
-              nextSiblingIndex++;
-            }
-          }
-        }
 
         if (found == null) {
           continue;
@@ -336,6 +276,7 @@ export class Selection {
 
     // If the total movement is small, we consider it a click
     PaperInstance.highlighted.clear();
+    this.view.focusedPage!.paper.orderTags();
     this.clear();
   }
 

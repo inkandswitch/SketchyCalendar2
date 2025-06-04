@@ -96,3 +96,12 @@ Rect.AABBfromPoints = (points: Point[]): Rect => {
 Rect.area = (rect: Rect): number => {
   return rect.width * rect.height;
 };
+
+Rect.union = (a: Rect, b: Rect): Rect => {
+  const minX = Math.min(a.position.x, b.position.x);
+  const minY = Math.min(a.position.y, b.position.y);
+  const maxX = Math.max(a.position.x + a.width, b.position.x + b.width);
+  const maxY = Math.max(a.position.y + a.height, b.position.y + b.height);
+
+  return Rect({ x: minX, y: minY }, maxX - minX, maxY - minY);
+};

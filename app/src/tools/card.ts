@@ -7,9 +7,9 @@ import { Page } from "things/page";
 import { PaperInstance } from "things/paperinstance";
 import { Tool, ToolHandler } from "toolbar";
 
-import { Vec } from "lib/vec";
 import { Point } from "lib/point";
-import { isTagBackground, Paper } from "things/paper";
+import { Vec } from "lib/vec";
+import { Paper } from "things/paper";
 
 export default class CardTool extends Tool {
   icon: string;
@@ -121,8 +121,7 @@ export class CardHandler implements ToolHandler {
 
 export function getMostlyOverlappingInstance(
   currentPage: Page,
-  cardInstance: PaperInstance,
-  filterOutSmallerDropTargets: boolean = true
+  cardInstance: PaperInstance
 ): { instance: PaperInstance; rect: Rect } | null {
   const layout = currentPage.getLayout();
   const cardRect = cardInstance.getRect();
@@ -143,7 +142,7 @@ export function getMostlyOverlappingInstance(
     const rect = layout.paperInstances[instanceId];
     const instanceArea = Rect.area(rect);
 
-    if (instanceArea <= cardArea && filterOutSmallerDropTargets) {
+    if (instanceArea <= cardArea) {
       continue;
     }
 

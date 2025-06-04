@@ -10,7 +10,7 @@ import { Rect } from "lib/rect";
 import Render from "lib/render";
 import { NotebookCollection } from "things/notebook";
 import { Paper } from "things/paper";
-import Toolbar, { Tool } from "toolbar";
+import { Tool } from "toolbar";
 import CardTool from "tools/card";
 import { View } from "view";
 
@@ -25,19 +25,13 @@ export default class TagMenu {
   isActive: boolean = false;
   view: View;
   notebookCollection: NotebookCollection;
-  toolbar: Toolbar;
   colorPickersByPaperId: Map<Id<Paper>, ColorDropDownAction> = new Map();
   toolsByPaperId: Map<Id<Paper>, Tool> = new Map();
   activeTool: Tool | null = null;
 
-  constructor(
-    view: View,
-    notebookCollection: NotebookCollection,
-    toolbar: Toolbar
-  ) {
+  constructor(view: View, notebookCollection: NotebookCollection) {
     this.view = view;
     this.notebookCollection = notebookCollection;
-    this.toolbar = toolbar;
   }
 
   getTagOptions(): TagOption[] {
@@ -51,9 +45,19 @@ export default class TagMenu {
       let tool = this.toolsByPaperId.get(paper.id);
 
       if (!tool) {
-        tool = new CardTool("tag", (targetPaper, position) =>
-          paper.transcludeTo(targetPaper, { position, locked: false })
-        );
+        tool = new CardTool("tag", (targetPaper, position) => {
+          const newPaperInstance = paper.transcludeTo(targetPaper, {
+            position,
+            locked: false,
+          });
+
+          // aweful hack, need to wait so order is applied to new version
+          setTimeout(() => {
+            this.view.focusedPage!.paper.orderTags();
+          }, 100);
+
+          return newPaperInstance;
+        });
         this.toolsByPaperId.set(paper.id, tool);
       }
 
@@ -106,8 +110,6 @@ export default class TagMenu {
         const highlightIsActive = options.some(
           (option) => option.colorPicker.value !== NO_STICKY_NOTE_COLOR
         );
-
-        console.log(options.map((o) => o.colorPicker.value));
 
         Paper.noBackgroundColors = highlightIsActive;
 

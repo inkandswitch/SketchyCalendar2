@@ -1,8 +1,8 @@
 import { DocumentId, Repo } from "@automerge/automerge-repo";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 
-import Render from "lib/render";
 import { Camera } from "camera";
+import Render from "lib/render";
 import tick from "lib/tick";
 
 // Tools
@@ -12,32 +12,30 @@ import PenTool from "tools/pen";
 import SelectTool from "tools/select";
 
 // Gestures
-import { GestureSystem } from "gesturesystem";
-import { InputSystem } from "inputsystem";
+import BrowserInput from "browserinput";
 import Draw from "gestures/draw";
 import Navigate from "gestures/navigate";
 import PinchIn from "gestures/pinchin";
 import Zoom from "gestures/zoom";
-import BrowserInput from "browserinput";
+import { GestureSystem } from "gesturesystem";
+import { InputSystem } from "inputsystem";
 
 // Notebook
+import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import AddPageButtons from "addpagebuttons";
+import { getYear } from "date-fns";
+import OverlaySwitcher from "overlayswitcher";
 import { Selection } from "selection";
+import TagMenu from "tagmenu";
+import { generateCalendarPages, updateCalendarPages } from "things/calendar";
 import {
   Notebook,
   NotebookCollection,
   NotebookColor,
   NotebookProps,
 } from "things/notebook";
-import { generateCalendarPages, updateCalendarPages } from "things/calendar";
 import CardTool from "tools/card";
 import { View } from "view";
-import { getYear } from "date-fns";
-import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
-import OverlaySwitcher from "overlayswitcher";
-import TagMenu from "tagmenu";
-import { PAPER_HEIGHT } from "constants";
-import { PAPER_WIDTH } from "constants";
 
 const ADD_DEV_NOTEBOOK = false;
 const PERSIST_DEV_NOTEBOOK = true;
@@ -74,7 +72,7 @@ async function loadOrCreateNotebook(
 
 export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [], //[new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+    network: [new BrowserWebSocketClientAdapter("wss://sync3.automerge.org")],
     storage: new IndexedDBStorageAdapter(),
   });
 
@@ -236,7 +234,7 @@ const toolbar = new Toolbar(
   selection
 );
 
-const tagMenu = new TagMenu(view, notebookCollection, toolbar);
+const tagMenu = new TagMenu(view, notebookCollection);
 
 const gestures = new GestureSystem([
   new Draw(view, notebookCollection, toolbar, tagMenu),

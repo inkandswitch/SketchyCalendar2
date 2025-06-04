@@ -5,10 +5,10 @@ import Render, { stroke } from "lib/render";
 
 import { Camera } from "camera";
 import { PAPER_HEIGHT, PAPER_WIDTH } from "constants";
+import { Id } from "id";
 import { Point } from "lib/point";
 import { NotebookCollection } from "things/notebook";
 import { Page } from "things/page";
-import { Id } from "id";
 
 const GAP = 20;
 

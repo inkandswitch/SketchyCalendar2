@@ -3,13 +3,7 @@ import { generateId, Id } from "id";
 import { Point } from "lib/point";
 import { Polygon } from "lib/polygon";
 import { Rect } from "lib/rect";
-import Render, {
-  fill,
-  fillAndStroke,
-  font,
-  measureText,
-  stroke,
-} from "lib/render";
+import Render, { fill, fillAndStroke, font, stroke } from "lib/render";
 import { Vec } from "lib/vec";
 import {
   LINK_COLORS,
@@ -256,6 +250,84 @@ export class Paper {
       ...props,
       parentId: this.id,
     });
+  }
+
+  getInkBoundingBox(): Rect {
+    let boundingBox: Rect | null = null;
+
+    for (const stroke of this.strokes) {
+      const rect = stroke.getRect({ x: 0, y: 0 });
+      boundingBox = boundingBox ? Rect.union(boundingBox, rect) : rect;
+    }
+
+    return (
+      boundingBox ?? {
+        position: { x: 0, y: 0 },
+        width: 0,
+        height: 0,
+      }
+    );
+  }
+
+  orderTags() {
+    const tagGroups = this.getTagGroups();
+
+    tagGroups.forEach((tags) => {
+      if (tags.length == 1) return;
+
+      tags.sort((a, b) => a.x - b.x);
+
+      let nextSiblingIndex = 1;
+      let offset = tags[0].x;
+      let y = tags[0].y;
+
+      console.log("fix overlapping tags");
+
+      for (const tag of tags) {
+        const newSiblingIndex = nextSiblingIndex;
+        const inkBoundingBox = tag.paper.getInkBoundingBox();
+
+        tag.update({
+          siblingIndex: newSiblingIndex,
+          x: offset,
+          y,
+        });
+
+        offset += inkBoundingBox.width + inkBoundingBox.position.x + 5;
+        nextSiblingIndex++;
+      }
+    });
+
+    this.children.forEach((child) => {
+      child.paper.orderTags();
+    });
+  }
+
+  getTagGroups(): PaperInstance[][] {
+    const tagGroups: PaperInstance[][] = [];
+
+    for (const child of this.children) {
+      if (!isTagBackground(child.paper.background)) {
+        continue;
+      }
+
+      const rect = child.getRect();
+
+      for (const tagGroup of tagGroups) {
+        if (
+          tagGroup.some(
+            (tagPaper) => Rect.overlapArea(tagPaper.getRect(), rect) > 0
+          )
+        ) {
+          tagGroup.push(child);
+          break;
+        }
+      }
+
+      tagGroups.push([child]);
+    }
+
+    return tagGroups;
   }
 
   addNewStroke(color: string, weight: number) {
