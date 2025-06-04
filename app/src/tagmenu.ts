@@ -2,7 +2,6 @@ import { ColorDropDownAction } from "actionbar";
 import {
   FONT_BIG,
   NO_STICKY_NOTE_COLOR,
-  PAPER_HEIGHT,
   STICKY_NOTE_COLORS,
   TAG_PAPER_WIDTH,
 } from "constants";
@@ -55,7 +54,7 @@ export default class TagMenu {
       return {
         options: [],
         container: {
-          position: { x: 20, y: PAPER_HEIGHT - HEADER_HEIGHT },
+          position: { x: 20, y: window.innerHeight - HEADER_HEIGHT },
           width: TAG_PAPER_WIDTH + 80,
           height: HEADER_HEIGHT,
         },
@@ -64,7 +63,7 @@ export default class TagMenu {
 
     const options: TagOption[] = [];
 
-    let offset = PAPER_HEIGHT - 20;
+    let offset = window.innerHeight - 20;
 
     for (const paper of allTags) {
       let tool = this.toolsByPaperId.get(paper.id);
@@ -123,12 +122,12 @@ export default class TagMenu {
     const lastOption = options[options.length - 1];
 
     const containerHeight =
-      HEADER_HEIGHT + (PAPER_HEIGHT - lastOption.position.y);
+      HEADER_HEIGHT + (window.innerHeight - lastOption.position.y);
 
     return {
       options,
       container: {
-        position: { x: 20, y: PAPER_HEIGHT - containerHeight },
+        position: { x: 20, y: window.innerHeight - containerHeight },
         width: TAG_PAPER_WIDTH + 80,
         height: containerHeight,
       },
