@@ -452,6 +452,43 @@ export class Paper {
     return null;
   }
 
+  getPaperInstancesInsideHull(
+    hull: Polygon,
+    offset: Point = { x: 0, y: 0 }
+  ): Set<Id<PaperInstance>> {
+    let found = new Set<Id<PaperInstance>>();
+    for (const paperInstance of this.children) {
+      const childOffset = Vec.add(paperInstance, offset);
+      const rect = Rect(
+        childOffset,
+        paperInstance.paper.width,
+        paperInstance.paper.height
+      );
+      if (Polygon.isRectInside(hull, rect)) {
+        found.add(paperInstance.id);
+      }
+    }
+
+    // No need to check nested papers if we already found some instances
+    // This ensures we only select the topmost instances
+    if (found.size > 0) {
+      return found;
+    }
+
+    for (const paperInstance of this.children) {
+      const childOffset = Vec.add(paperInstance, offset);
+      const childFound = paperInstance.paper.getPaperInstancesInsideHull(
+        hull,
+        childOffset
+      );
+      for (const instanceId of childFound) {
+        found.add(instanceId);
+      }
+    }
+
+    return found;
+  }
+
   getStrokesInsideHull(
     hull: Polygon,
     offset: Point = { x: 0, y: 0 }

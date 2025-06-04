@@ -109,14 +109,34 @@ export class Selection {
       }
     }
 
-    // Collect the strokes inside of the hull
     const currentPage = this.view.focusedPage!;
+    // Collect all the papers inside of the hull
+    this.selectedPaperInstances = currentPage.paper.getPaperInstancesInsideHull(
+      this.hull!
+    );
+    if (this.selectedPaperInstances.size > 0) {
+      const layout = currentPage.getLayout();
+      for (const paperInstanceId of this.selectedPaperInstances) {
+        const paperInstance =
+          this.notebookCollection.getPaperInstanceById(paperInstanceId);
+        if (paperInstance) {
+          PaperInstance.selected.set(paperInstance.id, true);
+          // Reparent the paper instance to the current page
+          const rect = layout.paperInstances[paperInstanceId];
+          paperInstance.moveTo(currentPage.paper.id, rect.position);
+        }
+      }
+      this.mode = "selected";
+      this.openActionBar();
+      return;
+    }
+
+    // Collect the strokes inside of the hull
+
     this.selectedStrokes = currentPage.paper.getStrokesInsideHull(this.hull!);
     if (this.selectedStrokes.size > 0) {
       const layout = currentPage.getLayout();
-      console.log(layout);
-      console.log(this.selectedStrokes);
-      this.mode = "selected";
+
       for (const strokeId of this.selectedStrokes) {
         const stroke = currentPage.paper.notebook.getStrokeById(strokeId)!;
         const rect = layout.strokes[strokeId];
@@ -126,10 +146,13 @@ export class Selection {
         Stroke.selected.set(strokeId, true);
       }
 
+      this.mode = "selected";
       this.openActionBar();
-    } else {
-      this.clear();
+      return;
     }
+
+    // If no selection was found, reset the selection
+    this.clear();
   }
 
   // Move selection

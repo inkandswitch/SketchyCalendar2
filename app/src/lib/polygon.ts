@@ -1,4 +1,5 @@
 import { Point } from "./point";
+import { Rect } from "./rect";
 export type Polygon = Array<Point>;
 
 export function Polygon(points: Array<Point>): Polygon {
@@ -26,4 +27,15 @@ Polygon.isPointInside = (polygon: Polygon, point: Point): boolean => {
   }
 
   return inside;
+};
+
+Polygon.isRectInside = (polygon: Polygon, rect: Rect): boolean => {
+  // Check if all corners of the rectangle are inside the polygon
+  const corners = Rect.toCorners(rect);
+  return corners.every((corner) => Polygon.isPointInside(polygon, corner));
+};
+
+Polygon.isPolygonInside = (outer: Polygon, inner: Polygon): boolean => {
+  // Check if all points of the inner polygon are inside the outer polygon
+  return inner.every((point) => Polygon.isPointInside(outer, point));
 };

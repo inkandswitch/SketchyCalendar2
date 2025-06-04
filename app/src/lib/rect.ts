@@ -10,6 +10,15 @@ export function Rect(position: Point, width: number, height: number): Rect {
   return { position: position, width, height };
 }
 
+Rect.toCorners = (rect: Rect): Point[] => {
+  return [
+    Point(rect.position.x, rect.position.y), // Top-left
+    Point(rect.position.x + rect.width, rect.position.y), // Top-right
+    Point(rect.position.x + rect.width, rect.position.y + rect.height), // Bottom-right
+    Point(rect.position.x, rect.position.y + rect.height), // Bottom-left
+  ];
+};
+
 Rect.isPointInside = (rect: Rect, point: Point): boolean => {
   return (
     point.x >= rect.position.x &&
