@@ -13,7 +13,8 @@ import { PaperInstance } from "things/paperinstance";
 import { NotebookCollection } from "things/notebook";
 
 import { getMostlyOverlappingInstance } from "tools/card";
-import { PageLayout } from "things/page";
+import { PageLayout, Page } from "things/page";
+
 import {
   ActionBar,
   Action,
@@ -251,12 +252,14 @@ export class Selection {
     }
 
     if (this.selectedStrokes) {
-      const layout = currentPage.getLayout();
       for (const strokeId of this.selectedStrokes) {
         const stroke = currentPage.notebook.getStrokeById(strokeId);
         if (!stroke) continue;
 
-        const found = getMostlyOverlappingInstanceWithStroke(layout, stroke);
+        const found = getMostlyOverlappingInstanceWithStroke(
+          currentPage,
+          stroke
+        );
         if (found == null) continue;
         const paperInstance = this.notebookCollection.getPaperInstanceById(
           found.instanceId
@@ -431,18 +434,30 @@ export class Selection {
 }
 
 export function getMostlyOverlappingInstanceWithStroke(
-  layout: PageLayout,
+  page: Page,
   stroke: Stroke
 ): { instanceId: Id<PaperInstance>; rect: Rect } | null {
+  const layout = page.getLayout();
   const strokeRect = layout.strokes[stroke.props.id];
 
+  let found = null;
+  let foundDepth = -1;
   // Find paperInstance that partially overlaps
   for (const id in layout.paperInstances) {
     const paperRect = layout.paperInstances[id as Id<PaperInstance>];
     if (Rect.isMostlyInside(paperRect, strokeRect)) {
-      return { instanceId: id as Id<PaperInstance>, rect: paperRect }; // Stop after moving to the first found instance
+      const depth = layout.paperInstancesDepth[id as Id<PaperInstance>];
+      if (depth > foundDepth) {
+        found = {
+          instanceId: id as Id<PaperInstance>,
+          rect: paperRect,
+        };
+        foundDepth = depth;
+      }
     }
   }
 
-  return null;
+  // Make sure to return the topmost paper instance
+
+  return found;
 }

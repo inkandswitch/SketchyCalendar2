@@ -35,6 +35,7 @@ export type NewPageProps = {
 
 export type PageLayout = {
   paperInstances: Record<Id<PaperInstance>, Rect>;
+  paperInstancesDepth: Record<Id<PaperInstance>, number>;
   strokes: Record<Id<Stroke>, Rect>;
 };
 
@@ -161,14 +162,20 @@ export class Page {
     }
 
     const paperInstances: Record<Id<PaperInstance>, Rect> = {};
+    const paperInstancesDepth: Record<Id<PaperInstance>, number> = {};
     const strokes: Record<Id<Stroke>, Rect> = {};
 
-    function getRectForInstance(instance: PaperInstance, offset: Point) {
+    function getRectForInstance(
+      instance: PaperInstance,
+      offset: Point,
+      depth: number = 0
+    ) {
       const rect = instance.getRect(offset);
       paperInstances[instance.id] = rect;
+      paperInstancesDepth[instance.id] = depth;
 
       for (const child of instance.paper.children) {
-        getRectForInstance(child, Vec.add(instance, offset));
+        getRectForInstance(child, Vec.add(instance, offset), depth + 1);
       }
 
       for (const stroke of instance.paper.strokes) {
@@ -186,7 +193,7 @@ export class Page {
       strokes[stroke.props.id] = strokeRect;
     }
 
-    this.cachedLayout = { paperInstances, strokes };
+    this.cachedLayout = { paperInstances, paperInstancesDepth, strokes };
     return this.cachedLayout;
   }
 
