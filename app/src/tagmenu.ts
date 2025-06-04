@@ -1,13 +1,15 @@
 import { ColorDropDownAction } from "actionbar";
 import {
+  FONT_BIG,
   NO_STICKY_NOTE_COLOR,
   PAPER_HEIGHT,
   STICKY_NOTE_COLORS,
+  TAG_PAPER_WIDTH,
 } from "constants";
 import { Id } from "id";
 import { Point } from "lib/point";
 import { Rect } from "lib/rect";
-import Render from "lib/render";
+import Render, { fillAndStroke, font } from "lib/render";
 import { NotebookCollection } from "things/notebook";
 import { Paper } from "things/paper";
 import { Tool } from "toolbar";
@@ -21,8 +23,14 @@ type TagOption = {
   colorPicker: ColorDropDownAction;
 };
 
+type TagMenuUiElements = {
+  options: TagOption[];
+  container: Rect;
+};
+
 export default class TagMenu {
   isActive: boolean = false;
+  isExpanded: boolean = false;
   view: View;
   notebookCollection: NotebookCollection;
   colorPickersByPaperId: Map<Id<Paper>, ColorDropDownAction> = new Map();
@@ -34,10 +42,27 @@ export default class TagMenu {
     this.notebookCollection = notebookCollection;
   }
 
-  getTagOptions(): TagOption[] {
-    const options: TagOption[] = [];
+  getTagMenuUiElements(): TagMenuUiElements | null {
+    const HEADER_HEIGHT = 60;
 
     const allTags = this.notebookCollection.activeTagPapers();
+
+    if (allTags.length === 0) {
+      return null;
+    }
+
+    if (!this.isExpanded || allTags.length === 0) {
+      return {
+        options: [],
+        container: {
+          position: { x: 20, y: PAPER_HEIGHT - HEADER_HEIGHT },
+          width: TAG_PAPER_WIDTH + 80,
+          height: HEADER_HEIGHT,
+        },
+      };
+    }
+
+    const options: TagOption[] = [];
 
     let offset = PAPER_HEIGHT - 20;
 
@@ -78,14 +103,14 @@ export default class TagMenu {
       }
 
       colorPicker.position = {
-        x: 20 + paper.width + 5,
+        x: 40 + paper.width + 5,
         y: offset - colorPicker.height,
       };
 
       options.push({
         paper,
         position: {
-          x: 20,
+          x: 40,
           y: offset - paper.height - (colorPicker.height - paper.height) / 2,
         },
         tool,
@@ -95,24 +120,32 @@ export default class TagMenu {
       offset -= colorPicker.height;
     }
 
-    if (!this.isActive || !this.view.focusedPage) return [];
+    const lastOption = options[options.length - 1];
 
-    return options;
+    const containerHeight =
+      HEADER_HEIGHT + (PAPER_HEIGHT - lastOption.position.y);
+
+    return {
+      options,
+      container: {
+        position: { x: 20, y: PAPER_HEIGHT - containerHeight },
+        width: TAG_PAPER_WIDTH + 80,
+        height: containerHeight,
+      },
+    };
   }
 
   tap(point: Point): boolean {
     if (!this.isActive) return false;
 
-    const options = this.getTagOptions();
+    const uiElements = this.getTagMenuUiElements();
+
+    if (!uiElements) return false;
+
+    const { options, container } = uiElements;
 
     for (const option of options) {
       if (option.colorPicker.tap(point)) {
-        const highlightIsActive = options.some(
-          (option) => option.colorPicker.value !== NO_STICKY_NOTE_COLOR
-        );
-
-        Paper.noBackgroundColors = highlightIsActive;
-
         return true;
       }
 
@@ -131,13 +164,37 @@ export default class TagMenu {
       }
     }
 
+    if (Rect.isPointInside(container, point)) {
+      Paper.colorByTagsMode = this.isExpanded = !this.isExpanded;
+      return true;
+    }
+
     return false;
   }
 
   render(r: Render) {
     if (!this.isActive) return;
 
-    const options = this.getTagOptions();
+    const uiElements = this.getTagMenuUiElements();
+
+    if (!uiElements) return;
+
+    const { options, container } = uiElements;
+
+    r.rect(
+      container.position.x,
+      container.position.y,
+      container.width,
+      container.height,
+      fillAndStroke("white", "#eee", 1)
+    );
+
+    r.text(
+      "Tags",
+      container.position.x + 20,
+      container.position.y + 10,
+      font(FONT_BIG)
+    );
 
     for (const option of options) {
       option.paper.render(r, option.position, {

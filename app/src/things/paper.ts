@@ -112,7 +112,7 @@ export class Paper {
 
   static colorsByTagPaperId: Map<Id<Paper>, string> = new Map();
 
-  static noBackgroundColors: boolean = false;
+  static colorByTagsMode: boolean = false;
 
   static fromId(state: State, id: Id<Paper>) {
     const cached = state.objMap.get(id) as Paper | undefined;
@@ -387,7 +387,7 @@ export class Paper {
     let backgroundStyle = stroke("#999", 1);
     if (isSolidColor(this.background) || hasShadow) {
       const backgroundColor =
-        isSolidColor(this.background) && !Paper.noBackgroundColors
+        isSolidColor(this.background) && !Paper.colorByTagsMode
           ? this.background
           : "#fff";
 
@@ -609,35 +609,43 @@ function renderCalendarBackground(
 
     const hourRect = Rect({ x: 0, y: offset }, paper.width, hourHeight);
 
-    const overlappingChild = paper.children.filter((child) => {
-      const childRect: Rect = {
-        position: child,
-        width: child.paper.width,
-        height: child.paper.height,
-      };
+    if (Paper.colorByTagsMode) {
+      const overlappingChild = paper.children.filter((child) => {
+        const childRect: Rect = {
+          position: child,
+          width: child.paper.width,
+          height: child.paper.height,
+        };
 
-      return Rect.overlapArea(hourRect, childRect) > 0;
-    });
+        return Rect.overlapArea(hourRect, childRect) > 0;
+      });
 
-    const colors = overlappingChild.flatMap((child) =>
-      child.paper.getTaggedColors()
-    );
+      const colors = overlappingChild.flatMap((child) =>
+        child.paper.getTaggedColors()
+      );
 
-    if (colors.length > 0) {
-      if (colors.length === 1) {
-        r.rect(position.x, y, paper.width, hourHeight, fill(colors[0] + "44"));
-      } else {
-        // Create striped pattern with multiple colors
-        const stripeHeight = hourHeight / colors.length;
-        colors.forEach((color, index) => {
+      if (colors.length > 0) {
+        if (colors.length === 1) {
           r.rect(
             position.x,
-            y + index * stripeHeight,
+            y,
             paper.width,
-            stripeHeight,
-            fill(color + "44")
+            hourHeight,
+            fill(colors[0] + "44")
           );
-        });
+        } else {
+          // Create striped pattern with multiple colors
+          const stripeHeight = hourHeight / colors.length;
+          colors.forEach((color, index) => {
+            r.rect(
+              position.x,
+              y + index * stripeHeight,
+              paper.width,
+              stripeHeight,
+              fill(color + "44")
+            );
+          });
+        }
       }
     }
 

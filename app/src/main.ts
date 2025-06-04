@@ -36,6 +36,8 @@ import {
 } from "things/notebook";
 import CardTool from "tools/card";
 import { View } from "view";
+import { TAG_PAPER_HEIGHT } from "constants";
+import { TAG_PAPER_WIDTH } from "constants";
 
 const ADD_DEV_NOTEBOOK = false;
 const PERSIST_DEV_NOTEBOOK = true;
@@ -223,8 +225,8 @@ const toolbar = new Toolbar(
       return paper.addNewPaper({
         x: position.x,
         y: position.y,
-        width: 80,
-        height: 25,
+        width: TAG_PAPER_WIDTH,
+        height: TAG_PAPER_HEIGHT,
         locked: false,
         siblingIndex: paper.children.length,
         background: { type: "Tag" },
@@ -239,7 +241,7 @@ const tagMenu = new TagMenu(view, notebookCollection);
 const gestures = new GestureSystem([
   new Draw(view, notebookCollection, toolbar, tagMenu),
   new PinchIn(view),
-  new Navigate(view, addPageButtons, overlaySwitcher),
+  new Navigate(view, addPageButtons, overlaySwitcher, tagMenu),
   new Zoom(view),
 ]);
 

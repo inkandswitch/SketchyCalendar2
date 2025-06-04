@@ -4,6 +4,7 @@ import { Point } from "lib/point";
 import { Vec } from "lib/vec";
 import { openUrl } from "openurl";
 import OverlaySwitcher from "overlayswitcher";
+import TagMenu from "tagmenu";
 import { Page } from "things/page";
 import { View } from "view";
 
@@ -11,6 +12,7 @@ export default class Navigate implements GestureHandler {
   view: View;
   addPageButtons: AddPageButtons;
   overlaySwitcher: OverlaySwitcher;
+  tagMenu: TagMenu;
   touch: TouchEvent | null = null;
   swipedLaneOffset: number | null = null;
 
@@ -22,11 +24,13 @@ export default class Navigate implements GestureHandler {
   constructor(
     view: View,
     addPageButtons: AddPageButtons,
-    overlaySwitcher: OverlaySwitcher
+    overlaySwitcher: OverlaySwitcher,
+    tagMenu: TagMenu
   ) {
     this.view = view;
     this.addPageButtons = addPageButtons;
     this.overlaySwitcher = overlaySwitcher;
+    this.tagMenu = tagMenu;
   }
 
   onEvent(e: TouchEvent) {
@@ -103,8 +107,6 @@ export default class Navigate implements GestureHandler {
                   this.view.camera.screenToWorld(this.touch.current)
                 );
 
-                console.log("tapped link", link);
-
                 if (link) {
                   const target = link.getTarget();
 
@@ -115,6 +117,10 @@ export default class Navigate implements GestureHandler {
                   } else {
                     openUrl(target);
                   }
+                } else {
+                  this.tagMenu.tap(
+                    this.view.camera.screenToWorld(this.touch.current)
+                  );
                 }
               }
             } else {
