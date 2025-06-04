@@ -177,6 +177,12 @@ export class PaperInstance {
     return this.#state.notebook;
   }
 
+  update(props: Partial<PaperInstanceProps>) {
+    this.#state.docHandle.change((state) => {
+      Object.assign(state.paperInstances[this.id], props);
+    });
+  }
+
   move(delta: Vec) {
     this.#state.docHandle.change((state) => {
       state.paperInstances[this.id].x += delta.x;

@@ -163,6 +163,16 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
     }
     throw new Error(`Source with id ${id} not found in any notebook.`);
   }
+
+  getPaperById(id: Id<Paper>): Paper | undefined {
+    for (const notebook of this.notebooks.values()) {
+      const paper = notebook.getPaperById(id);
+      if (paper) {
+        return paper;
+      }
+    }
+    return undefined;
+  }
 }
 
 export class Notebook extends EventEmitter<NotebookEvents> {
@@ -342,5 +352,13 @@ export class Notebook extends EventEmitter<NotebookEvents> {
     } else {
       throw new Error(`Source with id ${id} not found`);
     }
+  }
+
+  getPaperById(id: Id<Paper>): Paper | undefined {
+    if (!this.#state.props.papers.hasOwnProperty(id)) {
+      return undefined;
+    }
+
+    return Paper.fromId(this.#state, id);
   }
 }

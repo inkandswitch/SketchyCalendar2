@@ -357,17 +357,17 @@ export class Paper {
 
     r.rect(position.x, position.y, this.width, this.height, backgroundStyle);
 
-    if (isTagBackground(this.background)) {
-      const style = font("12px Arial", "#DDDDDD");
-      const textSize = measureText("#", style);
+    // if (isTagBackground(this.background)) {
+    //   const style = font("12px Arial", "#DDDDDD");
+    //   const textSize = measureText("#", style);
 
-      r.text(
-        "#",
-        position.x + 10,
-        position.y + (this.height - textSize.height) / 2,
-        style
-      );
-    }
+    //   r.text(
+    //     "#",
+    //     position.x + 10,
+    //     position.y + (this.height - textSize.height) / 2,
+    //     style
+    //   );
+    // }
 
     if (highlighted) {
       r.rect(

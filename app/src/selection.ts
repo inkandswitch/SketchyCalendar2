@@ -23,6 +23,7 @@ import {
 } from "actionbar";
 import { STICKY_NOTE_COLORS as STICKY_NOTE_COLORS } from "constants";
 import { LinkableId } from "things/link";
+import { isTagBackground } from "things/paper";
 
 export class Selection {
   mode: "off" | "selecting" | "selected" = "off";
@@ -201,7 +202,11 @@ export class Selection {
           paperInstance.reparent(currentPage.paper.id);
         }
 
-        const found = getMostlyOverlappingInstance(currentPage, paperInstance);
+        const found = getMostlyOverlappingInstance(
+          currentPage,
+          paperInstance,
+          !isTagBackground(paperInstance.paper.background)
+        );
         if (found) {
           PaperInstance.highlighted.set(found.instance.id, true);
         }
@@ -241,8 +246,66 @@ export class Selection {
       for (const paperInstanceId of this.selectedPaperInstances) {
         const paperInstance =
           this.notebookCollection.getPaperInstanceById(paperInstanceId);
+
+        const isTag = isTagBackground(paperInstance.paper.background);
         const found = getMostlyOverlappingInstance(currentPage, paperInstance);
-        if (found == null) continue;
+
+        // special handling for tags
+        if (isTag) {
+          const parentPaper = this.notebookCollection.getPaperById(
+            found?.instance.paper.id ?? currentPage.paper.id
+          )!;
+          let pos: Point = paperInstance;
+
+          if (found) {
+            pos = {
+              x: paperInstance.x - found.rect.position.x,
+              y: paperInstance.y - found.rect.position.y,
+            };
+          }
+
+          const otherTag = getMostlyOverlappingInstance(
+            currentPage,
+            paperInstance,
+            false
+          );
+
+          if (otherTag) {
+            paperInstance.moveTo(parentPaper.id, {
+              x: pos.x,
+              y: otherTag.instance.y,
+            });
+
+            const tags: PaperInstance[] = [otherTag.instance];
+
+            for (const tag of parentPaper.children) {
+              if (
+                isTagBackground(tag.paper.background) &&
+                tag.id !== otherTag.instance.id &&
+                tags.some(
+                  (t) => Rect.overlapArea(t.getRect(), tag.getRect()) > 0
+                )
+              ) {
+                tags.push(tag);
+              }
+            }
+
+            tags.sort((a, b) => a.x - b.x);
+
+            let nextSiblingIndex = 1;
+
+            for (const tag of tags) {
+              tag.update({
+                siblingIndex: nextSiblingIndex,
+              });
+              nextSiblingIndex++;
+            }
+          }
+        }
+
+        if (found == null) {
+          continue;
+        }
 
         paperInstance.moveTo(found.instance.paper.id, {
           x: paperInstance.x - found.rect.position.x,

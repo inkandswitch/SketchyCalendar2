@@ -36,6 +36,8 @@ import { getYear } from "date-fns";
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import OverlaySwitcher from "overlayswitcher";
 import TagMenu from "tagmenu";
+import { PAPER_HEIGHT } from "constants";
+import { PAPER_WIDTH } from "constants";
 
 const ADD_DEV_NOTEBOOK = false;
 const PERSIST_DEV_NOTEBOOK = true;
@@ -72,7 +74,7 @@ async function loadOrCreateNotebook(
 
 export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
+    network: [], //[new BrowserWebSocketClientAdapter("wss://sync.automerge.org")],
     storage: new IndexedDBStorageAdapter(),
   });
 
@@ -177,7 +179,6 @@ export async function initNotebookCollection() {
       });
     }
   );
-
   updateCalendarPages(sharedCalendarNotebook);
   notebookCollection.addNotebook(sharedCalendarNotebook);
 
