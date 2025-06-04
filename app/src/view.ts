@@ -91,6 +91,12 @@ export class View {
     this.center.y.target = PAPER_HEIGHT / 2;
   }
 
+  resetCameraCenter() {
+    this.overrideZoom = null;
+    this.center.x.target = PAPER_WIDTH / 2;
+    this.center.y.target = PAPER_HEIGHT / 2;
+  }
+
   focusPage(page: Page, config: TransitionConfig = {}) {
     localStorage.setItem("focusedPageId", page.id);
 
