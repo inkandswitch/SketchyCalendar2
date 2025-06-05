@@ -333,11 +333,15 @@ export class View {
       y: this.center.y.value,
     });
     r.beginOffset(this.camera);
-    const img = document.querySelector("img")!;
-    img.style.transform = `scale(${zoom}) translate(${
-      PAPER_WIDTH / 2 - this.center.x.value
-    }px, ${PAPER_HEIGHT / 2 - this.center.y.value}px)`;
-    img.style.opacity = `${(zoom - 1) / 16}`;
+
+    // Render the background
+    // const img = document.querySelector("img")!;
+    // img.style.width = `${PAPER_WIDTH}px`;
+    // img.style.height = `${PAPER_HEIGHT}px`;
+    // img.style.transform = `scale(${zoom}) translate(${
+    //   PAPER_WIDTH / 2 - this.center.x.value
+    // }px, ${PAPER_HEIGHT / 2 - this.center.y.value}px)`;
+    // img.style.opacity = `${(zoom - 1) / 16}`;
 
     let offset_y = this.focusedLevel.value * (PAPER_HEIGHT + GAP);
 
