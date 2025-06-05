@@ -127,9 +127,23 @@ export class Stroke {
   }
 
   reparent(parentId: Id<Paper>) {
-    this.#state.docHandle.change((state) => {
-      state.strokes[this.props.id].parentId = parentId;
-    });
+    // Find parentId in the current state
+    const parent = this.#state.collection.getPaperById(parentId)!;
+
+    // Reparent to the new notebook
+    if (parent.notebook != this.#state.notebook) {
+      parent.notebook.state.docHandle.change((state) => {
+        state.strokes[this.props.id] = this.props;
+        state.strokes[this.props.id].parentId = parentId;
+      });
+      this.#state.docHandle.change((state) => {
+        delete state.strokes[this.props.id];
+      });
+    } else {
+      this.#state.docHandle.change((state) => {
+        state.strokes[this.props.id].parentId = parentId;
+      });
+    }
   }
 
   getRect(offset: Point): Rect {

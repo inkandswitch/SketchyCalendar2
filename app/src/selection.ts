@@ -173,7 +173,7 @@ export class Selection {
 
     if (this.selectedStrokes) {
       for (const strokeId of this.selectedStrokes) {
-        const stroke = this.view.focusedPage!.notebook.getStrokeById(strokeId);
+        const stroke = this.view.notebookCollection.getStrokeById(strokeId);
         if (stroke) {
           Stroke.selected.set(strokeId, true);
           if (this.delta.x != 0 || this.delta.y != 0) {

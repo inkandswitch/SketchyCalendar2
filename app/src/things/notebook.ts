@@ -173,6 +173,15 @@ export class NotebookCollection extends EventEmitter<NotebookEvents> {
     }
     return undefined;
   }
+
+  getStrokeById(id: Id<Stroke>): Stroke {
+    for (const notebook of this.notebooks.values()) {
+      if (notebook.state.props.strokes.hasOwnProperty(id)) {
+        return notebook.getStrokeById(id);
+      }
+    }
+    throw new Error(`Stroke with id ${id} not found in any notebook.`);
+  }
 }
 
 export class Notebook extends EventEmitter<NotebookEvents> {
