@@ -567,12 +567,8 @@ export class Paper {
   ): Set<Id<Stroke>> {
     let found = new Set<Id<Stroke>>();
     for (const stroke of this.strokes) {
-      for (const pt of stroke.props.points) {
-        const offsestPt = Vec.add(pt, offset);
-        if (Polygon.isPointInside(hull, offsestPt)) {
-          found.add(stroke.props.id);
-          break; // No need to check other points in the stroke
-        }
+      if (stroke.isInsideHull(hull, offset)) {
+        found.add(stroke.props.id);
       }
     }
 

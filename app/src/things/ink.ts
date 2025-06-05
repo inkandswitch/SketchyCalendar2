@@ -11,6 +11,7 @@ import { UNDERLAY_INK_COLOR, SELECTION_COLOR } from "constants";
 
 import { Link } from "things/link";
 import { Page } from "things/page";
+import { Polygon } from "lib/polygon";
 
 export type StrokeProps = {
   id: Id<Stroke>;
@@ -18,6 +19,7 @@ export type StrokeProps = {
   points: Array<{ x: number; y: number }>;
   color: string;
   weight: number;
+  offset: Point;
 };
 
 export class Stroke {
@@ -49,6 +51,7 @@ export class Stroke {
       points: [],
       color,
       weight,
+      offset: { x: 0, y: 0 },
     };
     state.docHandle.change((state) => {
       state.strokes[props.id] = props;
@@ -83,11 +86,11 @@ export class Stroke {
 
   move(delta: Vec) {
     this.#state.docHandle.change((state) => {
-      const points = state.strokes[this.props.id].points;
-      for (const point of points) {
-        point.x += delta.x;
-        point.y += delta.y;
-      }
+      const currentOffset = state.strokes[this.props.id].offset;
+      state.strokes[this.props.id].offset = {
+        x: currentOffset.x + delta.x,
+        y: currentOffset.y + delta.y,
+      };
     });
   }
 
@@ -98,14 +101,29 @@ export class Stroke {
   }
 
   getRect(offset: Point): Rect {
-    const points = this.props.points.map((point) => Vec.add(offset, point));
+    const points = this.props.points.map((point) =>
+      Vec.add(offset, Vec.add(point, this.props.offset))
+    );
     return Rect.AABBfromPoints(points);
+  }
+
+  isInsideHull(hull: Polygon, offset: Point): boolean {
+    const points = this.props.points.map((point) =>
+      Vec.add(offset, Vec.add(point, this.props.offset))
+    );
+    for (const point of points) {
+      if (Polygon.isPointInside(hull, point)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   isPointNear(point: Point): boolean {
     const threshold = this.props.weight / 2 + 10; // Adjust threshold based on weight
     for (const p of this.props.points) {
-      if (Vec.dist(p, point) <= threshold) {
+      const offsetPoint = Vec.add(p, this.props.offset);
+      if (Vec.dist(offsetPoint, point) <= threshold) {
         return true;
       }
     }
@@ -115,6 +133,12 @@ export class Stroke {
   setColor(color: string) {
     this.#state.docHandle.change((state) => {
       state.strokes[this.props.id].color = color;
+    });
+  }
+
+  setOffset(offset: Point) {
+    this.#state.docHandle.change((state) => {
+      state.strokes[this.props.id].offset = offset;
     });
   }
 
@@ -136,7 +160,7 @@ export class Stroke {
 
   render(r: Render, offset: Point, isBackground: boolean) {
     const points = this.props.points.map((point) => {
-      return Vec.add(offset, point);
+      return Vec.add(offset, Vec.add(point, this.props.offset));
     });
 
     let color = this.props.color;
