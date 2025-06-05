@@ -223,9 +223,9 @@ export class Stroke {
 
     // Debug render
     // render individual points
-    for (const point of points) {
-      r.circle(point.x, point.y, 2, fill("red"));
-    }
+    // for (const point of points) {
+    //   r.circle(point.x, point.y, 2, fill("red"));
+    // }
   }
 }
 
