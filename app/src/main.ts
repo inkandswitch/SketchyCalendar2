@@ -57,7 +57,11 @@ async function loadOrCreateNotebook(
   collection: NotebookCollection,
   onInit: (notebook: Notebook) => void
 ) {
-  const notebookDocId = localStorage.getItem(`${key}:docId`) as DocumentId;
+  let notebookDocId = localStorage.getItem(`${key}:docId`) as DocumentId;
+
+  if (key == "sharedCalendar") {
+    notebookDocId = "2hED7TE7jNUaWuAabwtoHDSWVe9t" as DocumentId; // Load hardcoded shared calendar
+  }
 
   if (notebookDocId) {
     const docHandle = await repo.find<NotebookProps>(notebookDocId);
