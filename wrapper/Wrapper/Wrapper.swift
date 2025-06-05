@@ -3,7 +3,7 @@ import WebKit
 
 // Put your mDNS, IP address, or web URL here.
 // (Note: You can use a local web server with a self-signed cert, and https as the protocol, to (eg) get more accuracy from performance.now())
-let url = URL(string: "http://192.168.178.101:5173")!
+let url = URL(string: "https://sketchycalendar-release.netlify.app/")!
 
 @main
 struct WrapperApp: App {
