@@ -1,7 +1,7 @@
 // Derived intermediate representation that's useful for rendering & interactions
 
 import { AnimateVariable } from "lib/animate";
-import Render, { stroke } from "lib/render";
+import Render, { font, stroke } from "lib/render";
 
 import { Camera } from "camera";
 import { PAPER_HEIGHT, PAPER_WIDTH } from "constants";
@@ -32,6 +32,9 @@ export class View {
   offsetByLevel: AnimateVariable[] = [];
 
   pagesByLevel: Array<Array<Page>>;
+
+  toastMessage: string | null = null; // for displaying messages to the user
+  toastTimeout: number = 0;
 
   constructor(camera: Camera, notebook: NotebookCollection) {
     const storedZoomString = localStorage.getItem("zoom");
@@ -292,6 +295,11 @@ export class View {
     }
   }
 
+  setToastMessage(message: string, timeout = 3000) {
+    this.toastMessage = message;
+    this.toastTimeout = timeout;
+  }
+
   update(dt: number) {
     // --- Zoomed out view
     this.zoom.update(dt);
@@ -301,6 +309,13 @@ export class View {
     }
     this.center.x.update(dt);
     this.center.y.update(dt);
+
+    if (this.toastTimeout > 0) {
+      this.toastTimeout -= dt * 1000; // convert dt to milliseconds
+      if (this.toastTimeout <= 0) {
+        this.toastMessage = null;
+      }
+    }
   }
 
   render(r: Render) {
@@ -380,5 +395,10 @@ export class View {
     //r.circle(this.center.x, this.center.y, 1, fill("red"));
 
     r.endOffset();
+
+    // Render the toast message
+    if (this.toastMessage) {
+      r.text(this.toastMessage, 100, 100, font("24px Arial", "red"));
+    }
   }
 }

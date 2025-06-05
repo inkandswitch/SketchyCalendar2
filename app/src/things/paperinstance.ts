@@ -49,6 +49,8 @@ export class PaperInstance {
   id: Id<PaperInstance>;
   parentId: Id<Paper>;
   siblingIndex: number;
+
+  props: PaperInstanceProps;
   x: number;
   y: number;
   locked: boolean;
@@ -62,6 +64,7 @@ export class PaperInstance {
   constructor(state: State, props: PaperInstanceProps, paper: Paper) {
     this.#state = state;
 
+    this.props = props;
     this.id = props.id;
     this.parentId = props.parentId;
     this.siblingIndex = props.siblingIndex;
@@ -191,30 +194,66 @@ export class PaperInstance {
   }
 
   moveTo(newParentId: Id<Paper>, position: Point) {
-    const parent = Paper.fromId(this.#state, this.parentId);
-    const highest_siblingIndex = parent.children.reduce(
+    // Find parentId in the current state
+    const newParent = this.#state.collection.getPaperById(newParentId)!;
+
+    const highest_siblingIndex = newParent.children.reduce(
       (max, child) => Math.max(max, child.siblingIndex),
       -1
     );
 
-    this.#state.docHandle.change((state) => {
-      state.paperInstances[this.id].parentId = newParentId;
-      state.paperInstances[this.id].siblingIndex = highest_siblingIndex + 1;
-      state.paperInstances[this.id].x = position.x;
-      state.paperInstances[this.id].y = position.y;
-    });
+    // Reparent to the new notebook
+    if (newParent.notebook != this.#state.notebook) {
+      console.warn("Can't reparent to new notebook");
+      return false;
+      // newParent.notebook.state.docHandle.change((state) => {
+      //   state.paperInstances[this.id] = this.props;
+      //   state.paperInstances[this.id].parentId = newParentId;
+      //   state.paperInstances[this.id].siblingIndex = highest_siblingIndex + 1;
+      //   state.paperInstances[this.id].x = position.x;
+      //   state.paperInstances[this.id].y = position.y;
+      // });
+      // this.#state.docHandle.change((state) => {
+      //   delete state.paperInstances[this.id];
+      // });
+    } else {
+      this.#state.docHandle.change((state) => {
+        state.paperInstances[this.id].parentId = newParentId;
+        state.paperInstances[this.id].siblingIndex = highest_siblingIndex + 1;
+        state.paperInstances[this.id].x = position.x;
+        state.paperInstances[this.id].y = position.y;
+      });
+      return true;
+    }
   }
 
-  reparent(newParentId: Id<Paper>) {
-    const parent = Paper.fromId(this.#state, this.parentId);
-    const highest_siblingIndex = parent.children.reduce(
+  reparent(newParentId: Id<Paper>): boolean {
+    const newParent = this.#state.collection.getPaperById(newParentId)!;
+
+    const highest_siblingIndex = newParent.children.reduce(
       (max, child) => Math.max(max, child.siblingIndex),
       -1
     );
-    this.#state.docHandle.change((state) => {
-      state.paperInstances[this.id].parentId = newParentId;
-      state.paperInstances[this.id].siblingIndex = highest_siblingIndex + 1;
-    });
+
+    if (newParent.notebook != this.#state.notebook) {
+      console.warn("Can't reparent to new notebook");
+      return false;
+      // newParent.notebook.state.docHandle.change((state) => {
+      //   state.paperInstances[this.id] = this.props;
+      //   state.paperInstances[this.id].parentId = newParentId;
+      //   state.paperInstances[this.id].siblingIndex = highest_siblingIndex + 1;
+      // });
+      // this.#state.docHandle.change((state) => {
+      //   delete state.paperInstances[this.id];
+      // });
+      // return;
+    } else {
+      this.#state.docHandle.change((state) => {
+        state.paperInstances[this.id].parentId = newParentId;
+        state.paperInstances[this.id].siblingIndex = highest_siblingIndex + 1;
+      });
+      return true;
+    }
   }
 
   setColor(color: string) {
