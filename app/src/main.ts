@@ -219,8 +219,8 @@ const toolbar = new Toolbar(
       return paper.addNewPaper({
         x: position.x,
         y: position.y,
-        width: 140,
-        height: 100,
+        width: 160,
+        height: 120,
         background: "#feff9c", // Postitnote yellow
         locked: false,
         siblingIndex: paper.children.length,

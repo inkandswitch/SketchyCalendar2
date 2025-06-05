@@ -59,7 +59,7 @@ export default class Zoom implements GestureHandler {
 
           // Save previous zoom and compute new zoom
           const oldZoom = this.view.overrideZoom || 1;
-          const newZoom = Math.min(Math.max(1, oldZoom + delta), 3.5);
+          const newZoom = Math.min(Math.max(1, oldZoom + delta), 5);
 
           // Adjust view center to maintain the world point under the screen center
 
