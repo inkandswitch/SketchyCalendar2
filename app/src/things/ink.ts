@@ -90,7 +90,8 @@ export class Stroke {
     buffer.push(point);
     const [error, maxErrorIndex] = linearApproximationError(buffer);
 
-    if (error > 0.5) {
+    if (error > 0.2) {
+      // 0.1 is a threshold for error
       let appendPoint = buffer[maxErrorIndex];
       this.#state.docHandle.change((state) => {
         state.strokes[this.props.id].points.push(appendPoint);
