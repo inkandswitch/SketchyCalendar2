@@ -91,7 +91,14 @@ export class PenHandler implements ToolHandler {
   }
 
   penUp(e: TouchEvent) {
-    this.penMove(e);
-    this.strokeId = null;
+    if (this.strokeId != null) {
+      this.penMove(e);
+      const currentPage = this.view.focusedPage!;
+      const stroke = currentPage.notebook.getStrokeById(this.strokeId);
+      if (stroke) {
+        stroke.endStroke();
+      }
+      this.strokeId = null;
+    }
   }
 }

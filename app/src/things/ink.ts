@@ -1,4 +1,4 @@
-import Render, { stroke } from "lib/render";
+import Render, { stroke, fill } from "lib/render";
 
 import { Id, generateId } from "id";
 import { Paper } from "things/paper";
@@ -27,6 +27,8 @@ export class Stroke {
   props: StrokeProps;
 
   static selected = new Map<Id<Stroke>, boolean>();
+
+  static bufferedData: Record<Id<Stroke>, Array<Point>> = {};
 
   constructor(state: State, props: StrokeProps) {
     this.#state = state;
@@ -79,9 +81,38 @@ export class Stroke {
   }
 
   addPoint(point: Point) {
-    this.#state.docHandle.change((state) => {
-      state.strokes[this.props.id].points.push(point);
-    });
+    // Add the point to the buffered data
+    if (!Stroke.bufferedData[this.props.id]) {
+      Stroke.bufferedData[this.props.id] = [];
+    }
+    const buffer = Stroke.bufferedData[this.props.id];
+    buffer.push(point);
+    const [error, maxErrorIndex] = linearApproximationError(buffer);
+
+    if (error > 0.5) {
+      let appendPoint = buffer[maxErrorIndex];
+      this.#state.docHandle.change((state) => {
+        state.strokes[this.props.id].points.push(appendPoint);
+      });
+      Stroke.bufferedData[this.props.id] = buffer.slice(maxErrorIndex);
+    }
+  }
+
+  endStroke() {
+    // Add the last point in the buffer if it exists
+    if (
+      Stroke.bufferedData[this.props.id] &&
+      Stroke.bufferedData[this.props.id].length > 0
+    ) {
+      const lastPoint =
+        Stroke.bufferedData[this.props.id][
+          Stroke.bufferedData[this.props.id].length - 1
+        ];
+      this.#state.docHandle.change((state) => {
+        state.strokes[this.props.id].points.push(lastPoint);
+      });
+      delete Stroke.bufferedData[this.props.id];
+    }
   }
 
   move(delta: Vec) {
@@ -163,6 +194,15 @@ export class Stroke {
       return Vec.add(offset, Vec.add(point, this.props.offset));
     });
 
+    // Append the last point in the buffer
+    if (Stroke.bufferedData[this.props.id]) {
+      const buffer = Stroke.bufferedData[this.props.id];
+      if (buffer.length > 0) {
+        const lastPoint = buffer[buffer.length - 1];
+        points.push(Vec.add(offset, Vec.add(lastPoint, this.props.offset)));
+      }
+    }
+
     let color = this.props.color;
 
     if (isBackground) {
@@ -180,5 +220,35 @@ export class Stroke {
     if (Stroke.selected.get(this.props.id)) {
       r.poly(points, stroke(SELECTION_COLOR, this.props.weight + 5), false);
     }
+
+    // Debug render
+    // render individual points
+    for (const point of points) {
+      r.circle(point.x, point.y, 2, fill("red"));
+    }
   }
+}
+
+function linearApproximationError(points: Array<Point>): [number, number] {
+  // Calculate the vector between the first and last points
+  const first = points[0];
+  const last = points[points.length - 1];
+  const line = Vec.sub(last, first);
+
+  let maxError = 0;
+  let index = 0;
+  // Calculate the distance between each point and the line
+  for (let i = 1; i < points.length - 1; i++) {
+    const point = points[i];
+    const diff = Vec.sub(point, first);
+    const projection = Vec.project(diff, line);
+    const error = Vec.sub(diff, projection);
+    const errorLength = Vec.len(error);
+    if (errorLength > maxError) {
+      maxError = errorLength;
+      index = i;
+    }
+  }
+
+  return [maxError, index];
 }
