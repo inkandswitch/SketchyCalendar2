@@ -67,6 +67,7 @@ export class Stroke {
     const newProps = JSON.parse(JSON.stringify(this.props));
     newProps.id = newId;
     newProps.parentId = newParent ?? this.props.parentId;
+    newProps.offset = Vec.add(this.props.offset, { x: 10, y: 10 });
 
     this.#state.docHandle.change((state) => {
       state.strokes[newId] = newProps;

@@ -168,12 +168,14 @@ export class Selection {
 
     PaperInstance.highlighted.clear();
     PaperInstance.selected.clear();
+    Stroke.selected.clear();
     const currentPage = this.view.focusedPage!;
 
     if (this.selectedStrokes) {
       for (const strokeId of this.selectedStrokes) {
         const stroke = this.view.focusedPage!.notebook.getStrokeById(strokeId);
         if (stroke) {
+          Stroke.selected.set(strokeId, true);
           if (this.delta.x != 0 || this.delta.y != 0) {
             stroke.move(this.delta);
           }
@@ -334,24 +336,25 @@ export class Selection {
   }
 
   deleteSelection() {
+    console.log("Deleting strokes", this.selectedStrokes);
     if (this.selectedPaperInstances) {
       for (const instance of this.selectedPaperInstances) {
         const paperInstance =
           this.notebookCollection.getPaperInstanceById(instance);
         paperInstance.remove();
       }
-      this.clear();
     }
 
     if (this.selectedStrokes) {
+      console.log("Deleting strokes", this.selectedStrokes);
       for (const strokeId of this.selectedStrokes) {
         const stroke = this.view.focusedPage!.notebook.getStrokeById(strokeId);
         if (stroke) {
           stroke.remove();
         }
       }
-      this.clear();
     }
+    this.clear();
   }
 
   transcludeSelection() {
