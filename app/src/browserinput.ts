@@ -65,9 +65,12 @@ export default class BrowserInput {
           );
 
           if (link) {
-            view.focusPage(link.getTargetPage(), {
-              noAnimation: true,
-            });
+            const target = link.getTarget();
+            if (typeof target === "string") {
+              window.open(target, "_blank");
+            } else {
+              view.focusPage(target);
+            }
           }
         }
       }
