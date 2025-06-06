@@ -60,7 +60,7 @@ async function loadOrCreateNotebook(
   let notebookDocId = localStorage.getItem(`${key}:docId`) as DocumentId;
 
   if (key == "sharedCalendar") {
-    notebookDocId = "3JioGfnw8XbtzvZQW5iyQARaQfYL" as DocumentId; // Load hardcoded shared calendar
+    notebookDocId = "4YSr2ALFD3wmTzfaqg4USdBBsxNX" as DocumentId; // Load hardcoded shared calendar
   }
 
   if (notebookDocId) {
