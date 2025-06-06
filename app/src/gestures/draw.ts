@@ -29,7 +29,6 @@ export default class Draw implements GestureHandler {
 
   tap(e: TouchEvent): boolean {
     if (this.toolbar.tap(e.current)) {
-      console.log("Toolbar tapped");
       this.drawHandler = this.toolbar.activeTool!.getHandler(
         this.view,
         this.notebook
@@ -54,6 +53,7 @@ export default class Draw implements GestureHandler {
 
   onEvent(e: TouchEvent) {
     if (e.type != "pencil") return;
+    if (!this.view.isZoomedIn()) return;
     switch (e.phase) {
       case "began": {
         if (this.tap(e)) {
