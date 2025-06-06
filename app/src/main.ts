@@ -256,6 +256,36 @@ new BrowserInput(view, addPageButtons, overlaySwitcher);
 
 console.log(notebookCollection.rootPages);
 
+// Try to handle errors
+// Access the network adapters
+const networkAdapters = notebookCollection.repo.networkSubsystem.adapters;
+const wsAdapter = networkAdapters.find(
+  (adapter) => adapter instanceof BrowserWebSocketClientAdapter
+) as BrowserWebSocketClientAdapter;
+
+wsAdapter.on("peer-disconnected", () => {
+  view.setToastMessage("closed connection to server");
+});
+
+wsAdapter.on("close", () => {
+  view.setToastMessage("closed connection to server");
+});
+
+// Global error handler for uncaught exceptions
+window.addEventListener("error", (event) => {
+  console.error("Global error caught:", event.error);
+  // You can send this to a logging service, show a user-friendly message, etc.
+  view.setToastMessage(event.error);
+});
+
+// Global handler for unhandled promise rejections
+window.addEventListener("unhandledrejection", (event) => {
+  console.error("Unhandled promise rejection:", event.reason);
+  view.setToastMessage(event.reason);
+  // Prevent the default browser behavior (logging to console)
+  event.preventDefault();
+});
+
 tick((dt) => {
   toolbar.isActive = view.isZoomedIn();
   overlaySwitcher.isActive = view.isZoomedIn();
