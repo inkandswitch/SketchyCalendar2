@@ -1,7 +1,7 @@
 // Derived intermediate representation that's useful for rendering & interactions
 
 import { AnimateVariable } from "lib/animate";
-import Render, { font, stroke } from "lib/render";
+import Render, { fill, font, stroke } from "lib/render";
 
 import { Camera } from "camera";
 import { PAPER_HEIGHT, PAPER_WIDTH } from "constants";
@@ -403,6 +403,13 @@ export class View {
     // Render the toast message
     if (this.toastMessage) {
       r.text(this.toastMessage, 100, 100, font("24px Arial", "red"));
+    }
+
+    // Render ops in the bottom corner
+    if (this.focusedPage) {
+      const dochandle = this.focusedPage.notebook.state.docHandle;
+      const metrics = dochandle.metrics();
+      r.text(`Ops: ${metrics.numOps}`, 10, 30, font("16px Arial", "red"));
     }
   }
 }
