@@ -88,6 +88,7 @@ export class Selection {
   }
 
   finishHull(point: Point, totalDelta: Vec) {
+    // Single tap selection
     if (Vec.len(totalDelta) < 10) {
       const currentPage = this.view.focusedPage!;
 
@@ -109,6 +110,7 @@ export class Selection {
       }
     }
 
+    // Hull selection
     const currentPage = this.view.focusedPage!;
     // Collect all the papers inside of the hull
     this.selectedPaperInstances = currentPage.paper.getPaperInstancesInsideHull(
@@ -129,6 +131,9 @@ export class Selection {
       this.mode = "selected";
       this.openActionBar();
       return;
+    } else {
+      // If no paper instances were found, clear the selection
+      this.selectedPaperInstances = null;
     }
 
     // Collect the strokes inside of the hull
