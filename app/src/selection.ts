@@ -38,12 +38,23 @@ export class Selection {
 
   actionBar: ActionBar | null = null;
 
+  cancelPenGesture: boolean = false;
+
   constructor(view: View, notebookCollection: NotebookCollection) {
     this.view = view;
     this.notebookCollection = notebookCollection;
   }
 
   penDown(e: TouchEvent) {
+    if (this.mode == "selected") {
+      if (this.actionBar) {
+        if (this.actionBar.tap(e.current)) {
+          this.cancelPenGesture = true;
+          return;
+        }
+      }
+    }
+
     if (this.mode == "off") {
       const worldPos = this.view.camera.screenToWorld(e.current);
       this.startHull(worldPos);
@@ -51,6 +62,7 @@ export class Selection {
   }
 
   penMove(e: TouchEvent) {
+    if (this.cancelPenGesture == true) return;
     const worldPos = this.view.camera.screenToWorld(e.current);
     if (this.mode == "selecting") {
       this.extendHull(worldPos);
@@ -62,10 +74,9 @@ export class Selection {
   }
 
   penUp(e: TouchEvent) {
-    if (this.actionBar) {
-      if (this.actionBar.tap(e.current)) {
-        return;
-      }
+    if (this.cancelPenGesture == true) {
+      this.cancelPenGesture = false;
+      return;
     }
     const worldPos = this.view.camera.screenToWorld(e.current);
     const worldStart = this.view.camera.screenToWorld(e.start);
