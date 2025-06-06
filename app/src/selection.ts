@@ -30,6 +30,7 @@ export class Selection {
   selectedStrokes: Set<Id<Stroke>> | null = null;
   selectedPaperInstances: Set<Id<PaperInstance>> | null = null;
   selectedLinks: Set<LinkableId> | null = null;
+  returnToPageAfterLink: Id<Page> | null = null;
 
   view: View;
   notebookCollection: NotebookCollection;
@@ -244,6 +245,11 @@ export class Selection {
         }
 
         this.selectedLinks = null; // Clear links after applying
+        const returnPage = this.notebookCollection.getPageById(
+          this.returnToPageAfterLink!
+        )!;
+        this.view.focusPage(returnPage);
+        this.returnToPageAfterLink = null; // Clear return page after applying
       }
     }
 
@@ -422,6 +428,7 @@ export class Selection {
 
       this.dropSelection();
       this.selectedLinks = selectedLinks;
+      this.returnToPageAfterLink = this.view.focusedPage!.id;
       this.mode = "selected";
       this.view.zoomOut();
     }
