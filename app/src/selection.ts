@@ -198,7 +198,7 @@ export class Selection {
           paperInstance.move(this.delta);
         }
 
-        if (paperInstance.paper.id != currentPage.paper.id) {
+        if (paperInstance.parentId != currentPage.paper.id) {
           if (!paperInstance.reparent(currentPage.paper.id)) {
             this.view.setToastMessage(
               "You can't move cards to a different notebook, because that makes our brain hurt. Sorry :'("
