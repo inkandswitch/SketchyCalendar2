@@ -258,18 +258,18 @@ console.log(notebookCollection.rootPages);
 
 // Try to handle errors
 // Access the network adapters
-const networkAdapters = notebookCollection.repo.networkSubsystem.adapters;
-const wsAdapter = networkAdapters.find(
-  (adapter) => adapter instanceof BrowserWebSocketClientAdapter
-) as BrowserWebSocketClientAdapter;
+// const networkAdapters = notebookCollection.repo.networkSubsystem.adapters;
+// const wsAdapter = networkAdapters.find(
+//   (adapter) => adapter instanceof BrowserWebSocketClientAdapter
+// ) as BrowserWebSocketClientAdapter;
 
-wsAdapter.on("peer-disconnected", () => {
-  view.setToastMessage("closed connection to server");
-});
+// wsAdapter.on("peer-disconnected", () => {
+//   view.setToastMessage("closed connection to server");
+// });
 
-wsAdapter.on("close", () => {
-  view.setToastMessage("closed connection to server");
-});
+// wsAdapter.on("close", () => {
+//   view.setToastMessage("closed connection to server");
+// });
 
 // Global error handler for uncaught exceptions
 window.addEventListener("error", (event) => {
