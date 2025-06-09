@@ -23,6 +23,7 @@ import { InputSystem } from "inputsystem";
 // Notebook
 import { BrowserWebSocketClientAdapter } from "@automerge/automerge-repo-network-websocket";
 import AddPageButtons from "addpagebuttons";
+import { TAG_PAPER_HEIGHT, TAG_PAPER_WIDTH } from "constants";
 import { getYear } from "date-fns";
 import OverlaySwitcher from "overlayswitcher";
 import { Selection } from "selection";
@@ -36,8 +37,6 @@ import {
 } from "things/notebook";
 import CardTool from "tools/card";
 import { View } from "view";
-import { TAG_PAPER_HEIGHT } from "constants";
-import { TAG_PAPER_WIDTH } from "constants";
 
 const ADD_DEV_NOTEBOOK = false;
 const PERSIST_DEV_NOTEBOOK = true;
@@ -50,6 +49,9 @@ const PERSIST_DEV_NOTEBOOK = true;
   localStorage.setItem("personalCalendar:docId", notebookDocId);
 };
 
+const SHARED_LAB_CALENDAR_DOC_URL =
+  "4YSr2ALFD3wmTzfaqg4USdBBsxNX" as DocumentId; // Load hardcoded shared calendar
+
 async function loadOrCreateNotebook(
   repo: Repo,
   key: string,
@@ -60,7 +62,7 @@ async function loadOrCreateNotebook(
   let notebookDocId = localStorage.getItem(`${key}:docId`) as DocumentId;
 
   if (key == "sharedCalendar") {
-    notebookDocId = "4YSr2ALFD3wmTzfaqg4USdBBsxNX" as DocumentId; // Load hardcoded shared calendar
+    notebookDocId = SHARED_LAB_CALENDAR_DOC_URL; // Load hardcoded shared calendar
   }
 
   if (notebookDocId) {
@@ -79,53 +81,17 @@ async function loadOrCreateNotebook(
 
 export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [
-      new BrowserWebSocketClientAdapter("wss://sketchy-sync.inkandswitch.com"),
-    ],
+    network: [new BrowserWebSocketClientAdapter("ws://192.168.178.101:3030")],
     storage: new IndexedDBStorageAdapter(),
+    sharePolicy: async (_peerId, documentId) => {
+      return documentId == SHARED_LAB_CALENDAR_DOC_URL;
+    },
   });
 
   const notebookCollection = new NotebookCollection();
 
-  // const testNotebook = Notebook.create(repo);
-  // notebookCollection.addNotebook(testNotebook);
-
-  // const rootPage = testNotebook.createPage({
-  //   parentId: null,
-  //   siblingIndex: 0,
-  //   width: PAPER_WIDTH,
-  //   height: PAPER_HEIGHT,
-  //   background: null,
-  // });
-
-  // const childPage = rootPage.addChildPage({
-  //   siblingIndex: 0,
-  //   width: PAPER_WIDTH,
-  //   height: PAPER_HEIGHT,
-  //   background: null,
-  // });
-
-  // const text = rootPage.paper.addNewText({
-  //   siblingIndex: 0,
-  //   value: "Down",
-  //   x: 50,
-  //   y: 50,
-  //   font: "100px Arial",
-  // });
-
-  // text.addLinkTo(childPage);
-
-  // const text2 = childPage.paper.addNewText({
-  //   siblingIndex: 0,
-  //   value: "UP",
-  //   x: 50,
-  //   y: 50,
-  //   font: "100px Arial",
-  // });
-
-  // text2.addLinkTo(rootPage);
-
-  // notebookCollection.addNotebook(testNotebook);
+  const testNotebook = Notebook.create(repo, "orange", notebookCollection);
+  notebookCollection.addNotebook(testNotebook);
 
   if (ADD_DEV_NOTEBOOK) {
     let devNotebook: Notebook;
