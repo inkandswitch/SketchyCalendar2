@@ -81,7 +81,11 @@ async function loadOrCreateNotebook(
 
 export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [new BrowserWebSocketClientAdapter("ws://192.168.178.101:3030")],
+    network: [
+      new BrowserWebSocketClientAdapter(
+        "wss://sketchy-sync.inkandswitch.com:3030"
+      ),
+    ],
     storage: new IndexedDBStorageAdapter(),
     sharePolicy: async (_peerId, documentId) => {
       return documentId == SHARED_LAB_CALENDAR_DOC_URL;
