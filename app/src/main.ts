@@ -82,9 +82,7 @@ async function loadOrCreateNotebook(
 export async function initNotebookCollection() {
   const repo = new Repo({
     network: [
-      new BrowserWebSocketClientAdapter(
-        "wss://sketchy-sync.inkandswitch.com:3030"
-      ),
+      new BrowserWebSocketClientAdapter("wss://sketchy-sync.inkandswitch.com"),
     ],
     storage: new IndexedDBStorageAdapter(),
     sharePolicy: async (_peerId, documentId) => {
