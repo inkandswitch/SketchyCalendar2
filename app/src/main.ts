@@ -81,9 +81,7 @@ async function loadOrCreateNotebook(
 
 export async function initNotebookCollection() {
   const repo = new Repo({
-    network: [
-      new BrowserWebSocketClientAdapter("wss://sketchy-sync.inkandswitch.com"),
-    ],
+    network: [new BrowserWebSocketClientAdapter("wss://sync3.automerge.org/")],
     storage: new IndexedDBStorageAdapter(),
   });
 
