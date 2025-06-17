@@ -409,7 +409,7 @@ export class View {
     if (this.focusedPage) {
       const dochandle = this.focusedPage.notebook.state.docHandle;
       const metrics = dochandle.metrics();
-      r.text(`Ops: ${metrics.numOps}`, 10, 30, font("16px Arial", "red"));
+      // r.text(`Ops: ${metrics.numOps}`, 10, 10, font("16px Arial", "gray"));
     }
   }
 }
