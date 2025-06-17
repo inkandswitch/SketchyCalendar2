@@ -85,9 +85,6 @@ export async function initNotebookCollection() {
       new BrowserWebSocketClientAdapter("wss://sketchy-sync.inkandswitch.com"),
     ],
     storage: new IndexedDBStorageAdapter(),
-    sharePolicy: async (_peerId, documentId) => {
-      return documentId == SHARED_LAB_CALENDAR_DOC_URL;
-    },
   });
 
   const notebookCollection = new NotebookCollection();
